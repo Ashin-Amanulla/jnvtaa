@@ -21,4 +21,3 @@ export default function LazyImage({ src, alt, className, ...props }) {
     </div>
   );
 }
-

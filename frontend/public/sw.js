@@ -1,23 +1,18 @@
-const CACHE_NAME = 'jnvtaa-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/src/main.jsx',
-  '/src/index.css',
-];
+const CACHE_NAME = "jnvtaa-v1";
+const urlsToCache = ["/", "/index.html", "/src/main.jsx", "/src/index.css"];
 
 // Install event
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
+      console.log("Opened cache");
       return cache.addAll(urlsToCache);
     })
   );
 });
 
 // Fetch event
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -25,7 +20,7 @@ self.addEventListener('fetch', (event) => {
       }
       return fetch(event.request).then((response) => {
         // Don't cache if not a success response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+        if (!response || response.status !== 200 || response.type !== "basic") {
           return response;
         }
 
@@ -41,7 +36,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Activate event
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -55,4 +50,3 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
-

@@ -14,20 +14,24 @@ Complete guide for deploying the JNVTAA alumni website to production.
 ### 1. Database Setup (MongoDB Atlas)
 
 1. **Create MongoDB Atlas Account**
+
    - Visit https://www.mongodb.com/cloud/atlas
    - Sign up for free tier
 
 2. **Create a Cluster**
+
    - Choose AWS/GCP/Azure
    - Select region closest to your users (Asia for India)
    - Create cluster (takes 3-5 minutes)
 
 3. **Configure Database Access**
+
    - Database Access → Add Database User
    - Create username and strong password
    - Save credentials securely
 
 4. **Configure Network Access**
+
    - Network Access → Add IP Address
    - Allow access from anywhere: `0.0.0.0/0` (for development)
    - Or add specific IPs for security
@@ -120,7 +124,7 @@ sudo nano /etc/nginx/sites-available/jnvtaa
 # server {
 #   listen 80;
 #   server_name api.jnvtaa.org;
-#   
+#
 #   location / {
 #     proxy_pass http://localhost:5000;
 #     proxy_http_version 1.1;
@@ -252,6 +256,7 @@ heroku run npm run seed   # Heroku
 #### B. Update CORS Settings
 
 Ensure backend `.env` has correct frontend URL:
+
 ```env
 CORS_ORIGIN=https://your-actual-frontend-domain.com
 ```
@@ -269,11 +274,13 @@ curl https://your-backend-url.com/api/batches
 #### D. Set up Custom Domain (Optional)
 
 **For Backend:**
+
 - Railway: Add custom domain in dashboard
 - Heroku: `heroku domains:add api.jnvtaa.org`
 - Configure DNS A/CNAME records
 
 **For Frontend:**
+
 - Vercel: Add custom domain in dashboard
 - Netlify: Add custom domain in dashboard
 - Add DNS records as instructed
@@ -283,6 +290,7 @@ curl https://your-backend-url.com/api/batches
 #### Setup Monitoring
 
 **Backend:**
+
 ```bash
 # PM2 monitoring (if using own server)
 pm2 install pm2-logrotate
@@ -294,6 +302,7 @@ pm2 logs jnvtaa-api
 ```
 
 **Uptime Monitoring:**
+
 - Use UptimeRobot (free) - https://uptimerobot.com
 - Monitor both frontend and backend
 - Set up email alerts
@@ -301,6 +310,7 @@ pm2 logs jnvtaa-api
 #### Database Backups
 
 **MongoDB Atlas:**
+
 - Automated backups are included
 - Configure backup schedule in Atlas dashboard
 - Test restore procedure
@@ -326,6 +336,7 @@ pm2 logs jnvtaa-api
 ### 8. Performance Optimization
 
 **Backend:**
+
 - [ ] Enable compression
 - [ ] Use Redis for caching (optional)
 - [ ] Optimize database queries
@@ -333,6 +344,7 @@ pm2 logs jnvtaa-api
 - [ ] Use CDN for static assets
 
 **Frontend:**
+
 - [ ] Enable code splitting (already configured)
 - [ ] Lazy load routes and images
 - [ ] Optimize images (compress, webp)
@@ -360,7 +372,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: "16"
       - run: cd backend && npm install
       - run: cd backend && npm test
       # Add deployment steps for your platform
@@ -371,7 +383,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: "16"
       - run: cd frontend && npm install
       - run: cd frontend && npm run build
       # Deploy to Vercel/Netlify
@@ -423,23 +435,27 @@ Done! Your site is live.
 ## Troubleshooting
 
 ### "CORS Error"
+
 - Check CORS_ORIGIN in backend matches frontend URL exactly
 - Include protocol (https://)
 - No trailing slash
 
 ### "Database Connection Failed"
+
 - Verify MongoDB Atlas connection string
 - Check IP whitelist in Atlas
 - Ensure username/password are correct
 - Test connection locally first
 
 ### "Build Failed"
+
 - Check Node.js version (v16+)
 - Clear node_modules and reinstall
 - Check for syntax errors
 - Verify all dependencies are in package.json
 
 ### "Images Not Loading"
+
 - Check image URLs are accessible
 - Implement Cloudinary for production
 - Verify CORS for image sources
@@ -449,11 +465,13 @@ Done! Your site is live.
 ### When to Scale
 
 - **Backend**: > 1000 concurrent users
+
   - Add load balancer
   - Use Redis for sessions
   - Consider microservices
 
 - **Database**: > 100,000 records
+
   - Add read replicas
   - Implement sharding
   - Optimize indexes
@@ -466,12 +484,14 @@ Done! Your site is live.
 ## Cost Estimates
 
 **Free Tier (Good for starting out):**
+
 - MongoDB Atlas: Free (512MB)
 - Railway: Free tier with limitations
 - Vercel: Free for personal projects
 - **Total: $0/month**
 
 **Production (Recommended):**
+
 - MongoDB Atlas: $9/month (Shared)
 - Railway/Heroku: $7-25/month
 - Vercel Pro: $20/month
@@ -479,6 +499,7 @@ Done! Your site is live.
 - **Total: ~$30-50/month**
 
 **Enterprise (High Traffic):**
+
 - MongoDB Atlas: $57+/month
 - DigitalOcean Droplet: $48/month
 - Cloudflare Pro: $20/month
@@ -488,6 +509,7 @@ Done! Your site is live.
 ## Support
 
 For deployment issues:
+
 - Check documentation: README.md, QUICKSTART.md
 - Review platform-specific docs
 - Contact JNVTAA tech team
@@ -496,4 +518,3 @@ For deployment issues:
 ---
 
 **Good luck with your deployment! 🚀**
-

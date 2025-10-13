@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 
-export default function StatsCounter({ end, duration = 2000, label, icon, color }) {
+export default function StatsCounter({
+  end,
+  duration = 2000,
+  label,
+  icon,
+  color,
+}) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -42,4 +48,3 @@ export default function StatsCounter({ end, duration = 2000, label, icon, color 
     </div>
   );
 }
-

@@ -18,25 +18,37 @@ export default function NotFound() {
           Page Not Found
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-md mx-auto">
-          Oops! The page you're looking for doesn't exist. It might have been moved or deleted.
+          Oops! The page you're looking for doesn't exist. It might have been
+          moved or deleted.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/" className="btn-primary flex items-center gap-2 justify-center">
+          <Link
+            to="/"
+            className="btn-primary flex items-center gap-2 justify-center"
+          >
             <FaHome />
             Go Home
           </Link>
-          <Link to="/directory" className="btn-outline flex items-center gap-2 justify-center">
+          <Link
+            to="/directory"
+            className="btn-outline flex items-center gap-2 justify-center"
+          >
             <FaSearch />
             Browse Directory
           </Link>
         </div>
 
         <p className="mt-8 text-sm text-gray-500">
-          Need help? <Link to="/contact" className="text-primary-600 hover:text-primary-700 underline">Contact us</Link>
+          Need help?{" "}
+          <Link
+            to="/contact"
+            className="text-primary-600 hover:text-primary-700 underline"
+          >
+            Contact us
+          </Link>
         </p>
       </div>
     </div>
   );
 }
-

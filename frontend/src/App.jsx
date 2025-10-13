@@ -48,7 +48,6 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -98,7 +97,7 @@ export default function App() {
                 </AdminRoute>
               }
             />
-            
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Route>

@@ -7,7 +7,7 @@ export function useLazyImage(src) {
 
   useEffect(() => {
     let observer;
-    
+
     if (imgRef.current && src) {
       observer = new IntersectionObserver(
         (entries) => {
@@ -43,4 +43,3 @@ export function useLazyImage(src) {
 
   return { imgRef, imageSrc, isLoaded };
 }
-
