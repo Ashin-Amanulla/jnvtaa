@@ -16,6 +16,20 @@ import About from "@/pages/About";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
+import Directory from "@/pages/Directory";
+import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
+import News from "@/pages/News";
+import NewsDetail from "@/pages/NewsDetail";
+import Gallery from "@/pages/Gallery";
+import Donate from "@/pages/Donate";
+import Jobs from "@/pages/Jobs";
+import Contact from "@/pages/Contact";
+import Profile from "@/pages/Profile";
+import BatchDetail from "@/pages/BatchDetail";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminRoute from "@/components/AdminRoute";
+import NotFound from "@/pages/NotFound";
 
 // Create QueryClient
 const queryClient = new QueryClient({
@@ -34,69 +48,6 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
-// Temporary placeholder components for routes not yet created
-function Directory() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Alumni Directory</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function Events() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Events</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function News() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">News & Updates</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function Gallery() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Gallery</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function Donate() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Donate</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function Jobs() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Job Board</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
-
-function Contact() {
-  return (
-    <div className="container-custom py-12">
-      <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-      <p className="text-gray-600">Coming soon...</p>
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -108,8 +59,11 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="directory" element={<Directory />} />
+            <Route path="directory/:id" element={<BatchDetail />} />
             <Route path="events" element={<Events />} />
+            <Route path="events/:id" element={<EventDetail />} />
             <Route path="news" element={<News />} />
+            <Route path="news/:id" element={<NewsDetail />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="donate" element={<Donate />} />
             <Route path="jobs" element={<Jobs />} />
@@ -128,6 +82,25 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="dashboard/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Router>

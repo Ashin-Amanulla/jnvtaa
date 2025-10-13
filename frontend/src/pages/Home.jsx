@@ -7,6 +7,9 @@ import {
 } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import { usersAPI, eventsAPI, newsAPI } from "@/api";
+import FeaturedAlumni from "@/components/FeaturedAlumni";
+import Testimonials from "@/components/Testimonials";
+import StatsCounter from "@/components/StatsCounter";
 
 export default function Home() {
   const { data: stats } = useQuery({
@@ -86,26 +89,41 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container-custom">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Our Growing Community
+            </h2>
+            <p className="text-lg text-gray-600">
+              Numbers that showcase our vibrant network
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {statsData.map((stat, index) => (
-              <div
-                key={index}
-                className="text-center p-8 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:shadow-lg transition-shadow animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div
-                  className={`${stat.color} w-20 h-20 rounded-full flex items-center justify-center text-white mx-auto mb-4`}
-                >
-                  {stat.icon}
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
+            <StatsCounter
+              end={stats?.data?.stats?.totalUsers || 500}
+              label="Alumni Members"
+              icon={<FaUsers className="text-4xl" />}
+              color="bg-blue-500"
+            />
+            <StatsCounter
+              end={25}
+              label="Batches"
+              icon={<FaGraduationCap className="text-4xl" />}
+              color="bg-green-500"
+            />
+            <StatsCounter
+              end={50}
+              label="Events Organized"
+              icon={<FaCalendarAlt className="text-4xl" />}
+              color="bg-purple-500"
+            />
+            <StatsCounter
+              end={15}
+              label="Countries Worldwide"
+              icon={<FaHandHoldingHeart className="text-4xl" />}
+              color="bg-orange-500"
+            />
           </div>
         </div>
       </section>
@@ -238,19 +256,39 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured Alumni */}
+      <FeaturedAlumni />
+
+      {/* Testimonials */}
+      <Testimonials />
+
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="container-custom text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to Reconnect?</h2>
+      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')]"></div>
+        </div>
+        
+        <div className="container-custom text-center relative z-10 animate-fade-in">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Ready to Reconnect?
+          </h2>
           <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto">
             Join our vibrant alumni community and be part of something special
           </p>
-          <Link
-            to="/register"
-            className="btn bg-white text-primary-600 hover:bg-gray-100 text-lg px-8 py-3"
-          >
-            Become a Member
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/register"
+              className="btn bg-white text-primary-600 hover:bg-gray-100 text-lg px-8 py-3 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+            >
+              Become a Member
+            </Link>
+            <Link
+              to="/donate"
+              className="btn bg-primary-500 text-white hover:bg-primary-400 text-lg px-8 py-3 border-2 border-white/30 hover:border-white/50 transition-all"
+            >
+              Support Us
+            </Link>
+          </div>
         </div>
       </section>
     </div>

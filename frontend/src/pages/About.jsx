@@ -1,4 +1,5 @@
 import { FaGraduationCap, FaHandshake, FaHeart, FaUsers } from "react-icons/fa";
+import Timeline from "@/components/Timeline";
 
 export default function About() {
   const values = [
@@ -123,35 +124,53 @@ export default function About() {
               Our Story
             </h2>
 
-            <div className="space-y-6 text-gray-600 leading-relaxed">
-              <p>
+            <div className="space-y-6 text-gray-600 leading-relaxed text-lg">
+              <p className="animate-fade-in">
                 Jawahar Navodaya Vidyalaya Thiruvananthapuram has been a beacon
                 of educational excellence since its inception. Our alumni have
                 gone on to achieve remarkable success in diverse fields across
                 the globe.
               </p>
 
-              <p>
+              <p className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
                 The JNVTAA was founded to bring together this incredible
                 community of achievers and create a platform for meaningful
                 engagement, networking, and giving back to our beloved
                 institution.
               </p>
 
-              <p>
+              <p className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
                 Today, JNVTAA represents hundreds of alumni from various
                 batches, spanning multiple decades. We organize regular
                 reunions, professional networking events, mentorship programs,
                 and fundraising initiatives to support current students.
               </p>
 
-              <p>
+              <p className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
                 Our association is built on the foundation of the values we
                 learned at JNV - excellence, integrity, social responsibility,
                 and the spirit of community service. We continue to embody these
                 values in all our endeavors.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Timeline */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+        <div className="container-custom">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Our Journey
+            </h2>
+            <p className="text-lg text-gray-600">
+              Key milestones in our remarkable history
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            <Timeline />
           </div>
         </div>
       </section>

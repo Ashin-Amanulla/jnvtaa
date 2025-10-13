@@ -59,6 +59,14 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center space-x-3">
             {isAuthenticated ? (
               <>
+                {(user?.role === "admin" || user?.role === "moderator") && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors font-medium"
+                  >
+                    <span>Admin</span>
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
