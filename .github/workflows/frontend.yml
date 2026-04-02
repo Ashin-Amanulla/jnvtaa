@@ -1,115 +1,124 @@
 name: Frontend CI/CD
 
 on:
-    push:
-        branches: [main, develop]
-        paths:
-            - "frontend/**"
-            - ".github/workflows/frontend.yml"
-    pull_request:
-        branches: [main, develop]
-        paths:
-            - "frontend/**"
+  push:
+    branches: [main, develop]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "frontend/**"
 
 jobs:
-    build:
-        name: Build and Test Frontend
-        runs-on: ubuntu-latest 
+  build:
+    name: Build and Test Frontend
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
-                  cache: "npm"
-                  cache-dependency-path: frontend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-            - name: Install dependencies
-              working-directory: ./frontend
-              run: npm ci
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
 
-          
+      - name: Create .env file for build
+        working-directory: ./frontend
+        run: |
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env
+          echo "VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}" >> .env
 
-            - name: Create .env file for build
-              working-directory: ./frontend
-              run: |
-                  echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env
-                  echo "VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}" >> .env
+      - name: Build application
+        working-directory: ./frontend
+        env:
+          NODE_OPTIONS: "--max-old-space-size=1024"
+        run: npm run build
 
-            - name: Build application
-              working-directory: ./frontend
-              env:
-                NODE_OPTIONS: "--max-old-space-size=1024"
-              run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 7
 
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: frontend-build
-                  path: frontend/dist
-                  retention-days: 7
+  deploy:
+    name: Deploy Frontend (SSH / Lightsail)
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      FRONTEND_WEB_ROOT: ${{ vars.FRONTEND_WEB_ROOT != '' && vars.FRONTEND_WEB_ROOT || '/var/www/jnvtaa' }}
 
-    deploy:
-        name: Deploy Frontend
-        runs-on: self-hosted
-        needs: build
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./build
 
-        steps:
-            - name: Download build artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  name: frontend-build
-                  path: ./build
+      - name: Pack static site
+        run: tar -czf frontend-dist.tar.gz -C build .
 
-            - name: Create deployment directory
-              run: |
-                  sudo mkdir -p /var/www/jnvtaa
-                  sudo chown -R $USER:$USER /var/www/jnvtaa
+      - name: Copy bundle to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT != '' && secrets.DEPLOY_SSH_PORT || '22' }}
+          source: "frontend-dist.tar.gz"
+          target: "/tmp"
+          timeout: 10m
 
-            - name: Deploy to Nginx directory
-              run: |
-                  rm -rf /var/www/jnvtaa/*
-                  cp -r ./build/* /var/www/jnvtaa/
+      - name: Install on server and reload Nginx
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT != '' && secrets.DEPLOY_SSH_PORT || '22' }}
+          timeout: 3m
+          script_stop: true
+          script: |
+            set -euo pipefail
+            WEB_ROOT="${{ env.FRONTEND_WEB_ROOT }}"
+            sudo mkdir -p "$WEB_ROOT"
+            sudo rm -rf "$WEB_ROOT"/*
+            sudo tar -xzf /tmp/frontend-dist.tar.gz -C "$WEB_ROOT"
+            rm -f /tmp/frontend-dist.tar.gz
+            sudo chown -R www-data:www-data "$WEB_ROOT"
+            sudo find "$WEB_ROOT" -type d -exec chmod 755 {} \;
+            sudo find "$WEB_ROOT" -type f -exec chmod 644 {} \;
+            sudo nginx -t
+            sudo systemctl reload nginx
+            systemctl is-active --quiet nginx && echo "Nginx is active"
 
-            - name: Set proper permissions
-              run: |
-                  sudo chown -R www-data:www-data /var/www/jnvtaa
-                  sudo find /var/www/jnvtaa -type d -exec chmod 755 {} \;
-                  sudo find /var/www/jnvtaa -type f -exec chmod 644 {} \;
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always()
 
-            - name: Test Nginx configuration
-              run: sudo nginx -t
+    steps:
+      - name: Deployment Success
+        if: needs.deploy.result == 'success'
+        run: echo "Frontend deployment successful"
 
-            - name: Reload Nginx
-              run: sudo systemctl reload nginx
+      - name: Deployment Failed
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "Frontend deployment failed"
+          exit 1
 
-            - name: Verify deployment
-              run: |
-                  sleep 2
-                  if systemctl is-active --quiet nginx; then
-                    echo "✅ Nginx is running"
-                  else
-                    echo "❌ Nginx is not running"
-                    exit 1
-                  fi
-
-    notify:
-        name: Notify Deployment Status
-        runs-on: self-hosted
-        needs: [build, deploy]
-        if: always()
-
-        steps:
-            - name: Deployment Success
-              if: needs.deploy.result == 'success'
-              run: echo "✅ Frontend deployment successful!"
-
-            - name: Deployment Failed
-              if: needs.deploy.result == 'failure'
-              run: |
-                  echo "❌ Frontend deployment failed!"
-                  exit 1
+# SSH: same secrets as backend (Lightsail host).
+# Optional repo Variable FRONTEND_WEB_ROOT — Nginx root (default /var/www/jnvtaa).
+# Remote user must have passwordless sudo for mkdir/rm/tar/chown/chmod/nginx.
