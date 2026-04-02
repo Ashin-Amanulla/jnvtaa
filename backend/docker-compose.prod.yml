@@ -1,0 +1,10 @@
+# Used on the Lightsail host. Copy this file + a production .env next to each other.
+# GitHub Actions sets BACKEND_IMAGE to your ECR URI:tag before pull/up.
+services:
+  api:
+    image: ${BACKEND_IMAGE}
+    ports:
+      - "${HOST_PORT:-80}:5454"
+    env_file:
+      - .env
+    restart: unless-stopped

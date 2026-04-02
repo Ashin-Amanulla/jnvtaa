@@ -9,54 +9,95 @@ on:
 
 jobs:
   deploy:
-    name: Build & Deploy Backend (Docker)
-    runs-on: self-hosted
+    name: Build & Deploy Backend (Docker over SSH)
+    runs-on: ubuntu-latest
+    # Host port (left side of -p). Default 5454. Override if another stack already uses 5454
+    # on this server (repo Variable BACKEND_HOST_PORT, or Secret DEPLOY_BACKEND_HOST_PORT).
+    env:
+      BACKEND_PUBLISH_PORT: ${{ secrets.DEPLOY_BACKEND_HOST_PORT != '' && secrets.DEPLOY_BACKEND_HOST_PORT || vars.BACKEND_HOST_PORT != '' && vars.BACKEND_HOST_PORT || '5454' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env file
-        working-directory: ./backend
-        run: |
-          echo "NODE_ENV=production" > .env
-          echo "PORT=5454" >> .env
-          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "API_URL=${{ secrets.API_URL }}" >> .env
-          echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
-          echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> .env
-          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
-          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> .env
-          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> .env
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> .env
-          echo "S3_FOLDER_PREFIXES=${{ secrets.S3_FOLDER_PREFIXES }}" >> .env
-          echo "S3_FOLDER_NAMES=${{ secrets.S3_FOLDER_NAMES }}" >> .env
-          
-
       - name: Build Docker image
         working-directory: ./backend
         run: docker build -t jnvtaa-backend:latest .
 
-      - name: Stop existing container
-        run: |
-          if docker ps -a --format '{{.Names}}' | grep -q jnvtaa-backend; then
-            docker stop jnvtaa-backend
-            docker rm jnvtaa-backend
-          fi
-
-      - name: Run new container
+      - name: Save Docker image
         working-directory: ./backend
-        run: |
-          docker run -d \
-            --name jnvtaa-backend \
-            --env-file .env \
-            -p 5454:5454 \
-            --restart unless-stopped \
-            jnvtaa-backend:latest
+        run: docker save jnvtaa-backend:latest -o "${GITHUB_WORKSPACE}/jnvtaa-backend-image.tar"
 
-      - name: Verify container
-        run: docker ps | grep jnvtaa-backend
+      - name: Copy image to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT != '' && secrets.DEPLOY_SSH_PORT || '22' }}
+          source: "jnvtaa-backend-image.tar"
+          target: "/tmp"
+          timeout: 10m
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_SSH_PORT != '' && secrets.DEPLOY_SSH_PORT || '22' }}
+          timeout: 5m
+          script_stop: true
+          script: |
+            set -euo pipefail
+            docker load -i /tmp/jnvtaa-backend-image.tar
+            rm -f /tmp/jnvtaa-backend-image.tar
+            if docker ps -a --format '{{.Names}}' | grep -q '^jnvtaa-backend$'; then
+              docker stop jnvtaa-backend
+              docker rm jnvtaa-backend
+            fi
+            resolve_env_file() {
+              if [ -n "${BACKEND_ENV_FILE:-}" ] && [ -f "$BACKEND_ENV_FILE" ]; then
+                echo "$BACKEND_ENV_FILE"
+                return 0
+              fi
+              for candidate in \
+                /opt/jnvtaa/backend/.env.production \
+                /opt/jnvtaa/backend/.env \
+                "${HOME}/jnvtaa/backend/.env.production" \
+                "${HOME}/jnvtaa/backend/.env"; do
+                if [ -f "$candidate" ]; then
+                  echo "$candidate"
+                  return 0
+                fi
+              done
+              return 1
+            }
+            ENV_FILE="$(resolve_env_file)" || {
+              echo "::error::No env file on server. Set BACKEND_ENV_FILE for the SSH user, or add /opt/jnvtaa/backend/.env.production (or .env)."
+              exit 1
+            }
+            echo "Using env file: $ENV_FILE"
+            echo "Publishing host port ${{ env.BACKEND_PUBLISH_PORT }} -> container 5454"
+            docker run -d \
+              --name jnvtaa-backend \
+              --env-file "$ENV_FILE" \
+              -p ${{ env.BACKEND_PUBLISH_PORT }}:5454 \
+              --restart unless-stopped \
+              jnvtaa-backend:latest
+            docker ps | grep jnvtaa-backend
+
+# GitHub repository Secrets (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST             — server IP or hostname
+#   DEPLOY_USER             — SSH login user (must run docker; in docker group or use sudo docker on host)
+#   DEPLOY_SSH_PRIVATE_KEY  — full private key (PEM), including -----BEGIN ... END-----
+#
+# Optional secret (omit to use SSH default port 22):
+#   DEPLOY_SSH_PORT
+#
+# Optional — host TCP port for this API when 5454 is already used by another container
+# on the same machine (maps HOST:5454; app inside container still listens on PORT=5454):
+#   Secret DEPLOY_BACKEND_HOST_PORT   — overrides Variable below if both set
+#   Variable BACKEND_HOST_PORT        — e.g. 5460
+#
+# App env stays on the server (--env-file), not in GitHub. Keep PORT=5454 in that file.
