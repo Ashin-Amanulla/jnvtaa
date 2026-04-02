@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { eventsAPI } from "@/api";
 import EventCard from "@/components/EventCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { FaCalendar } from "react-icons/fa";
+import { Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Events() {
   const [filter, setFilter] = useState("all");
@@ -25,37 +26,37 @@ export default function Events() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        </div>
-        
-        <div className="container-custom text-center relative z-10 animate-fade-in">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <FaCalendar className="text-4xl" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Alumni Events</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            Join us for reunions, networking events, and special gatherings
+      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom">
+          <p className="mb-3 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Community calendar
+          </p>
+          <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
+            Events
+          </h1>
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Reunions, fundraisers, and “remember when?” nights—grab a marker and
+            save the date.
           </p>
         </div>
       </section>
 
       {/* Filter Tabs */}
-      <section className="py-8 bg-white border-b border-gray-200 sticky top-16 z-40 shadow-sm">
+      <section className="sticky-below-nav py-6">
         <div className="container-custom">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-3">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
+                type="button"
                 onClick={() => setFilter(option.value)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`min-h-12 rounded-wobblySm border-[3px] px-6 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
                   filter === option.value
-                    ? "bg-primary-600 text-white shadow-lg scale-105"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "border-border bg-foreground text-background"
+                    : "border-border bg-white text-foreground hover:-rotate-1 hover:shadow-sketch"
                 }`}
               >
                 {option.label}
@@ -66,29 +67,23 @@ export default function Events() {
       </section>
 
       {/* Events Grid */}
-      <section className="py-12">
+      <section className="border-t-[3px] border-dashed border-border py-20">
         <div className="container-custom">
           {isLoading && <LoadingSpinner />}
 
           {!isLoading && eventsData?.data?.events?.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-                {eventsData.data.events.map((event, index) => (
-                  <div
-                    key={event._id}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <EventCard event={event} />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {eventsData.data.events.map((event) => (
+                  <EventCard key={event._id} event={event} />
                 ))}
               </div>
 
               {/* Pagination */}
               {eventsData.pagination && eventsData.pagination.totalPages > 1 && (
-                <div className="mt-12 flex justify-center gap-2">
-                  <button className="btn-outline">Previous</button>
-                  <button className="btn-primary">Next</button>
+                <div className="mt-16 flex justify-center gap-6">
+                  <button className="btn btn-outline">Previous</button>
+                  <button className="btn btn-primary">Next</button>
                 </div>
               )}
             </>
@@ -96,14 +91,12 @@ export default function Events() {
 
           {/* Empty State */}
           {!isLoading && eventsData?.data?.events?.length === 0 && (
-            <div className="text-center py-16 animate-fade-in">
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaCalendar className="text-4xl text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+              <Calendar className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
+              <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
                 No events found
               </h3>
-              <p className="text-gray-600">
+              <p className="mx-auto max-w-md font-sans text-lg text-muted-foreground">
                 {filter === "upcoming"
                   ? "No upcoming events scheduled at the moment. Check back soon!"
                   : filter === "completed"
@@ -116,18 +109,24 @@ export default function Events() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+      <section className="border-t-[3px] border-border bg-foreground py-24 text-background">
         <div className="container-custom text-center">
-          <h2 className="text-3xl font-bold mb-4">Want to Organize an Event?</h2>
-          <p className="text-lg text-primary-100 mb-6 max-w-2xl mx-auto">
-            Have an idea for an alumni gathering? Get in touch with us to organize your event!
+          <h2 className="mx-auto max-w-2xl font-display text-4xl font-bold md:text-5xl lg:text-6xl">
+            Pitch a gathering
+          </h2>
+          <div className="mx-auto mt-6 h-1 max-w-[6rem] border-b-4 border-dashed border-background" />
+          <p className="mx-auto mt-8 max-w-xl font-sans text-xl text-background/85">
+            Have a reunion idea? We’ll help with notes, nudges, and napkin
+            logistics.
           </p>
-          <a href="/contact" className="btn bg-white text-primary-600 hover:bg-gray-100">
-            Contact Us
-          </a>
+          <Link
+            to="/contact"
+            className="mt-10 inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-background bg-background px-8 py-3 font-sans text-xl font-normal text-foreground shadow-[4px_4px_0_0_#fdfbf7] transition-transform duration-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-accent hover:text-white hover:shadow-[2px_2px_0_0_#fdfbf7] focus-ring"
+          >
+            Get in touch →
+          </Link>
         </div>
       </section>
     </div>
   );
 }
-

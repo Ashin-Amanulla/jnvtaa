@@ -6,11 +6,11 @@ export default function LoadingSpinner({ size = "md" }) {
   };
 
   return (
-    <div className="flex items-center justify-center p-8">
+    <div className="flex items-center justify-center p-8" role="status" aria-live="polite">
+      <span className="sr-only">Loading</span>
       <div
-        className={`${sizes[size]} border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin`}
-      ></div>
+        className={`${sizes[size]} animate-spin rounded-wobblySm border-[3px] border-muted border-t-accent`}
+      />
     </div>
   );
 }
-

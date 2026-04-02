@@ -4,13 +4,13 @@ import { eventsAPI } from "@/api";
 import { useAuthStore } from "@/store/auth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaUsers,
-  FaClock,
-  FaArrowLeft,
-  FaCheckCircle,
-} from "react-icons/fa";
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  ArrowLeft,
+  CheckCircle2,
+} from "lucide-react";
 import { formatDate } from "@/utils/format";
 
 export default function EventDetail() {
@@ -40,7 +40,7 @@ export default function EventDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -49,12 +49,12 @@ export default function EventDetail() {
   const event = eventData?.data?.event;
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center card p-10 border-[2px] border-border">
+          <h2 className="text-4xl font-display font-medium mb-6">
             Event not found
           </h2>
-          <button onClick={() => navigate("/events")} className="btn-primary mt-4">
+          <button onClick={() => navigate("/events")} className="btn btn-primary px-8">
             Back to Events
           </button>
         </div>
@@ -71,49 +71,52 @@ export default function EventDetail() {
   const isUpcoming = new Date(event.date) > new Date();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground pb-24">
       {/* Back Button */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="sticky-below-nav relative">
         <div className="container-custom py-4">
           <button
+            type="button"
             onClick={() => navigate("/events")}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+            className="inline-flex items-center gap-2 font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-sm"
           >
-            <FaArrowLeft />
-            <span>Back to Events</span>
+            <ArrowLeft size={16} strokeWidth={2} />
+            Back to Events
           </button>
         </div>
       </div>
 
       {/* Hero Image */}
-      <div className="relative h-96 overflow-hidden bg-gray-900">
+      <div className="relative h-[60vh] min-h-[400px] overflow-hidden border-b-[3px] border-dashed border-border bg-muted">
         <img
           src={event.coverImage || "https://via.placeholder.com/1200x400"}
           alt={event.title}
-          className="w-full h-full object-cover opacity-80"
+          className="h-full w-full object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         
-        <div className="absolute bottom-0 left-0 right-0 container-custom pb-8">
-          <div className="text-white animate-slide-up">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-semibold">
-                {event.type.replace("_", " ").toUpperCase()}
+        <div className="absolute bottom-0 left-0 right-0 container-custom pb-16">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <span className="rounded-wobblySm border-[3px] border-border bg-foreground px-3 py-1 font-sans text-sm font-bold text-background shadow-sketchSm">
+                {event.type.replace("_", " ")}
               </span>
               {isUpcoming && (
-                <span className="px-4 py-2 bg-green-500 rounded-lg text-sm font-semibold animate-pulse">
-                  UPCOMING
+                <span className="rounded-wobblySm border-[3px] border-border bg-postit px-3 py-1 font-sans text-sm font-bold text-foreground shadow-sketchSm">
+                  Upcoming
                 </span>
               )}
             </div>
-            <h1 className="text-5xl font-bold mb-4">{event.title}</h1>
-            <div className="flex flex-wrap items-center gap-6 text-lg">
-              <div className="flex items-center">
-                <FaCalendarAlt className="mr-2" />
+            <h1 className="mb-8 max-w-4xl font-display text-5xl font-bold md:text-7xl lg:text-8xl">
+              {event.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-8 border-t-2 border-dashed border-border/60 pt-6 font-sans text-lg">
+              <div className="flex items-center text-muted-foreground">
+                <Calendar className="mr-3 text-foreground" size={20} strokeWidth={2.5} />
                 <span>{formatDate(event.date, "PPP")}</span>
               </div>
-              <div className="flex items-center">
-                <FaMapMarkerAlt className="mr-2" />
+              <div className="flex items-center text-muted-foreground">
+                <MapPin className="mr-3 text-foreground" size={20} strokeWidth={2.5} />
                 <span>
                   {event.location.isVirtual ? "Virtual Event" : event.location.city}
                 </span>
@@ -124,49 +127,59 @@ export default function EventDetail() {
       </div>
 
       {/* Main Content */}
-      <section className="py-12">
+      <section className="pt-24">
         <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             {/* Left Column - Event Details */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-8 space-y-12">
               {/* Description */}
-              <div className="card p-8 animate-fade-in">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+                <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                   About This Event
                 </h2>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                <div className="h-[2px] w-12 bg-foreground mb-8"></div>
+                <p className="font-sans text-lg text-muted-foreground leading-relaxed whitespace-pre-line">
                   {event.description}
                 </p>
               </div>
 
               {/* Location Details */}
               {event.location && (
-                <div className="card p-8 animate-fade-in">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+                  <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                     Location
                   </h2>
-                  <div className="space-y-3">
+                  <div className="h-[2px] w-12 bg-foreground mb-8"></div>
+                  <div className="space-y-6">
                     {event.location.venue && (
-                      <p className="text-gray-700">
-                        <span className="font-semibold">Venue:</span>{" "}
-                        {event.location.venue}
-                      </p>
+                      <div className="flex items-start gap-4">
+                        <MapPin className="text-muted-foreground shrink-0 mt-1" size={20} strokeWidth={1.5} />
+                        <div>
+                          <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1">Venue</p>
+                          <p className="font-sans text-lg">{event.location.venue}</p>
+                        </div>
+                      </div>
                     )}
                     {event.location.address && (
-                      <p className="text-gray-700">
-                        <span className="font-semibold">Address:</span>{" "}
-                        {event.location.address}
-                      </p>
+                      <div className="flex items-start gap-4">
+                        <div className="w-5"></div>
+                        <div>
+                          <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1">Address</p>
+                          <p className="font-sans text-lg text-muted-foreground">{event.location.address}</p>
+                        </div>
+                      </div>
                     )}
                     {event.location.virtualLink && (
-                      <a
-                        href={event.location.virtualLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-700 underline"
-                      >
-                        Join Virtual Event
-                      </a>
+                      <div className="pt-4 mt-4 border-t-[1px] border-border">
+                        <a
+                          href={event.location.virtualLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 font-mono text-sm tracking-widest uppercase font-bold underline decoration-2 underline-offset-4"
+                        >
+                          Join Virtual Event →
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -174,24 +187,24 @@ export default function EventDetail() {
 
               {/* Organizer */}
               {event.organizer && (
-                <div className="card p-8 animate-fade-in">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+                  <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                     Organized By
                   </h2>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                     <img
                       src={
                         event.organizer.avatar ||
-                        `https://ui-avatars.com/api/?name=${event.organizer.firstName}`
+                        `https://ui-avatars.com/api/?name=${event.organizer.firstName}&background=000&color=fff`
                       }
                       alt={event.organizer.firstName}
-                      className="w-16 h-16 rounded-full"
+                      className="w-24 h-24 grayscale border-[2px] border-foreground"
                     />
                     <div>
-                      <p className="font-bold text-gray-900">
+                      <p className="text-3xl font-display tracking-tighter font-medium mb-2">
                         {event.organizer.firstName} {event.organizer.lastName}
                       </p>
-                      <p className="text-sm text-gray-600">{event.organizer.email}</p>
+                      <p className="font-mono text-sm uppercase tracking-widest text-muted-foreground">{event.organizer.email}</p>
                     </div>
                   </div>
                 </div>
@@ -199,32 +212,32 @@ export default function EventDetail() {
             </div>
 
             {/* Right Column - RSVP & Info */}
-            <div className="space-y-6">
+            <div className="lg:col-span-4 space-y-8">
               {/* RSVP Card */}
               {isUpcoming && event.registrationRequired && (
-                <div className="card p-6 sticky top-24 animate-slide-up">
-                  <div className="text-center mb-6">
-                    <div className="text-4xl font-bold text-primary-600 mb-2">
+                <div className="card p-8 border-[4px] border-foreground bg-background shadow-none sticky top-[160px]">
+                  <div className="text-center mb-8 border-b-[2px] border-border pb-8">
+                    <div className="text-6xl font-display font-medium tracking-tighter mb-2">
                       {attendeesCount}
-                      {event.maxAttendees ? ` / ${event.maxAttendees}` : ""}
+                      {event.maxAttendees ? <span className="text-muted-foreground text-4xl">/{event.maxAttendees}</span> : ""}
                     </div>
-                    <p className="text-gray-600">Attendees Registered</p>
+                    <p className="font-mono text-xs uppercase tracking-widest font-bold text-muted-foreground">Attendees Registered</p>
                   </div>
 
                   {isAuthenticated ? (
                     <>
                       {isRegistered ? (
                         <>
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 flex items-center justify-center gap-2">
-                            <FaCheckCircle className="text-green-600" />
-                            <span className="text-green-700 font-semibold">
+                          <div className="border-[2px] border-foreground bg-foreground text-background p-4 mb-6 flex items-center justify-center gap-3">
+                            <CheckCircle2 size={20} strokeWidth={2} />
+                            <span className="font-mono text-sm tracking-widest uppercase font-bold">
                               You're registered!
                             </span>
                           </div>
                           <button
                             onClick={() => cancelRsvpMutation.mutate()}
                             disabled={cancelRsvpMutation.isLoading}
-                            className="w-full btn-secondary"
+                            className="w-full btn btn-secondary border-[2px]"
                           >
                             {cancelRsvpMutation.isLoading
                               ? "Cancelling..."
@@ -235,54 +248,54 @@ export default function EventDetail() {
                         <button
                           onClick={() => rsvpMutation.mutate()}
                           disabled={rsvpMutation.isLoading}
-                          className="w-full btn-primary text-lg py-3"
+                          className="w-full btn btn-primary py-4 text-base"
                         >
-                          {rsvpMutation.isLoading ? "Registering..." : "Register Now"}
+                          {rsvpMutation.isLoading ? "Registering..." : "Register Now →"}
                         </button>
                       )}
                     </>
                   ) : (
                     <div className="text-center">
-                      <p className="text-gray-600 mb-4">
+                      <p className="font-sans text-muted-foreground mb-6">
                         Login to register for this event
                       </p>
-                      <a href="/login" className="btn-primary w-full">
-                        Login to Register
+                      <a href="/login" className="btn btn-primary w-full">
+                        Login to Register →
                       </a>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Event Info */}
-              <div className="card p-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                <h3 className="font-bold text-gray-900 mb-4">Event Details</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <FaCalendarAlt className="text-primary-600 mt-1" />
+              {/* Event Info Snapshot */}
+              <div className="card p-8 border-[2px] border-border bg-muted shadow-none">
+                <h3 className="font-display text-2xl tracking-tighter font-medium mb-6">Snapshot</h3>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <Calendar className="text-foreground shrink-0 mt-1" size={20} strokeWidth={1.5} />
                     <div>
-                      <p className="text-sm text-gray-600">Date</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1 text-muted-foreground">Date</p>
+                      <p className="font-sans font-medium text-lg">
                         {formatDate(event.date, "PPP")}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <FaClock className="text-primary-600 mt-1" />
+                  <div className="flex items-start gap-4">
+                    <Clock className="text-foreground shrink-0 mt-1" size={20} strokeWidth={1.5} />
                     <div>
-                      <p className="text-sm text-gray-600">Time</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1 text-muted-foreground">Time</p>
+                      <p className="font-sans font-medium text-lg">
                         {formatDate(event.date, "p")}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <FaMapMarkerAlt className="text-primary-600 mt-1" />
+                  <div className="flex items-start gap-4">
+                    <MapPin className="text-foreground shrink-0 mt-1" size={20} strokeWidth={1.5} />
                     <div>
-                      <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1 text-muted-foreground">Location</p>
+                      <p className="font-sans font-medium text-lg">
                         {event.location.isVirtual
                           ? "Virtual Event"
                           : event.location.venue}
@@ -290,11 +303,11 @@ export default function EventDetail() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <FaUsers className="text-primary-600 mt-1" />
+                  <div className="flex items-start gap-4">
+                    <Users className="text-foreground shrink-0 mt-1" size={20} strokeWidth={1.5} />
                     <div>
-                      <p className="text-sm text-gray-600">Attendees</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-mono text-xs uppercase tracking-widest font-bold mb-1 text-muted-foreground">Attendees</p>
+                      <p className="font-sans font-medium text-lg">
                         {attendeesCount} registered
                       </p>
                     </div>
@@ -308,4 +321,3 @@ export default function EventDetail() {
     </div>
   );
 }
-

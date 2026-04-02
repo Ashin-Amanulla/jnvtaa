@@ -32,7 +32,31 @@ connectDB();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      const rawOrigins = process.env.CORS_ORIGIN || "http://localhost:5173";
+      const allowedOrigins = rawOrigins
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      // Allow non-browser clients/tools with no Origin header.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes("*")) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   })
 );

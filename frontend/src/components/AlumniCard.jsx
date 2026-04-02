@@ -1,85 +1,85 @@
 import { Link } from "react-router-dom";
-import {
-  FaMapMarkerAlt,
-  FaBriefcase,
-  FaLinkedin,
-  FaEnvelope,
-} from "react-icons/fa";
+import { MapPin, Briefcase, Users, Mail } from "lucide-react";
+import { SketchCard } from "@/components/SketchCard";
 
 export default function AlumniCard({ user }) {
   return (
     <Link
       to={`/directory/${user._id}`}
-      className="card hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
+      className="block focus-ring rounded-wobblyMd"
     >
-      <div className="p-6">
-        <div className="flex items-start space-x-4">
-          {/* Avatar */}
-          <div className="flex-shrink-0">
+      <SketchCard
+        tilt
+        className="p-0 transition-transform duration-100 hover:shadow-sketch"
+        contentClassName="p-6 md:p-8"
+      >
+        <div className="flex items-start gap-5">
+          <div className="shrink-0">
             <img
-              src={user.avatar || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`}
+              src={
+                user.avatar ||
+                `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=e5e0d8&color=2d2d2d`
+              }
               alt={`${user.firstName} ${user.lastName}`}
-              className="w-20 h-20 rounded-full object-cover border-4 border-gray-100 group-hover:border-primary-200 transition-colors"
+              className="h-20 w-20 border-[3px] border-border object-cover shadow-sketchSm"
+              style={{
+                borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px",
+              }}
             />
           </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-2xl font-bold text-foreground">
               {user.firstName} {user.lastName}
             </h3>
-            
             {user.batch && (
-              <p className="text-sm text-primary-600 font-semibold mb-2">
+              <p className="mt-1 font-sans text-lg text-pen">
                 Batch of {user.batch.year}
               </p>
             )}
-
             {user.profession && (
-              <div className="flex items-center text-sm text-gray-600 mb-2">
-                <FaBriefcase className="mr-2 text-gray-400" />
+              <div className="mt-3 flex items-center gap-2 font-sans text-base text-foreground">
+                <Briefcase size={18} strokeWidth={2.5} aria-hidden />
                 <span className="truncate">{user.profession}</span>
               </div>
             )}
-
             {user.currentCity && (
-              <div className="flex items-center text-sm text-gray-600 mb-3">
-                <FaMapMarkerAlt className="mr-2 text-gray-400" />
+              <div className="mt-2 flex items-center gap-2 font-sans text-base text-muted-foreground">
+                <MapPin size={18} strokeWidth={2.5} aria-hidden />
                 <span className="truncate">{user.currentCity}</span>
               </div>
             )}
-
-            {/* Social Links */}
-            <div className="flex items-center space-x-3">
+            <div className="mt-4 flex items-center gap-4">
               {user.socialLinks?.linkedin && (
                 <a
                   href={user.socialLinks.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-600 transition-colors"
+                  className="inline-flex text-foreground hover:text-accent focus-ring rounded-wobblySm p-1"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label="LinkedIn"
                 >
-                  <FaLinkedin size={18} />
+                  <Users size={20} strokeWidth={2.5} />
                 </a>
               )}
               {user.privacySettings?.showEmail && user.email && (
                 <a
                   href={`mailto:${user.email}`}
-                  className="text-gray-400 hover:text-primary-600 transition-colors"
+                  className="inline-flex text-foreground hover:text-pen focus-ring rounded-wobblySm p-1"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label="Email"
                 >
-                  <FaEnvelope size={18} />
+                  <Mail size={20} strokeWidth={2.5} />
                 </a>
               )}
             </div>
           </div>
         </div>
-
         {user.bio && (
-          <p className="mt-4 text-sm text-gray-600 line-clamp-2">{user.bio}</p>
+          <p className="mt-6 border-t-2 border-dashed border-border pt-6 font-sans text-base text-muted-foreground line-clamp-2">
+            {user.bio}
+          </p>
         )}
-      </div>
+      </SketchCard>
     </Link>
   );
 }
-

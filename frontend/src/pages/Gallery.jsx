@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { galleryAPI } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { FaImage, FaPlay, FaTimes } from "react-icons/fa";
+import { Image as ImageIcon, Play, X } from "lucide-react";
 
 export default function Gallery() {
   const [category, setCategory] = useState("");
@@ -24,39 +24,38 @@ export default function Gallery() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')]"></div>
-        </div>
-
-        <div className="container-custom text-center relative z-10 animate-fade-in">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <FaImage className="text-4xl" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Gallery</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            Relive cherished memories from our JNV days
+      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom">
+          <p className="mb-3 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Photo pile
+          </p>
+          <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
+            Gallery
+          </h1>
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Sweaty sports days, batch photos, and reunion chaos—pinned with love.
           </p>
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section className="py-8 bg-white border-b border-gray-200">
+      <section className="sticky-below-nav py-6">
         <div className="container-custom">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-3">
             {categories.map((cat) => (
               <button
                 key={cat.value}
+                type="button"
                 onClick={() => {
                   setCategory(cat.value);
                   setPage(1);
                 }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`min-h-12 rounded-wobblySm border-[3px] px-5 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
                   category === cat.value
-                    ? "bg-primary-600 text-white shadow-lg scale-105"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "border-border bg-foreground text-background"
+                    : "border-border bg-white text-foreground hover:-rotate-1"
                 }`}
               >
                 {cat.label}
@@ -67,49 +66,56 @@ export default function Gallery() {
       </section>
 
       {/* Gallery Grid */}
-      <section className="py-12">
+      <section className="py-20">
         <div className="container-custom">
           {isLoading && <LoadingSpinner />}
 
           {!isLoading && galleryData?.data?.items?.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
-              {galleryData.data.items.map((item, index) => (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {galleryData.data.items.map((item, i) => (
                 <div
                   key={item._id}
-                  className="group cursor-pointer animate-slide-up"
-                  style={{ animationDelay: `${index * 0.03}s` }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedItem(item);
+                    }
+                  }}
+                  className={`group relative aspect-square cursor-pointer overflow-hidden border-[3px] border-border bg-muted shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch ${
+                    i % 3 === 1 ? "md:translate-y-2" : ""
+                  }`}
+                  style={{
+                    borderRadius:
+                      i % 2 === 0
+                        ? "255px 15px 225px 15px / 15px 225px 15px 255px"
+                        : "15px 255px 15px 225px / 225px 15px 255px 15px",
+                  }}
                   onClick={() => setSelectedItem(item)}
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-200">
-                    <img
-                      src={item.thumbnail || item.url}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h4 className="text-white font-semibold text-sm mb-1 line-clamp-1">
-                          {item.title}
-                        </h4>
-                        {item.uploadedBy && (
-                          <p className="text-white/80 text-xs">
-                            by {item.uploadedBy.firstName}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Video Icon */}
-                    {item.type === "video" && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <FaPlay className="text-primary-600 text-xl ml-1" />
-                        </div>
-                      </div>
+                  <img
+                    src={item.thumbnail || item.url}
+                    alt={item.title}
+                    className="h-full w-full object-cover transition-transform duration-100 group-hover:scale-[1.03]"
+                  />
+                  <div className="absolute inset-0 flex flex-col justify-end bg-foreground/85 p-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+                    <h4 className="font-display text-xl font-bold text-background line-clamp-2">
+                      {item.title}
+                    </h4>
+                    {item.uploadedBy && (
+                      <p className="mt-1 font-sans text-sm text-background/80">
+                        By {item.uploadedBy.firstName}
+                      </p>
                     )}
                   </div>
+                  {item.type === "video" && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white text-foreground shadow-sketch">
+                        <Play size={24} strokeWidth={2.5} className="ml-0.5" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -117,14 +123,12 @@ export default function Gallery() {
 
           {/* Empty State */}
           {!isLoading && galleryData?.data?.items?.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaImage className="text-4xl text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No gallery items found
+            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+              <ImageIcon className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
+              <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
+                Empty album
               </h3>
-              <p className="text-gray-600">
+              <p className="mx-auto max-w-md font-sans text-lg text-muted-foreground">
                 Be the first to share your memories!
               </p>
             </div>
@@ -135,29 +139,38 @@ export default function Gallery() {
       {/* Lightbox Modal */}
       {selectedItem && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95 p-4"
           onClick={() => setSelectedItem(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Gallery item"
         >
           <button
+            type="button"
             onClick={() => setSelectedItem(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute right-6 top-6 rounded-wobblySm border-2 border-background bg-background px-3 py-2 text-foreground shadow-sketch focus-ring"
           >
-            <FaTimes size={32} />
+            <X size={28} strokeWidth={2.5} />
+            <span className="sr-only">Close</span>
           </button>
 
           <div
-            className="max-w-5xl w-full animate-slide-up"
+            className="w-full max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={selectedItem.url}
               alt={selectedItem.title}
-              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+              className="max-h-[80vh] w-full border-[3px] border-background object-contain shadow-[8px_8px_0_0_#fdfbf7]"
             />
-            <div className="mt-4 text-white text-center">
-              <h3 className="text-2xl font-bold mb-2">{selectedItem.title}</h3>
+            <div className="mt-8 text-left text-background">
+              <h3 className="font-display text-3xl font-bold md:text-4xl">
+                {selectedItem.title}
+              </h3>
               {selectedItem.description && (
-                <p className="text-gray-300">{selectedItem.description}</p>
+                <p className="mt-3 max-w-2xl font-sans text-lg text-background/85">
+                  {selectedItem.description}
+                </p>
               )}
             </div>
           </div>
@@ -166,4 +179,3 @@ export default function Gallery() {
     </div>
   );
 }
-

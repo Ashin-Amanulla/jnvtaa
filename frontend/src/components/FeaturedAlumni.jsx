@@ -1,78 +1,84 @@
+import { SectionHeading } from "@/components/SectionHeading";
+import { SketchCard } from "@/components/SketchCard";
+import { cn } from "@/utils/cn";
+
 export default function FeaturedAlumni() {
   const featuredAlumni = [
     {
       name: "Dr. Priya Menon",
       batch: "2005",
-      achievement: "Leading Neurosurgeon at AIIMS, Featured in Forbes Healthcare",
-      image: "https://ui-avatars.com/api/?name=Priya+Menon&size=200&background=4f46e5&color=fff",
+      achievement:
+        "Leading neurosurgeon at AIIMS; featured in Forbes Healthcare",
+      image:
+        "https://ui-avatars.com/api/?name=Priya+Menon&size=200&background=ff4d4d&color=fff",
       quote:
-        "JNV Trivandrum taught me the values of perseverance and excellence that shaped my medical career.",
+        "JNV Trivandrum taught me perseverance and excellence that shaped my medical career.",
     },
     {
       name: "Arun Kumar",
       batch: "2008",
-      achievement: "Founder & CEO of TechStart India, 50+ Million ARR",
-      image: "https://ui-avatars.com/api/?name=Arun+Kumar&size=200&background=059669&color=fff",
+      achievement: "Founder & CEO of TechStart India; 50M+ ARR",
+      image:
+        "https://ui-avatars.com/api/?name=Arun+Kumar&size=200&background=2d5da1&color=fff",
       quote:
-        "The leadership skills I developed at JNV became the foundation of my entrepreneurial journey.",
+        "Leadership at JNV became the foundation of my entrepreneurial journey.",
     },
     {
       name: "Anjali Sharma",
       batch: "2010",
-      achievement: "IAS Officer, District Magistrate, Winner of PM Excellence Award",
-      image: "https://ui-avatars.com/api/?name=Anjali+Sharma&size=200&background=dc2626&color=fff",
+      achievement:
+        "IAS officer, district magistrate, PM Excellence Award winner",
+      image:
+        "https://ui-avatars.com/api/?name=Anjali+Sharma&size=200&background=2d2d2d&color=fdfbf7",
       quote:
-        "JNV instilled in me the spirit of public service that drives my work every day.",
+        "Public service spirit from JNV drives my work every single day.",
     },
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+    <section className="border-t-[3px] border-dashed border-border py-20">
       <div className="container-custom">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Featured Alumni
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Celebrating the remarkable achievements of our alumni
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Hall of doodles"
+          title="Featured alumni"
+          description="Spotlighting people who turned midnight study sessions into real-world magic."
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid gap-8 md:grid-cols-3">
           {featuredAlumni.map((alumni, index) => (
-            <div
-              key={index}
-              className="card hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 animate-slide-up overflow-hidden group"
-              style={{ animationDelay: `${index * 0.2}s` }}
+            <SketchCard
+              key={alumni.name}
+              decoration={index === 1 ? "tape" : "none"}
+              postit={index === 2}
+              tilt
+              className={cn("p-0", index === 0 && "md:-rotate-1")}
+              contentClassName="flex flex-col"
             >
-              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600">
+              <div className="relative h-64 overflow-hidden border-b-[3px] border-border bg-muted">
                 <img
                   src={alumni.image}
                   alt={alumni.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="h-full w-full object-cover transition-transform duration-100 hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h3 className="text-2xl font-bold text-white mb-1">
-                    {alumni.name}
-                  </h3>
-                  <p className="text-white/90 text-sm">Batch of {alumni.batch}</p>
-                </div>
               </div>
-
-              <div className="p-6">
-                <p className="text-sm font-semibold text-primary-600 mb-3">
+              <div className="flex flex-grow flex-col p-6 md:p-8">
+                <h3 className="font-display text-3xl font-bold text-foreground">
+                  {alumni.name}
+                </h3>
+                <p className="mt-2 font-sans text-lg text-pen">
+                  Batch of {alumni.batch}
+                </p>
+                <p className="mt-4 font-sans text-lg leading-snug text-foreground">
                   {alumni.achievement}
                 </p>
-                <blockquote className="text-gray-600 italic border-l-4 border-primary-200 pl-4">
-                  "{alumni.quote}"
+                <blockquote className="mt-6 border-t-2 border-dashed border-border pt-6 font-sans text-lg italic text-muted-foreground">
+                  “{alumni.quote}”
                 </blockquote>
               </div>
-            </div>
+            </SketchCard>
           ))}
         </div>
       </div>
     </section>
   );
 }
-

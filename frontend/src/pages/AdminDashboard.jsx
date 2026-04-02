@@ -1,17 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { usersAPI, eventsAPI, donationsAPI } from "@/api";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import { usersAPI, donationsAPI } from "@/api";
 import {
-  FaUsers,
-  FaUserCheck,
-  FaUserClock,
-  FaCalendarAlt,
-  FaNewspaper,
-  FaImages,
-  FaMoneyBillWave,
-  FaBriefcase,
-} from "react-icons/fa";
+  Users,
+  UserCheck,
+  Clock,
+  Banknote,
+  LayoutDashboard,
+  Calendar,
+  Image as ImageIcon,
+  BarChart,
+  Settings,
+} from "lucide-react";
 import { formatCurrency } from "@/utils/format";
+import { SketchCard } from "@/components/SketchCard";
 
 export default function AdminDashboard() {
   const { data: userStats } = useQuery({
@@ -31,154 +32,185 @@ export default function AdminDashboard() {
 
   const quickStats = [
     {
-      label: "Total Alumni",
+      label: "Total alumni",
       value: userStats?.data?.stats?.totalUsers || 0,
-      icon: <FaUsers className="text-3xl" />,
-      color: "bg-blue-500",
+      icon: <Users size={26} strokeWidth={2.5} />,
     },
     {
-      label: "Verified Alumni",
+      label: "Verified",
       value: userStats?.data?.stats?.verifiedUsers || 0,
-      icon: <FaUserCheck className="text-3xl" />,
-      color: "bg-green-500",
+      icon: <UserCheck size={26} strokeWidth={2.5} />,
     },
     {
-      label: "Pending Verification",
+      label: "Pending",
       value: userStats?.data?.stats?.unverifiedUsers || 0,
-      icon: <FaUserClock className="text-3xl" />,
-      color: "bg-orange-500",
+      icon: <Clock size={26} strokeWidth={2.5} />,
     },
     {
-      label: "Total Donations",
+      label: "Donations",
       value: formatCurrency(donationStats?.data?.stats?.totalRaised || 0),
-      icon: <FaMoneyBillWave className="text-3xl" />,
-      color: "bg-purple-500",
+      icon: <Banknote size={26} strokeWidth={2.5} />,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container-custom">
-        {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
+    <div className="min-h-screen py-16 md:py-24">
+      <div className="container-custom max-w-7xl">
+        <div className="mb-14">
+          <p className="inline-block rotate-1 rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Moderators only
+          </p>
+          <h1 className="mt-4 flex flex-wrap items-center gap-4 font-display text-5xl font-bold md:text-6xl">
+            <LayoutDashboard size={40} strokeWidth={2.5} aria-hidden />
+            Admin panel
           </h1>
-          <p className="text-gray-600">
-            Manage the JNVTAA platform and community
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground">
+            Keep the alumni scrapbook organized—without sanding off the
+            personality.
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {quickStats.map((stat, index) => (
-            <div
-              key={index}
-              className="card p-6 animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div
-                className={`${stat.color} w-14 h-14 rounded-lg flex items-center justify-center text-white mb-4`}
-              >
-                {stat.icon}
-              </div>
-              <div className="text-sm text-gray-600 mb-1">{stat.label}</div>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Pending Verifications */}
-        {unverifiedUsers?.data?.users && unverifiedUsers.data.users.length > 0 && (
-          <div className="card p-8 mb-12 animate-slide-up" style={{ animationDelay: "0.4s" }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Pending User Verifications
-              </h2>
-              <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
-                {unverifiedUsers.pagination.total} Pending
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {unverifiedUsers.data.users.map((user) => (
-                <div
-                  key={user._id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+        <div className="grid gap-12 lg:grid-cols-12">
+          <div className="space-y-12 lg:col-span-8">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {quickStats.map((stat, index) => (
+                <SketchCard
+                  key={stat.label}
+                  tilt
+                  className={`p-5 md:p-6 ${index % 2 === 1 ? "md:translate-y-2" : ""}`}
+                  decoration={index === 0 ? "tack" : "none"}
                 >
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={
-                        user.avatar ||
-                        `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}`
-                      }
-                      alt={user.firstName}
-                      className="w-12 h-12 rounded-full"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {user.firstName} {user.lastName}
-                      </p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                      <p className="text-xs text-gray-500">
-                        Batch of {user.batch?.year}
-                      </p>
-                    </div>
+                  <div className="text-foreground">{stat.icon}</div>
+                  <div className="mt-4 font-display text-2xl font-bold leading-none text-foreground md:text-3xl">
+                    {stat.value}
                   </div>
-                  <button className="btn-primary text-sm">Verify</button>
-                </div>
+                  <div className="mt-2 font-sans text-sm text-muted-foreground md:text-base">
+                    {stat.label}
+                  </div>
+                </SketchCard>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Management Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              title: "User Management",
-              description: "Manage alumni accounts",
-              icon: <FaUsers className="text-2xl" />,
-              color: "bg-blue-500",
-            },
-            {
-              title: "Events Management",
-              description: "Create and manage events",
-              icon: <FaCalendarAlt className="text-2xl" />,
-              color: "bg-green-500",
-            },
-            {
-              title: "Content Moderation",
-              description: "Approve gallery & comments",
-              icon: <FaImages className="text-2xl" />,
-              color: "bg-purple-500",
-            },
-            {
-              title: "Analytics",
-              description: "View detailed insights",
-              icon: <FaNewspaper className="text-2xl" />,
-              color: "bg-orange-500",
-            },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="card p-6 hover:shadow-lg transition-all cursor-pointer group animate-slide-up"
-              style={{ animationDelay: `${0.5 + index * 0.1}s` }}
-            >
-              <div
-                className={`${item.color} w-14 h-14 rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}
+            {unverifiedUsers?.data?.users &&
+              unverifiedUsers.data.users.length > 0 && (
+                <SketchCard decoration="tape" tilt className="p-0">
+                  <div className="flex flex-col gap-4 border-b-[3px] border-dashed border-border p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+                    <h2 className="font-display text-2xl font-bold md:text-3xl">
+                      Pending verifications
+                    </h2>
+                    <span className="w-fit rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-sm font-bold shadow-sketchSm">
+                      {unverifiedUsers.pagination.total} waiting
+                    </span>
+                  </div>
+
+                  <div className="divide-y-2 divide-dashed divide-border">
+                    {unverifiedUsers.data.users.map((user) => (
+                      <div
+                        key={user._id}
+                        className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:p-8"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={
+                              user.avatar ||
+                              `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=e5e0d8&color=2d2d2d`
+                            }
+                            alt=""
+                            className="h-16 w-16 border-[3px] border-border object-cover shadow-sketchSm"
+                            style={{
+                              borderRadius:
+                                "255px 15px 225px 15px / 15px 225px 15px 255px",
+                            }}
+                          />
+                          <div>
+                            <p className="font-display text-xl font-bold">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="font-sans text-sm text-muted-foreground md:text-base">
+                              {user.email} · Batch {user.batch?.year}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-primary w-full shrink-0 md:w-auto"
+                        >
+                          Verify
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t-2 border-dashed border-border bg-muted p-4 text-center">
+                    <button
+                      type="button"
+                      className="font-sans text-lg font-bold text-pen underline decoration-wavy decoration-2"
+                    >
+                      View all pending →
+                    </button>
+                  </div>
+                </SketchCard>
+              )}
+          </div>
+
+          <div className="space-y-4 lg:col-span-4">
+            <h3 className="font-display text-xl font-bold text-muted-foreground">
+              Modules
+            </h3>
+            {[
+              {
+                title: "Users",
+                description: "Accounts & roles",
+                icon: <Users size={24} strokeWidth={2.5} />,
+                link: "#",
+              },
+              {
+                title: "Events",
+                description: "Create & edit",
+                icon: <Calendar size={24} strokeWidth={2.5} />,
+                link: "#",
+              },
+              {
+                title: "Moderation",
+                description: "Approve posts",
+                icon: <ImageIcon size={24} strokeWidth={2.5} />,
+                link: "#",
+              },
+              {
+                title: "Analytics",
+                description: "Trends & exports",
+                icon: <BarChart size={24} strokeWidth={2.5} />,
+                link: "#",
+              },
+              {
+                title: "Settings",
+                description: "Platform config",
+                icon: <Settings size={24} strokeWidth={2.5} />,
+                link: "#",
+              },
+            ].map((item) => (
+              <a
+                href={item.link}
+                key={item.title}
+                className="flex items-center gap-4 rounded-wobblyMd border-[3px] border-border bg-white p-5 shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch focus-ring"
               >
-                {item.icon}
-              </div>
-              <h3 className="font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
-                {item.title}
-              </h3>
-              <p className="text-sm text-gray-600">{item.description}</p>
-            </div>
-          ))}
+                <span className="flex h-12 w-12 items-center justify-center rounded-wobblySm border-2 border-border bg-muted">
+                  {item.icon}
+                </span>
+                <div>
+                  <h3 className="font-display text-xl font-bold underline decoration-dashed decoration-2 underline-offset-4">
+                    {item.title}
+                  </h3>
+                  <p className="font-sans text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
