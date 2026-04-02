@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import User from "../modules/users/users.model.js";
 import Batch from "../modules/batches/batches.model.js";
 import Event from "../modules/events/events.model.js";
@@ -47,12 +48,17 @@ const seedBatches = async () => {
       description: `The batch of ${year} was known for their excellence in academics and sports.`,
     });
   }
-  await Batch.insertMany(batches);
-  console.log(`✅ Created ${batches.length} batches`);
-  return batches;
+  const createdBatches = await Batch.insertMany(batches);
+  console.log(`✅ Created ${createdBatches.length} batches`);
+  return createdBatches;
 };
 
 const seedUsers = async (batches) => {
+  const hashSeedPassword = async (password) => {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  };
+
   const firstNames = [
     "Aditya",
     "Anjali",
@@ -199,12 +205,16 @@ const seedUsers = async (batches) => {
 
   const users = [];
 
+  const adminPassword = await hashSeedPassword("admin123");
+  const alumniPassword = await hashSeedPassword("alumni123");
+  const defaultUserPassword = await hashSeedPassword("password123");
+
   // Create admin user
   users.push({
     firstName: "Admin",
     lastName: "JNVTAA",
     email: "admin@jnvtaa.org",
-    password: "admin123",
+    password: adminPassword,
     batch: batches[Math.floor(Math.random() * batches.length)]._id,
     role: "admin",
     isVerified: true,
@@ -216,6 +226,23 @@ const seedUsers = async (batches) => {
     bio: "Managing the JNVTAA platform and community.",
   });
 
+  // Create a fixed alumni user for easy local testing
+  users.push({
+    firstName: "Alumni",
+    lastName: "Member",
+    email: "alumni@jnvtaa.org",
+    password: alumniPassword,
+    batch: batches[Math.floor(Math.random() * batches.length)]._id,
+    role: "user",
+    isVerified: true,
+    phone: "+91 9876500000",
+    currentCity: "Thiruvananthapuram",
+    currentCountry: "India",
+    profession: "Software Engineer",
+    company: "JNVTAA Network",
+    bio: "Demo alumni account for testing member-only features.",
+  });
+
   // Create regular users
   for (let i = 0; i < 60; i++) {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
@@ -225,7 +252,7 @@ const seedUsers = async (batches) => {
       firstName,
       lastName,
       email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`,
-      password: "password123",
+      password: defaultUserPassword,
       batch: batches[Math.floor(Math.random() * batches.length)]._id,
       phone: `+91 ${Math.floor(Math.random() * 9000000000) + 1000000000}`,
       dateOfBirth: new Date(
@@ -260,9 +287,9 @@ const seedUsers = async (batches) => {
     });
   }
 
-  await User.insertMany(users);
-  console.log(`✅ Created ${users.length} users`);
-  return users;
+  const createdUsers = await User.insertMany(users);
+  console.log(`✅ Created ${createdUsers.length} users`);
+  return createdUsers;
 };
 
 const seedEvents = async (users, batches) => {
@@ -330,9 +357,9 @@ const seedEvents = async (users, batches) => {
     });
   }
 
-  await Event.insertMany(events);
-  console.log(`✅ Created ${events.length} events`);
-  return events;
+  const createdEvents = await Event.insertMany(events);
+  console.log(`✅ Created ${createdEvents.length} events`);
+  return createdEvents;
 };
 
 const seedNews = async (users) => {
@@ -620,6 +647,9 @@ const seedDatabase = async () => {
     console.log("\n👤 Admin credentials:");
     console.log("   Email: admin@jnvtaa.org");
     console.log("   Password: admin123");
+    console.log("\n👤 Alumni test credentials:");
+    console.log("   Email: alumni@jnvtaa.org");
+    console.log("   Password: alumni123");
 
     process.exit(0);
   } catch (error) {

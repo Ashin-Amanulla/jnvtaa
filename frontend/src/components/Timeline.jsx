@@ -4,35 +4,33 @@ import { SketchCard } from "@/components/SketchCard";
 export default function Timeline() {
   const milestones = [
     {
-      year: "1985",
-      title: "JNV Trivandrum established",
+      year: "2001",
+      title: "Journey begins at Pettah, Trivandrum",
       description:
-        "Quality education for talented students from rural areas—our origin story.",
+        "Our story starts with the first campus at Pettah, Trivandrum.",
     },
     {
-      year: "1997",
+      year: "2005",
+      title: "New campus opens at Vithura",
+      description:
+        "The institution moves into a new chapter with the Vithura campus.",
+    },
+    {
+      year: "2008",
       title: "First batch passes out",
-      description: "The alumni legacy officially begins.",
-    },
-    {
-      year: "2010",
-      title: "JNVTAA founded",
-      description: "A formal home for networking and giving back.",
-    },
-    {
-      year: "2015",
-      title: "First grand reunion",
-      description: "200+ alumni celebrating 30 years together.",
+      description: "The first graduating batch marks a proud milestone.",
     },
     {
       year: "2020",
-      title: "Global alumni network",
-      description: "Chapters in 15+ countries and counting.",
+      title: "Alumni registration begins",
+      description:
+        "A structured alumni registration effort starts to reconnect batches.",
     },
     {
-      year: "2024",
-      title: "Digital platform launch",
-      description: "This very site—still imperfect, always improving.",
+      year: "2026",
+      title: "25th anniversary celebration",
+      description:
+        "Celebrating 25 years of JNV Trivandrum's journey and community spirit.",
     },
   ];
 

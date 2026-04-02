@@ -62,8 +62,22 @@ export default function App() {
             {/* Public Routes */}
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
-            <Route path="directory" element={<Directory />} />
-            <Route path="directory/:id" element={<BatchDetail />} />
+            <Route
+              path="directory"
+              element={
+                <ProtectedRoute>
+                  <Directory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="directory/:id"
+              element={
+                <ProtectedRoute>
+                  <BatchDetail />
+                </ProtectedRoute>
+              }
+            />
             <Route path="events" element={<Events />} />
             <Route path="events/:id" element={<EventDetail />} />
             <Route path="news" element={<News />} />

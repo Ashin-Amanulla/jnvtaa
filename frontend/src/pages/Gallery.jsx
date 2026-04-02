@@ -1,27 +1,57 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { galleryAPI } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { Image as ImageIcon, Play, X } from "lucide-react";
 
+const PAGE_SIZE = 12;
+
 export default function Gallery() {
-  const [category, setCategory] = useState("");
+  const [folderId, setFolderId] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [page, setPage] = useState(1);
 
-  const { data: galleryData, isLoading } = useQuery({
-    queryKey: ["gallery", category, page],
-    queryFn: () => galleryAPI.getAll({ category, page, limit: 12 }),
+  const {
+    data: feedRes,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["gallery", "s3-feed"],
+    queryFn: () => galleryAPI.getS3Feed(),
+    staleTime: 60_000,
   });
 
-  const categories = [
-    { value: "", label: "All" },
-    { value: "event", label: "Events" },
-    { value: "batch", label: "Batch Photos" },
-    { value: "campus", label: "Campus" },
-    { value: "achievement", label: "Achievements" },
-    { value: "reunion", label: "Reunions" },
-  ];
+  const allItems = feedRes?.data?.items ?? [];
+  const folderOptions = feedRes?.data?.folders ?? [];
+
+  const categoryButtons = useMemo(
+    () => [
+      { value: "", label: "All" },
+      ...folderOptions.map((f) => ({
+        value: f.id,
+        label: f.name,
+      })),
+    ],
+    [folderOptions],
+  );
+
+  const filteredItems = useMemo(() => {
+    if (!folderId) return allItems;
+    return allItems.filter((i) => i.folderId === folderId);
+  }, [allItems, folderId]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const paginatedItems = useMemo(() => {
+    const p = Math.min(Math.max(1, page), totalPages);
+    const start = (p - 1) * PAGE_SIZE;
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, page, totalPages]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,16 +74,16 @@ export default function Gallery() {
       <section className="sticky-below-nav py-6">
         <div className="container-custom">
           <div className="flex flex-wrap gap-3">
-            {categories.map((cat) => (
+            {categoryButtons.map((cat) => (
               <button
-                key={cat.value}
+                key={cat.value || "all"}
                 type="button"
                 onClick={() => {
-                  setCategory(cat.value);
+                  setFolderId(cat.value);
                   setPage(1);
                 }}
                 className={`min-h-12 rounded-wobblySm border-[3px] px-5 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
-                  category === cat.value
+                  folderId === cat.value
                     ? "border-border bg-foreground text-background"
                     : "border-border bg-white text-foreground hover:-rotate-1"
                 }`}
@@ -70,66 +100,112 @@ export default function Gallery() {
         <div className="container-custom">
           {isLoading && <LoadingSpinner />}
 
-          {!isLoading && galleryData?.data?.items?.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {galleryData.data.items.map((item, i) => (
-                <div
-                  key={item._id}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedItem(item);
-                    }
-                  }}
-                  className={`group relative aspect-square cursor-pointer overflow-hidden border-[3px] border-border bg-muted shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch ${
-                    i % 3 === 1 ? "md:translate-y-2" : ""
-                  }`}
-                  style={{
-                    borderRadius:
-                      i % 2 === 0
-                        ? "255px 15px 225px 15px / 15px 225px 15px 255px"
-                        : "15px 255px 15px 225px / 225px 15px 255px 15px",
-                  }}
-                  onClick={() => setSelectedItem(item)}
-                >
-                  <img
-                    src={item.thumbnail || item.url}
-                    alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-100 group-hover:scale-[1.03]"
-                  />
-                  <div className="absolute inset-0 flex flex-col justify-end bg-foreground/85 p-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
-                    <h4 className="font-display text-xl font-bold text-background line-clamp-2">
-                      {item.title}
-                    </h4>
-                    {item.uploadedBy && (
-                      <p className="mt-1 font-sans text-sm text-background/80">
-                        By {item.uploadedBy.firstName}
-                      </p>
-                    )}
-                  </div>
-                  {item.type === "video" && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white text-foreground shadow-sketch">
-                        <Play size={24} strokeWidth={2.5} className="ml-0.5" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+          {isError && (
+            <div className="rounded-wobblyMd border-[3px] border-dashed border-border bg-white px-6 py-12 text-center shadow-sketchSm">
+              <h3 className="mb-3 font-display text-2xl font-bold md:text-3xl">
+                Couldn&apos;t load album
+              </h3>
+              <p className="mx-auto max-w-lg font-sans text-lg text-muted-foreground">
+                {error?.message ||
+                  "The gallery service may be busy. Try again in a moment."}
+              </p>
             </div>
           )}
 
-          {/* Empty State */}
-          {!isLoading && galleryData?.data?.items?.length === 0 && (
+          {!isLoading && !isError && paginatedItems.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {paginatedItems.map((item, i) => (
+                  <div
+                    key={item._id}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedItem(item);
+                      }
+                    }}
+                    className={`group relative aspect-square cursor-pointer overflow-hidden border-[3px] border-border bg-muted shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch ${
+                      i % 3 === 1 ? "md:translate-y-2" : ""
+                    }`}
+                    style={{
+                      borderRadius:
+                        i % 2 === 0
+                          ? "255px 15px 225px 15px / 15px 225px 15px 255px"
+                          : "15px 255px 15px 225px / 225px 15px 255px 15px",
+                    }}
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <img
+                      src={item.thumbnail || item.url}
+                      alt={item.title}
+                      className="h-full w-full object-cover transition-transform duration-100 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-0 flex flex-col justify-end bg-foreground/85 p-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
+                      <h4 className="font-display text-xl font-bold text-background line-clamp-2">
+                        {item.title}
+                      </h4>
+                      {item.folderName && (
+                        <p className="mt-1 font-sans text-sm text-background/80">
+                          {item.folderName}
+                        </p>
+                      )}
+                      {item.uploadedBy && (
+                        <p className="mt-1 font-sans text-sm text-background/80">
+                          By {item.uploadedBy.firstName}
+                        </p>
+                      )}
+                    </div>
+                    {item.type === "video" && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white text-foreground shadow-sketch">
+                          <Play size={24} strokeWidth={2.5} className="ml-0.5" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="min-h-12 rounded-wobblySm border-[3px] border-border bg-white px-6 py-2 font-sans text-lg shadow-sketchSm focus-ring enabled:hover:-rotate-1 disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+                  <span className="font-sans text-lg text-muted-foreground">
+                    Page {Math.min(page, totalPages)} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="min-h-12 rounded-wobblySm border-[3px] border-border bg-white px-6 py-2 font-sans text-lg shadow-sketchSm focus-ring enabled:hover:-rotate-1 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {!isLoading && !isError && filteredItems.length === 0 && (
             <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
-              <ImageIcon className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
+              <ImageIcon
+                className="mx-auto mb-6 hidden text-muted-foreground md:block"
+                size={64}
+                strokeWidth={2}
+              />
               <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
                 Empty album
               </h3>
               <p className="mx-auto max-w-md font-sans text-lg text-muted-foreground">
-                Be the first to share your memories!
+                No photos in this folder yet.
               </p>
             </div>
           )}
@@ -167,6 +243,11 @@ export default function Gallery() {
               <h3 className="font-display text-3xl font-bold md:text-4xl">
                 {selectedItem.title}
               </h3>
+              {selectedItem.folderName && (
+                <p className="mt-2 font-sans text-lg text-background/80">
+                  {selectedItem.folderName}
+                </p>
+              )}
               {selectedItem.description && (
                 <p className="mt-3 max-w-2xl font-sans text-lg text-background/85">
                   {selectedItem.description}

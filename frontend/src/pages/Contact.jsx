@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Send,
-  Users,
-  Camera,
-} from "lucide-react";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { SketchCard } from "@/components/SketchCard";
 import { SectionHeading } from "@/components/SectionHeading";
+import {
+  formatVisitBlock,
+  formatEmailBlock,
+  formatPhoneBlock,
+  getSocialNavLinks,
+} from "@/config/site";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -41,19 +39,21 @@ export default function Contact() {
     {
       icon: <MapPin size={28} strokeWidth={2.5} />,
       title: "Visit",
-      content: "JNV Trivandrum Campus\nThiruvananthapuram, Kerala, India",
+      content: formatVisitBlock(),
     },
     {
       icon: <Mail size={28} strokeWidth={2.5} />,
       title: "Email",
-      content: "contact@jnvtaa.org\nsupport@jnvtaa.org",
+      content: formatEmailBlock(),
     },
     {
       icon: <Phone size={28} strokeWidth={2.5} />,
       title: "Call",
-      content: "+91 98765 43210\n+91 98765 43211",
+      content: formatPhoneBlock(),
     },
   ];
+
+  const socialLinks = getSocialNavLinks();
 
   return (
     <div className="min-h-screen">
@@ -107,15 +107,10 @@ export default function Contact() {
                   Hop between pages like we hopped benches.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {[
-                    { icon: Globe, label: "Site" },
-                    { icon: Send, label: "Ping" },
-                    { icon: Users, label: "Group" },
-                    { icon: Camera, label: "Pics" },
-                  ].map(({ icon: Icon, label }) => (
+                  {socialLinks.map(({ icon: Icon, href, label }) => (
                     <a
                       key={label}
-                      href="#"
+                      href={href}
                       aria-label={label}
                       className="inline-flex h-12 w-12 items-center justify-center rounded-wobbly border-2 border-border bg-white text-foreground shadow-sketchSm transition-transform duration-100 hover:-rotate-6 focus-ring"
                     >

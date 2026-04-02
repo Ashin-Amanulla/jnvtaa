@@ -8,12 +8,16 @@ import {
   approveGalleryItem,
   likeGalleryItem,
   addComment,
+  getS3MediaFeed,
 } from "./gallery.controller.js";
 import { protect, restrictTo } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes
+// Public routes — S3-backed feed (must be before "/:id")
+router.get("/media/feed", getS3MediaFeed);
+
+// Public routes — MongoDB gallery
 router.get("/", getAllGalleryItems);
 router.get("/:id", getGalleryItemById);
 

@@ -5,8 +5,8 @@ import { cn } from "@/utils/cn";
 export default function Testimonials() {
   const testimonials = [
     {
-      name: "Vikram Nair",
-      batch: "2012",
+      name: "Adarsh Nair",
+      batch: "2009",
       role: "Software engineer at Google",
       avatar:
         "https://ui-avatars.com/api/?name=Vikram+Nair&background=e5e0d8&color=2d2d2d",
@@ -14,20 +14,20 @@ export default function Testimonials() {
         "JNVTAA connected me with alumni worldwide—networking that actually feels human, not LinkedIn-cold.",
     },
     {
-      name: "Shalini Krishna",
-      batch: "2015",
-      role: "Doctor at Apollo Hospitals",
+      name: "Anagha Krishna",
+      batch: "2012",
+      role: "Doctor at Pariyaram Medical College",
       avatar:
         "https://ui-avatars.com/api/?name=Shalini+Krishna&background=fff9c4&color=2d2d2d",
       quote:
         "Keeps me tied to my roots while I chase night shifts—this community is my recharge.",
     },
     {
-      name: "Rahul Menon",
+      name: "Abhinandh",
       batch: "2009",
-      role: "Entrepreneur",
+      role: "Software engineer ",
       avatar:
-        "https://ui-avatars.com/api/?name=Rahul+Menon&background=ff4d4d&color=fff",
+        "https://ui-avatars.com/api/?name=Abhinandh&background=ff4d4d&color=fff",
       quote:
         "Mentorship when I started; now I mentor juniors. Full circle, full heart.",
     },

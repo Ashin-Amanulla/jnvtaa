@@ -1,16 +1,10 @@
 import { Link } from "react-router-dom";
-import {
-  Globe,
-  Send,
-  Users,
-  Camera,
-  Mail,
-  Phone,
-  MapPin,
-} from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { siteContact, getSocialNavLinks } from "@/config/site";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const socialLinks = getSocialNavLinks();
 
   const quickLinks = [
     { name: "About Us", path: "/about" },
@@ -36,14 +30,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="lg:col-span-1">
             <div className="mb-6 flex items-center gap-3">
-              <span
-                className="inline-flex rotate-2 items-center justify-center border-[3px] border-border bg-white px-3 py-2 font-display text-2xl font-bold text-foreground shadow-sketch"
+              <img
+                src="/logo.png"
+                alt=""
+                width={48}
+                height={48}
+                className="h-12 w-12 shrink-0 rotate-2 border-[3px] border-border bg-white object-cover shadow-sketch"
                 style={{
                   borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px",
                 }}
-              >
-                JNV
-              </span>
+              />
               <div>
                 <div className="font-display text-xl font-bold text-foreground">
                   JNVTAA
@@ -58,12 +54,7 @@ export default function Footer() {
               friendships, and giving back like we&apos;re still on campus.
             </p>
             <div className="mt-8 flex gap-3">
-              {[
-                { icon: Globe, href: "#", label: "Web" },
-                { icon: Send, href: "#", label: "Telegram" },
-                { icon: Users, href: "#", label: "Community" },
-                { icon: Camera, href: "#", label: "Photos" },
-              ].map(({ icon: Icon, href, label }) => (
+              {socialLinks.map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
@@ -122,9 +113,9 @@ export default function Footer() {
                   <MapPin size={18} strokeWidth={2.5} aria-hidden />
                 </span>
                 <span className="font-sans text-lg leading-snug">
-                  JNV Trivandrum
+                  {siteContact.addressLine1}
                   <br />
-                  Thiruvananthapuram, Kerala
+                  {siteContact.addressLine2}
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -132,34 +123,60 @@ export default function Footer() {
                   <Mail size={18} strokeWidth={2.5} aria-hidden />
                 </span>
                 <a
-                  href="mailto:contact@jnvtaa.org"
+                  href={`mailto:${siteContact.emailPrimary}`}
                   className="font-sans text-lg underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
                 >
-                  contact@jnvtaa.org
+                  {siteContact.emailPrimary}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-wobblySm border-2 border-border bg-white shadow-sketchSm">
                   <Phone size={18} strokeWidth={2.5} aria-hidden />
                 </span>
-                <a
-                  href="tel:+919876543210"
-                  className="font-sans text-lg underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
-                >
-                  +91 98765 43210
-                </a>
+                <span className="font-sans text-lg leading-snug">
+                  <a
+                    href={`tel:${siteContact.phoneTelPrimary}`}
+                    className="underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
+                  >
+                    {siteContact.phoneDisplayPrimary}
+                  </a>
+                  {siteContact.phoneDisplaySecondary && (
+                    <>
+                      <br />
+                      <a
+                        href={`tel:${siteContact.phoneTelSecondary}`}
+                        className="underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
+                      >
+                        {siteContact.phoneDisplaySecondary}
+                      </a>
+                    </>
+                  )}
+                </span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="section-divider mt-14" />
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
-          <p className="font-sans text-base text-muted-foreground">
-            © {currentYear} JNVTAA — scribbled with love.
-          </p>
-          <p className="font-sans text-base text-muted-foreground">
-            Imperfect on purpose · alumni-first
+        <div className="mt-8 space-y-4">
+          <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+            <p className="font-sans text-base text-muted-foreground">
+              © {currentYear} JNVTAA — scribbled with love.
+            </p>
+            <p className="font-sans text-base text-muted-foreground">
+              Imperfect on purpose · alumni-first
+            </p>
+          </div>
+          <p className="text-center font-sans text-xs text-muted-foreground md:text-left">
+            Developed by alumni Ashin Amanulla —{" "}
+            <a
+              href="https://xyvin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-dashed decoration-1 underline-offset-2 hover:text-pen focus-ring rounded-sm"
+            >
+              xyvin.com
+            </a>
           </p>
         </div>
       </div>

@@ -5,6 +5,78 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import { fetchUpstreamGalleryImages } from "../../services/galleryS3Upstream.js";
+
+/**
+ * Public feed backed by S3 URLs from the live gallery API (jnvta-2026).
+ * Normalized to match the shape the Gallery page expects (items + folder filters).
+ */
+export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
+  let upstreamRes;
+  try {
+    upstreamRes = await fetchUpstreamGalleryImages();
+  } catch (err) {
+    return next(new AppError(`Gallery upstream unreachable: ${err.message}`, 502));
+  }
+
+  if (!upstreamRes.ok) {
+    const text = await upstreamRes.text().catch(() => "");
+    return next(
+      new AppError(
+        `Gallery upstream error (${upstreamRes.status}): ${text.slice(0, 200)}`,
+        502,
+      ),
+    );
+  }
+
+  const body = await upstreamRes.json().catch(() => null);
+  if (!body?.success || !body?.data) {
+    return next(new AppError("Invalid gallery upstream response", 502));
+  }
+
+  const allImages = Array.isArray(body.data.allImages) ? body.data.allImages : [];
+
+  const items = allImages.map((img, index) => {
+    const key = img.key || img.id || `s3-${index}`;
+    const id =
+      typeof img.id === "string" && img.id.length
+        ? img.id
+        : String(key).replace(/[^a-zA-Z0-9-]/g, "-");
+
+    return {
+      _id: id,
+      url: img.url,
+      thumbnail: img.thumbnailLink || img.thumbnailUrl || img.url,
+      title: img.name || "Photo",
+      description: "",
+      type: "image",
+      folderId: img.folder?.id || "root",
+      folderName: img.folder?.name || "Album",
+      s3Key: img.key,
+      source: "s3",
+    };
+  });
+
+  const folderMap = new Map();
+  for (const item of items) {
+    if (!folderMap.has(item.folderId)) {
+      folderMap.set(item.folderId, {
+        id: item.folderId,
+        name: item.folderName,
+      });
+    }
+  }
+  const folders = [...folderMap.values()].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  sendSuccess(
+    res,
+    200,
+    { items, folders, upstream: { totalImages: items.length } },
+    "S3 gallery feed retrieved successfully",
+  );
+});
 
 // Get all gallery items
 export const getAllGalleryItems = asyncHandler(async (req, res) => {

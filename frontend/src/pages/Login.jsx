@@ -6,10 +6,26 @@ import { SketchCard } from "@/components/SketchCard";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [quickRole, setQuickRole] = useState("alumni");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuthStore();
+
+  const quickAccounts = {
+    alumni: {
+      email: "alumni@jnvtaa.org",
+      password: "alumni123",
+      label: "Alumni",
+      colorClass: "text-house-blue",
+    },
+    admin: {
+      email: "admin@jnvtaa.org",
+      password: "admin123",
+      label: "Admin",
+      colorClass: "text-house-red",
+    },
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,9 +61,48 @@ export default function Login() {
           <p className="mt-4 font-sans text-xl text-muted-foreground">
             Your dashboard, doodles optional.
           </p>
+          <div className="mt-4 flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-house-green" aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full bg-house-red" aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full bg-house-blue" aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full bg-house-yellow" aria-hidden />
+          </div>
         </div>
 
         <SketchCard decoration="tack" tilt className="p-8 md:p-10">
+          <div className="mb-6 rounded-wobblySm border-2 border-dashed border-border bg-white p-4">
+            <p className="mb-3 font-sans text-base text-muted-foreground">
+              Quick login role
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <select
+                value={quickRole}
+                onChange={(e) => setQuickRole(e.target.value)}
+                className="input w-full sm:flex-1"
+                aria-label="Select quick login role"
+              >
+                <option value="alumni">Alumni</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({
+                    email: quickAccounts[quickRole].email,
+                    password: quickAccounts[quickRole].password,
+                  });
+                  setError("");
+                }}
+                className="btn-outline w-full justify-center sm:w-auto"
+              >
+                Use {quickAccounts[quickRole].label}
+              </button>
+            </div>
+            <p className={`mt-2 font-sans text-sm ${quickAccounts[quickRole].colorClass}`}>
+              {quickAccounts[quickRole].email}
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {error && (
               <div

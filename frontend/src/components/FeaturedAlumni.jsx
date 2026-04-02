@@ -5,33 +5,33 @@ import { cn } from "@/utils/cn";
 export default function FeaturedAlumni() {
   const featuredAlumni = [
     {
-      name: "Dr. Priya Menon",
-      batch: "2005",
+      name: "Dr. Adhiti",
+      batch: "2023",
       achievement:
-        "Leading neurosurgeon at AIIMS; featured in Forbes Healthcare",
+        "UPSC Topper",
       image:
         "https://ui-avatars.com/api/?name=Priya+Menon&size=200&background=ff4d4d&color=fff",
       quote:
-        "JNV Trivandrum taught me perseverance and excellence that shaped my medical career.",
+        "JNV Trivandrum taught me perseverance and excellence that shaped my career.",
     },
     {
-      name: "Arun Kumar",
-      batch: "2008",
-      achievement: "Founder & CEO of TechStart India; 50M+ ARR",
+      name: "Ananthu JB",
+      batch: "2012",
+      achievement: "Kerala magistrate judge",
       image:
         "https://ui-avatars.com/api/?name=Arun+Kumar&size=200&background=2d5da1&color=fff",
       quote:
-        "Leadership at JNV became the foundation of my entrepreneurial journey.",
+        "Leadership at JNV became the foundation of my career.",
     },
     {
-      name: "Anjali Sharma",
-      batch: "2010",
+      name: "Sheni Sebastian",
+      batch: "2008",
       achievement:
-        "IAS officer, district magistrate, PM Excellence Award winner",
+        "Business man",
       image:
         "https://ui-avatars.com/api/?name=Anjali+Sharma&size=200&background=2d2d2d&color=fdfbf7",
       quote:
-        "Public service spirit from JNV drives my work every single day.",
+        "The culture of JNV drives my work every single day.",  
     },
   ];
 
