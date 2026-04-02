@@ -1,12 +1,50 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #fdfbf7;
+    --foreground: #2d2d2d;
+    --muted: #e5e0d8;
+    --muted-foreground: #5c5650;
+    --border: #2d2d2d;
+    --accent: #ff4d4d;
+    --pen: #2d5da1;
+    --house-green: #2f9e44;
+    --house-red: #ff4d4d;
+    --house-blue: #2d5da1;
+    --house-yellow: #f0b429;
+    --postit: #fff9c4;
+    --card: #ffffff;
+    --card-foreground: #2d2d2d;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   body {
-    @apply font-sans antialiased bg-gray-50 text-gray-900;
+    @apply font-sans antialiased text-foreground;
+    letter-spacing: 0.02em;
+    line-height: 1.65;
+    background-color: var(--background);
+    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   h1,
@@ -15,46 +53,113 @@
   h4,
   h5,
   h6 {
-    @apply font-display;
+    @apply font-display text-foreground;
+    letter-spacing: 0.02em;
   }
 }
 
 @layer components {
   .container-custom {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-5xl px-6 md:px-8;
   }
 
+  /* Hard-offset sketch buttons */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center;
+    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white px-6 py-3 font-sans text-lg font-normal text-foreground shadow-sketch transition-transform duration-100 md:text-xl;
+    @apply hover:bg-accent hover:text-white hover:shadow-sketchSm hover:translate-x-0.5 hover:translate-y-0.5;
+    @apply active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline-none;
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-4 focus:ring-primary-200;
+    @apply btn;
   }
 
   .btn-secondary {
-    @apply btn bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-4 focus:ring-gray-100;
+    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-border bg-muted px-6 py-3 font-sans text-lg font-normal text-foreground shadow-sketch transition-transform duration-100 md:text-xl;
+    @apply hover:bg-pen hover:text-white hover:shadow-sketchSm hover:translate-x-0.5 hover:translate-y-0.5;
+    @apply active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline-none;
   }
 
   .btn-outline {
-    @apply btn border-2 border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-4 focus:ring-primary-200;
+    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[2px] border-dashed border-border bg-transparent px-6 py-3 font-sans text-lg text-foreground shadow-none transition-transform duration-100;
+    @apply hover:border-solid hover:border-[3px] hover:shadow-sketch hover:-rotate-1;
+    @apply active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex min-h-12 items-center justify-center border-2 border-transparent bg-transparent px-3 py-2 font-sans text-lg text-foreground underline decoration-dashed decoration-2 underline-offset-[6px];
+    @apply hover:text-accent hover:decoration-accent hover:line-through decoration-solid;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+    @apply rounded-wobblyMd border-2 border-border bg-card p-6 text-card-foreground shadow-sketchCard md:p-8;
+  }
+
+  .card-inverted {
+    @apply rounded-wobblyMd border-[3px] border-border bg-foreground p-6 text-background shadow-sketch md:p-8;
   }
 
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all;
+    @apply w-full rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-lg text-foreground placeholder:text-muted-foreground;
+    @apply focus:border-pen focus:outline-none focus:ring-2 focus:ring-pen focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  .textarea {
+    @apply input resize-y min-h-[120px];
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-2;
+    @apply mb-2 block font-sans text-base font-medium text-foreground;
+  }
+
+  .section-divider {
+    @apply w-full border-t-2 border-dashed border-border;
+  }
+
+  /* Wavy underline utility for nav/footer */
+  .link-sketch {
+    @apply font-sans text-foreground underline decoration-wavy decoration-2 underline-offset-[5px];
+    @apply hover:text-accent transition-colors duration-100;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .rotate-sketch-1 {
+    transform: rotate(1deg);
+  }
+
+  .rotate-sketch-2 {
+    transform: rotate(-2deg);
+  }
+
+  .hover-jiggle {
+    @apply transition-transform duration-100 hover:-rotate-2;
+  }
+
+  .hover-jiggle-alt {
+    @apply transition-transform duration-100 hover:rotate-1;
+  }
+
+  .paper-overlay {
+    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .sticky-below-nav {
+    position: sticky;
+    top: 4.5rem;
+    z-index: 30;
+    border-bottom: 2px dashed var(--border);
+    background-color: rgba(253, 251, 247, 0.95);
+    backdrop-filter: blur(8px);
   }
 }

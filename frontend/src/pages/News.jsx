@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { newsAPI } from "@/api";
 import NewsCard from "@/components/NewsCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { FaNewspaper } from "react-icons/fa";
+import { Newspaper } from "lucide-react";
 
 export default function News() {
   const [category, setCategory] = useState("");
@@ -24,40 +24,38 @@ export default function News() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }}></div>
-        </div>
-
-        <div className="container-custom text-center relative z-10 animate-fade-in">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <FaNewspaper className="text-4xl" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">News & Updates</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            Stay informed about alumni achievements and school developments
+      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom">
+          <p className="mb-3 inline-block rotate-1 rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Bulletin board
+          </p>
+          <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
+            News
+          </h1>
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Wins, updates, and stories that deserve a highlight marker.
           </p>
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section className="py-8 bg-white border-b border-gray-200 sticky top-16 z-40 shadow-sm">
+      <section className="sticky-below-nav py-6">
         <div className="container-custom">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-3">
             {categories.map((cat) => (
               <button
                 key={cat.value}
+                type="button"
                 onClick={() => {
                   setCategory(cat.value);
                   setPage(1);
                 }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                className={`min-h-12 rounded-wobblySm border-[3px] px-5 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
                   category === cat.value
-                    ? "bg-primary-600 text-white shadow-lg scale-105"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "border-border bg-foreground text-background"
+                    : "border-border bg-white text-foreground hover:-rotate-1"
                 }`}
               >
                 {cat.label}
@@ -68,43 +66,37 @@ export default function News() {
       </section>
 
       {/* News Grid */}
-      <section className="py-12">
+      <section className="py-20">
         <div className="container-custom">
           {isLoading && <LoadingSpinner />}
 
           {!isLoading && newsData?.data?.news?.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-                {newsData.data.news.map((article, index) => (
-                  <div
-                    key={article._id}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <NewsCard article={article} />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {newsData.data.news.map((article) => (
+                  <NewsCard key={article._id} article={article} />
                 ))}
               </div>
 
               {/* Pagination */}
               {newsData.pagination && newsData.pagination.totalPages > 1 && (
-                <div className="mt-12 flex justify-center items-center gap-4">
+                <div className="mt-16 flex justify-center items-center gap-6">
                   <button
                     onClick={() => setPage(page - 1)}
                     disabled={!newsData.pagination.hasPrevPage}
-                    className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
 
-                  <span className="text-gray-600">
+                  <span className="font-sans text-lg text-muted-foreground">
                     Page {page} of {newsData.pagination.totalPages}
                   </span>
 
                   <button
                     onClick={() => setPage(page + 1)}
                     disabled={!newsData.pagination.hasNextPage}
-                    className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -115,15 +107,13 @@ export default function News() {
 
           {/* Empty State */}
           {!isLoading && newsData?.data?.news?.length === 0 && (
-            <div className="text-center py-16 animate-fade-in">
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaNewspaper className="text-4xl text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No news articles found
+            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+              <Newspaper className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
+              <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
+                No articles yet
               </h3>
-              <p className="text-gray-600">
-                Check back later for updates from the alumni community!
+              <p className="mx-auto max-w-md font-sans text-lg text-muted-foreground">
+                Check back later for updates from the alumni community.
               </p>
             </div>
           )}
@@ -132,4 +122,3 @@ export default function News() {
     </div>
   );
 }
-

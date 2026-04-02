@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { jobsAPI } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
-  FaBriefcase,
-  FaMapMarkerAlt,
-  FaClock,
-  FaMoneyBillWave,
-  FaBuilding,
-} from "react-icons/fa";
+  Briefcase,
+  MapPin,
+  Clock,
+  IndianRupee,
+  Building2,
+} from "lucide-react";
 import { formatCurrency, formatTimeAgo } from "@/utils/format";
 
 export default function Jobs() {
@@ -41,33 +41,32 @@ export default function Jobs() {
   ];
 
   const JobCard = ({ job }) => (
-    <div className="card hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-      <div className="p-6">
+    <div className="relative flex flex-col overflow-hidden rounded-wobblyMd border-[3px] border-border bg-white shadow-sketch transition-transform duration-100 hover:-rotate-1 hover:shadow-sketchLg">
+      <div className="flex flex-grow flex-col p-8">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+            <h3 className="mb-3 font-display text-2xl font-bold md:text-3xl">
               {job.title}
             </h3>
-            <div className="flex items-center text-gray-600 mb-2">
-              <FaBuilding className="mr-2 text-gray-400" />
-              <span className="font-medium">{job.company}</span>
+            <div className="flex items-center font-sans text-lg text-foreground">
+              <Building2 className="mr-2" size={18} strokeWidth={2.5} />
+              <span className="font-bold">{job.company}</span>
             </div>
           </div>
-          <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-xs font-semibold">
-            {job.employmentType.replace("-", " ").toUpperCase()}
+          <div className="self-start rounded-wobblySm border-2 border-border bg-foreground px-3 py-1 font-sans text-sm text-background shadow-sketchSm">
+            {job.employmentType.replace("-", " ")}
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+        <p className="mb-8 line-clamp-3 font-sans text-lg text-muted-foreground">
           {job.description}
         </p>
 
-        {/* Meta Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <FaMapMarkerAlt className="mr-2 text-gray-400" />
+        <div className="mb-8 mt-auto space-y-3 border-t-2 border-dashed border-border pt-6">
+          <div className="flex items-center font-sans text-base">
+            <MapPin className="mr-3 text-muted-foreground" size={18} strokeWidth={2.5} />
             <span>
               {job.location.isRemote
                 ? "Remote"
@@ -76,47 +75,45 @@ export default function Jobs() {
           </div>
 
           {job.salary && (
-            <div className="flex items-center text-sm text-gray-600">
-              <FaMoneyBillWave className="mr-2 text-gray-400" />
+            <div className="flex items-center font-sans text-base">
+              <IndianRupee className="mr-3 text-muted-foreground" size={18} strokeWidth={2.5} />
               <span>
                 {formatCurrency(job.salary.min)} - {formatCurrency(job.salary.max)}
-                {job.salary.isNegotiable && " (Negotiable)"}
+                {job.salary.isNegotiable && " (Neg.)"}
               </span>
             </div>
           )}
 
-          <div className="flex items-center text-sm text-gray-500">
-            <FaClock className="mr-2 text-gray-400" />
+          <div className="flex items-center font-sans text-base text-muted-foreground">
+            <Clock className="mr-3" size={18} strokeWidth={2.5} />
             <span>Posted {formatTimeAgo(job.createdAt)}</span>
           </div>
         </div>
 
-        {/* Skills */}
         {job.skills && job.skills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="mb-8 flex flex-wrap gap-2">
             {job.skills.slice(0, 4).map((skill, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                className="rounded-wobblySm border-2 border-dashed border-border px-2 py-0.5 font-sans text-sm text-muted-foreground"
               >
                 {skill}
               </span>
             ))}
             {job.skills.length > 4 && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                +{job.skills.length - 4} more
+              <span className="rounded-wobblySm border-2 border-border px-2 py-0.5 font-sans text-sm">
+                +{job.skills.length - 4}
               </span>
             )}
           </div>
         )}
 
-        {/* CTA */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <span className="text-sm text-gray-500">
+        <div className="flex items-center justify-between border-t-2 border-border pt-6 font-sans">
+          <span className="text-sm text-muted-foreground">
             {job.applicationsCount || 0} applicants
           </span>
-          <span className="text-primary-600 font-semibold group-hover:gap-2 flex items-center transition-all">
-            View Details →
+          <span className="text-pen underline decoration-wavy decoration-2">
+            Details →
           </span>
         </div>
       </div>
@@ -124,35 +121,32 @@ export default function Jobs() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        </div>
-
-        <div className="container-custom text-center relative z-10 animate-fade-in">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <FaBriefcase className="text-4xl" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Job Board</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            Discover opportunities posted by fellow alumni
+      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom">
+          <p className="mb-3 inline-block rotate-1 rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Alumni opportunities
+          </p>
+          <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
+            Job board
+          </h1>
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Roles shared by people who survived the same physics teacher.
           </p>
         </div>
       </section>
 
-      {/* Filters */}
-      <section className="py-8 bg-white border-b border-gray-200">
+      <section className="sticky-below-nav py-6">
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
+          <div className="flex flex-col md:flex-row gap-6">
             <select
               value={filters.employmentType}
               onChange={(e) =>
                 setFilters({ ...filters, employmentType: e.target.value, page: 1 })
               }
-              className="input max-w-xs"
+              className="input md:max-w-xs border-[2px]"
             >
               {employmentTypes.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -166,7 +160,7 @@ export default function Jobs() {
               onChange={(e) =>
                 setFilters({ ...filters, experienceLevel: e.target.value, page: 1 })
               }
-              className="input max-w-xs"
+              className="input md:max-w-xs border-[2px]"
             >
               {experienceLevels.map((level) => (
                 <option key={level.value} value={level.value}>
@@ -179,34 +173,26 @@ export default function Jobs() {
       </section>
 
       {/* Jobs Grid */}
-      <section className="py-12">
+      <section className="py-20">
         <div className="container-custom">
           {isLoading && <LoadingSpinner />}
 
           {!isLoading && jobsData?.data?.jobs?.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-              {jobsData.data.jobs.map((job, index) => (
-                <div
-                  key={job._id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <JobCard job={job} />
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {jobsData.data.jobs.map((job) => (
+                <JobCard key={job._id} job={job} />
               ))}
             </div>
           )}
 
           {/* Empty State */}
           {!isLoading && jobsData?.data?.jobs?.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaBriefcase className="text-4xl text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No jobs found
+            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+              <Briefcase className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
+              <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
+                No jobs right now
               </h3>
-              <p className="text-gray-600">
+              <p className="mx-auto max-w-md font-sans text-lg text-muted-foreground">
                 Try adjusting your filters or check back later
               </p>
             </div>
@@ -216,4 +202,3 @@ export default function Jobs() {
     </div>
   );
 }
-

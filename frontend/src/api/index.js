@@ -37,6 +37,8 @@ export const newsAPI = {
 };
 
 export const galleryAPI = {
+  /** S3-backed album from live gallery (proxied by jnvtaa API) */
+  getS3Feed: () => apiClient.get("/gallery/media/feed"),
   getAll: (params) => apiClient.get("/gallery", { params }),
   getById: (id) => apiClient.get(`/gallery/${id}`),
   create: (data) => apiClient.post("/gallery", data),

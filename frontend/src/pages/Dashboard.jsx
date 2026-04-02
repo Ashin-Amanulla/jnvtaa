@@ -1,166 +1,181 @@
 import { useAuthStore } from "@/store/auth";
 import { Link } from "react-router-dom";
-import { FaUser, FaCalendar, FaBriefcase, FaHeart } from "react-icons/fa";
+import {
+  User,
+  Calendar,
+  Briefcase,
+  Heart,
+  Settings,
+  LayoutDashboard,
+} from "lucide-react";
+import { SketchCard } from "@/components/SketchCard";
+import { SketchIconCircle } from "@/components/SketchIconCircle";
 
 export default function Dashboard() {
   const { user } = useAuthStore();
 
   const quickLinks = [
     {
-      title: "My Profile",
-      description: "Update your information",
-      icon: <FaUser className="text-2xl" />,
+      title: "My profile",
+      description: "Update your cork-board card",
+      icon: <User size={24} strokeWidth={2.5} />,
       link: "/dashboard/profile",
-      color: "bg-blue-500",
     },
     {
-      title: "My Events",
-      description: "Events you registered for",
-      icon: <FaCalendar className="text-2xl" />,
-      link: "/dashboard/events",
-      color: "bg-green-500",
+      title: "My events",
+      description: "Registrations & reminders",
+      icon: <Calendar size={24} strokeWidth={2.5} />,
+      link: "/events",
     },
     {
-      title: "My Jobs",
-      description: "Jobs posted & applied",
-      icon: <FaBriefcase className="text-2xl" />,
-      link: "/dashboard/jobs",
-      color: "bg-purple-500",
+      title: "Jobs board",
+      description: "Opportunities from alumni",
+      icon: <Briefcase size={24} strokeWidth={2.5} />,
+      link: "/jobs",
     },
     {
-      title: "My Donations",
-      description: "Your contributions",
-      icon: <FaHeart className="text-2xl" />,
-      link: "/dashboard/donations",
-      color: "bg-red-500",
+      title: "Donations",
+      description: "Your giving history",
+      icon: <Heart size={24} strokeWidth={2.5} />,
+      link: "/donate",
     },
   ];
 
   return (
-    <div className="min-h-[80vh] bg-gray-50 py-12">
-      <div className="container-custom">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.firstName}!
+    <div className="min-h-[80vh] py-16 md:py-24">
+      <div className="container-custom max-w-6xl">
+        <div className="mb-14">
+          <p className="inline-block rotate-[-1deg] rounded-wobblySm border-2 border-dashed border-border bg-postit px-3 py-1 font-sans text-lg">
+            Member desk
+          </p>
+          <h1 className="mt-4 font-display text-5xl font-bold md:text-6xl">
+            Hi {user?.firstName || "there"}
           </h1>
-          <p className="text-gray-600">
-            Here's what's happening in your alumni network
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground">
+            Your alumni HQ—profile, events, jobs, and the occasional guilt trip
+            to complete your bio.
           </p>
         </div>
 
-        {/* Profile Completion */}
         {user && user.profileCompleteness < 100 && (
-          <div className="card p-6 mb-8 bg-blue-50 border-blue-200">
-            <div className="flex items-center justify-between mb-4">
+          <SketchCard
+            decoration="tack"
+            tilt
+            className="mb-14 border-[3px] border-pen bg-white p-8 md:p-10"
+          >
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Complete Your Profile
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Your profile is {user.profileCompleteness}% complete
+                <h2 className="font-display text-3xl font-bold text-foreground">
+                  Finish your profile?
+                </h2>
+                <p className="mt-2 font-sans text-lg text-muted-foreground">
+                  You&apos;re at {user.profileCompleteness}%—add a line about
+                  your work so batchmates can find you.
                 </p>
               </div>
-              <Link to="/dashboard/profile" className="btn-primary">
-                Complete Profile
-              </Link>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{ width: `${user.profileCompleteness}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {quickLinks.map((item, index) => (
-            <Link
-              key={index}
-              to={item.link}
-              className="card p-6 hover:shadow-lg transition-shadow"
-            >
-              <div
-                className={`${item.color} w-14 h-14 rounded-lg flex items-center justify-center text-white mb-4`}
-              >
-                {item.icon}
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
-                {item.title}
-              </h3>
-              <p className="text-sm text-gray-600">{item.description}</p>
-            </Link>
-          ))}
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="card p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Batch</h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {user?.batch?.year || "Not set"}
-            </p>
-          </div>
-
-          <div className="card p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">
-              Current Location
-            </h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {user?.currentCity || "Not set"}
-            </p>
-          </div>
-
-          <div className="card p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">
-              Member Since
-            </h3>
-            <p className="text-2xl font-bold text-gray-900">
-              {user?.createdAt ? new Date(user.createdAt).getFullYear() : "N/A"}
-            </p>
-          </div>
-        </div>
-
-        {/* Recent Activity or Suggestions */}
-        <div className="card p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">
-            Suggested Actions
-          </h3>
-          <ul className="space-y-3">
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <span className="text-gray-700">
-                Update your professional information
-              </span>
               <Link
                 to="/dashboard/profile"
-                className="text-primary-600 font-semibold hover:text-primary-700"
+                className="btn-secondary shrink-0 focus-ring"
               >
-                Update →
+                Complete profile →
               </Link>
-            </li>
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <span className="text-gray-700">
-                Browse upcoming alumni events
+            </div>
+            <div className="mt-6 h-4 w-full border-2 border-border bg-muted">
+              <div
+                className="h-full bg-accent transition-all"
+                style={{ width: `${user.profileCompleteness}%` }}
+              />
+            </div>
+          </SketchCard>
+        )}
+
+        <div className="grid gap-12 lg:grid-cols-12">
+          <div className="space-y-10 lg:col-span-8">
+            <div className="grid gap-6 md:grid-cols-2">
+              {quickLinks.map((item) => (
+                <Link
+                  key={item.title}
+                  to={item.link}
+                  className="block focus-ring rounded-wobblyMd"
+                >
+                  <SketchCard tilt className="h-full p-6" decoration="tape">
+                    <div className="flex items-start gap-4">
+                      <SketchIconCircle className="shrink-0">
+                        {item.icon}
+                      </SketchIconCircle>
+                      <div>
+                        <h3 className="font-display text-xl font-bold underline decoration-dashed decoration-2 underline-offset-4">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 font-sans text-lg text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  </SketchCard>
+                </Link>
+              ))}
+            </div>
+
+            <div>
+              <h2 className="mb-6 flex items-center gap-3 font-display text-3xl font-bold">
+                <LayoutDashboard size={28} strokeWidth={2.5} />
+                Next scribbles
+              </h2>
+              <div className="space-y-4">
+                {[
+                  ["Update professional info", "/dashboard/profile"],
+                  ["Browse upcoming events", "/events"],
+                  ["Find batchmates", "/directory"],
+                ].map(([label, href]) => (
+                  <Link
+                    key={label}
+                    to={href}
+                    className="flex items-center justify-between rounded-wobblySm border-[3px] border-border bg-white px-5 py-4 font-sans text-lg shadow-sketchSm transition-transform duration-100 hover:-rotate-1 focus-ring"
+                  >
+                    <span>{label}</span>
+                    <span className="text-pen underline decoration-wavy">Go →</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6 lg:col-span-4">
+            <SketchCard postit tilt className="p-8">
+              <h3 className="font-sans text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                Batch
+              </h3>
+              <p className="mt-2 font-display text-4xl font-bold">
+                {user?.batch?.year || "—"}
+              </p>
+              <h3 className="mt-6 font-sans text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                City
+              </h3>
+              <p className="mt-2 font-display text-3xl font-bold">
+                {user?.currentCity || "—"}
+              </p>
+              <h3 className="mt-6 font-sans text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                Member since
+              </h3>
+              <p className="mt-2 font-display text-2xl font-bold">
+                {user?.createdAt
+                  ? new Date(user.createdAt).getFullYear()
+                  : "—"}
+              </p>
+            </SketchCard>
+
+            <Link
+              to="/dashboard/profile"
+              className="flex items-center justify-between rounded-wobblySm border-2 border-dashed border-border bg-white px-5 py-4 font-sans text-lg shadow-sketchSm focus-ring hover:border-solid"
+            >
+              <span className="flex items-center gap-3">
+                <Settings size={22} strokeWidth={2.5} />
+                Settings (coming soon)
               </span>
-              <Link
-                to="/events"
-                className="text-primary-600 font-semibold hover:text-primary-700"
-              >
-                Browse →
-              </Link>
-            </li>
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <span className="text-gray-700">Connect with batchmates</span>
-              <Link
-                to="/directory"
-                className="text-primary-600 font-semibold hover:text-primary-700"
-              >
-                Explore →
-              </Link>
-            </li>
-          </ul>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

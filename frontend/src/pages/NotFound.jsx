@@ -1,53 +1,54 @@
 import { Link } from "react-router-dom";
-import { FaHome, FaSearch } from "react-icons/fa";
+import { Home, Search } from "lucide-react";
+import { SketchCard } from "@/components/SketchCard";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">
-      <div className="text-center animate-fade-in">
-        <div className="relative inline-block mb-8">
-          <div className="text-9xl font-bold text-primary-600 opacity-20 animate-pulse">
+    <div className="flex min-h-screen items-center justify-center px-6 py-16">
+      <div className="w-full max-w-lg text-center">
+        <div className="pointer-events-none relative mb-10 select-none">
+          <span className="font-display text-[8rem] font-bold leading-none text-foreground/15 md:text-[10rem]">
             404
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <FaSearch className="text-6xl text-primary-600 animate-bounce" />
-          </div>
+          </span>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Page Not Found
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-md mx-auto">
-          Oops! The page you're looking for doesn't exist. It might have been
-          moved or deleted.
-        </p>
+        <SketchCard decoration="tack" tilt className="p-10 md:p-12">
+          <h1 className="font-display text-4xl font-bold md:text-5xl">
+            Page ran away
+          </h1>
+          <div className="mx-auto mt-4 h-1 max-w-xs border-b-4 border-dashed border-foreground" />
+          <p className="mt-6 font-sans text-xl text-muted-foreground">
+            Maybe it&apos;s hiding behind a loose sheet—try home or the
+            directory hunt.
+          </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/"
-            className="btn-primary flex items-center gap-2 justify-center"
-          >
-            <FaHome />
-            Go Home
-          </Link>
-          <Link
-            to="/directory"
-            className="btn-outline flex items-center gap-2 justify-center"
-          >
-            <FaSearch />
-            Browse Directory
-          </Link>
-        </div>
+          <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              to="/"
+              className="btn-primary inline-flex flex-1 items-center justify-center gap-2 focus-ring"
+            >
+              <Home size={22} strokeWidth={2.5} />
+              Home
+            </Link>
+            <Link
+              to="/directory"
+              className="btn-secondary inline-flex flex-1 items-center justify-center gap-2 focus-ring"
+            >
+              <Search size={22} strokeWidth={2.5} />
+              Directory
+            </Link>
+          </div>
 
-        <p className="mt-8 text-sm text-gray-500">
-          Need help?{" "}
-          <Link
-            to="/contact"
-            className="text-primary-600 hover:text-primary-700 underline"
-          >
-            Contact us
-          </Link>
-        </p>
+          <p className="mt-10 font-sans text-lg text-muted-foreground">
+            Need a human?{" "}
+            <Link
+              to="/contact"
+              className="text-pen underline decoration-wavy decoration-2 underline-offset-4 hover:text-accent"
+            >
+              Contact
+            </Link>
+          </p>
+        </SketchCard>
       </div>
     </div>
   );

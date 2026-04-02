@@ -1,102 +1,82 @@
 import { Link } from "react-router-dom";
-import { FaEye, FaHeart, FaComment, FaClock } from "react-icons/fa";
+import { Eye, Heart, MessageCircle, Clock } from "lucide-react";
 import { formatTimeAgo } from "@/utils/format";
+import { SketchCard } from "@/components/SketchCard";
 
 export default function NewsCard({ article }) {
-  const getCategoryColor = (category) => {
-    const colors = {
-      achievement: "bg-yellow-100 text-yellow-700",
-      event: "bg-blue-100 text-blue-700",
-      announcement: "bg-red-100 text-red-700",
-      alumni_story: "bg-purple-100 text-purple-700",
-      school_update: "bg-green-100 text-green-700",
-      other: "bg-gray-100 text-gray-700",
-    };
-    return colors[category] || colors.other;
-  };
-
   return (
     <Link
       to={`/news/${article._id}`}
-      className="card hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group overflow-hidden"
+      className="block h-full focus-ring rounded-wobblyMd"
     >
-      {/* Cover Image */}
-      <div className="relative h-48 overflow-hidden bg-gray-200">
-        <img
-          src={article.coverImage || "https://via.placeholder.com/400x200"}
-          alt={article.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {/* Meta */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoryColor(
-              article.category
-            )}`}
-          >
-            {article.category.replace("_", " ").toUpperCase()}
-          </span>
-          <div className="flex items-center text-xs text-gray-500">
-            <FaClock className="mr-1" />
-            <span>{formatTimeAgo(article.publishedAt || article.createdAt)}</span>
-          </div>
+      <SketchCard
+        tilt
+        className="h-full p-0"
+        contentClassName="flex h-full flex-col"
+      >
+        <div className="relative h-48 overflow-hidden border-b-[3px] border-border bg-muted">
+          <img
+            src={article.coverImage || "https://via.placeholder.com/400x200"}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-100 hover:scale-[1.02]"
+          />
         </div>
-
-        {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-primary-600 transition-colors">
-          {article.title}
-        </h3>
-
-        {/* Excerpt */}
-        {article.excerpt && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-            {article.excerpt}
-          </p>
-        )}
-
-        {/* Author & Stats */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center">
-            {article.author && (
-              <>
-                <img
-                  src={
-                    article.author.avatar ||
-                    `https://ui-avatars.com/api/?name=${article.author.firstName}`
-                  }
-                  alt={article.author.firstName}
-                  className="w-8 h-8 rounded-full mr-2"
-                />
-                <span className="text-sm text-gray-700">
-                  {article.author.firstName} {article.author.lastName}
-                </span>
-              </>
-            )}
+        <div className="flex flex-grow flex-col p-6 md:p-8">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="rounded-wobblySm border-2 border-border bg-foreground px-2 py-0.5 font-sans text-sm text-background shadow-sketchSm">
+              {article.category.replace("_", " ").toUpperCase()}
+            </span>
+            <div className="flex items-center gap-1 font-sans text-sm text-muted-foreground">
+              <Clock size={16} strokeWidth={2.5} aria-hidden />
+              <span>
+                {formatTimeAgo(article.publishedAt || article.createdAt)}
+              </span>
+            </div>
           </div>
-
-          {/* Engagement Stats */}
-          <div className="flex items-center space-x-3 text-xs text-gray-500">
-            <div className="flex items-center">
-              <FaEye className="mr-1" />
-              <span>{article.views || 0}</span>
+          <h3 className="font-display text-2xl font-bold leading-tight text-foreground line-clamp-2">
+            {article.title}
+          </h3>
+          {article.excerpt && (
+            <p className="mt-3 line-clamp-3 flex-grow font-sans text-lg text-muted-foreground">
+              {article.excerpt}
+            </p>
+          )}
+          <div className="mt-6 flex items-center justify-between border-t-2 border-dashed border-border pt-4">
+            <div className="flex items-center gap-2">
+              {article.author && (
+                <>
+                  <img
+                    src={
+                      article.author.avatar ||
+                      `https://ui-avatars.com/api/?name=${article.author.firstName}&background=e5e0d8&color=2d2d2d`
+                    }
+                    alt=""
+                    className="h-9 w-9 border-2 border-border object-cover shadow-sketchSm"
+                    style={{ borderRadius: "50% 45% 52% 48% / 48% 52% 45% 50%" }}
+                  />
+                  <span className="font-sans text-sm">
+                    {article.author.firstName} {article.author.lastName}
+                  </span>
+                </>
+              )}
             </div>
-            <div className="flex items-center">
-              <FaHeart className="mr-1" />
-              <span>{article.likes?.length || 0}</span>
-            </div>
-            <div className="flex items-center">
-              <FaComment className="mr-1" />
-              <span>{article.comments?.length || 0}</span>
+            <div className="flex items-center gap-3 font-sans text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Eye size={16} strokeWidth={2.5} aria-hidden />
+                {article.views || 0}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Heart size={16} strokeWidth={2.5} aria-hidden />
+                {article.likes?.length || 0}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <MessageCircle size={16} strokeWidth={2.5} aria-hidden />
+                {article.comments?.length || 0}
+              </span>
             </div>
           </div>
         </div>
-      </div>
+      </SketchCard>
     </Link>
   );
 }
-

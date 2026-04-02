@@ -1,14 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { SketchCard } from "@/components/SketchCard";
+import { SectionHeading } from "@/components/SectionHeading";
 import {
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaFacebook,
-  FaTwitter,
-  FaLinkedin,
-  FaInstagram,
-  FaPaperPlane,
-} from "react-icons/fa";
+  formatVisitBlock,
+  formatEmailBlock,
+  formatPhoneBlock,
+  getSocialNavLinks,
+} from "@/config/site";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -21,221 +21,223 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
-      
       setTimeout(() => setSubmitted(false), 5000);
     }, 1500);
   };
 
   const contactInfo = [
     {
-      icon: <FaMapMarkerAlt className="text-2xl" />,
-      title: "Visit Us",
-      content: "JNV Trivandrum Campus\nThiruvananthapuram, Kerala, India",
-      color: "bg-blue-500",
+      icon: <MapPin size={28} strokeWidth={2.5} />,
+      title: "Visit",
+      content: formatVisitBlock(),
     },
     {
-      icon: <FaEnvelope className="text-2xl" />,
-      title: "Email Us",
-      content: "contact@jnvtaa.org\nsupport@jnvtaa.org",
-      color: "bg-green-500",
+      icon: <Mail size={28} strokeWidth={2.5} />,
+      title: "Email",
+      content: formatEmailBlock(),
     },
     {
-      icon: <FaPhone className="text-2xl" />,
-      title: "Call Us",
-      content: "+91 98765 43210\n+91 98765 43211",
-      color: "bg-purple-500",
+      icon: <Phone size={28} strokeWidth={2.5} />,
+      title: "Call",
+      content: formatPhoneBlock(),
     },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-        </div>
+  const socialLinks = getSocialNavLinks();
 
-        <div className="container-custom text-center relative z-10 animate-fade-in">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-            <FaPaperPlane className="text-4xl" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            We'd love to hear from you. Send us a message!
+  return (
+    <div className="min-h-screen">
+      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom">
+          <p className="mb-3 inline-block rotate-1 rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
+            Say hello
+          </p>
+          <h1 className="font-display text-5xl font-bold text-foreground md:text-6xl lg:text-7xl">
+            Contact the volunteer desk
+          </h1>
+          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <p className="mt-8 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Questions, ideas, reunion pitches, or “remember that teacher?”
+            stories—all welcome. We read every scribble.
           </p>
         </div>
       </section>
 
-      {/* Contact Info Cards */}
-      <section className="py-16 bg-white">
+      <section className="py-16 md:py-20">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {contactInfo.map((info, index) => (
-              <div
-                key={index}
-                className="text-center p-8 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div
-                  className={`${info.color} w-16 h-16 rounded-full flex items-center justify-center text-white mx-auto mb-4`}
-                >
-                  {info.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {info.title}
-                </h3>
-                <p className="text-gray-600 whitespace-pre-line">{info.content}</p>
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+            <div className="space-y-10 lg:col-span-4">
+              <SectionHeading
+                eyebrow="Where to find us"
+                title="Details"
+                description="Real humans, imperfect response times, honest replies."
+              />
+              <div className="space-y-8">
+                {contactInfo.map((info) => (
+                  <SketchCard
+                    key={info.title}
+                    tilt
+                    className="p-6"
+                    decoration="tape"
+                  >
+                    <div className="mb-3 text-foreground">{info.icon}</div>
+                    <h3 className="font-display text-xl font-bold text-foreground">
+                      {info.title}
+                    </h3>
+                    <p className="mt-2 whitespace-pre-line font-sans text-lg text-muted-foreground">
+                      {info.content}
+                    </p>
+                  </SketchCard>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Contact Form */}
-          <div className="max-w-3xl mx-auto">
-            <div className="card p-8 md:p-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-                Send us a Message
-              </h2>
-
-              {submitted && (
-                <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-6 animate-slide-down">
-                  <p className="font-semibold">Thank you for contacting us!</p>
-                  <p className="text-sm">We'll get back to you soon.</p>
+              <SketchCard postit tilt className="p-6">
+                <h3 className="font-display text-xl font-bold">Social</h3>
+                <p className="mt-2 font-sans text-muted-foreground">
+                  Hop between pages like we hopped benches.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {socialLinks.map(({ icon: Icon, href, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      aria-label={label}
+                      className="inline-flex h-12 w-12 items-center justify-center rounded-wobbly border-2 border-border bg-white text-foreground shadow-sketchSm transition-transform duration-100 hover:-rotate-6 focus-ring"
+                    >
+                      <Icon size={22} strokeWidth={2.5} />
+                    </a>
+                  ))}
                 </div>
-              )}
+              </SketchCard>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="lg:col-span-8">
+              <SketchCard decoration="tack" tilt className="p-8 md:p-10">
+                <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                  Send a message
+                </h2>
+                <p className="mt-3 font-sans text-lg text-muted-foreground">
+                  No fancy CRM—just a form that pretends to be a postcard.
+                </p>
+
+                {submitted && (
+                  <div
+                    className="mt-8 rounded-wobblySm border-[3px] border-pen bg-white p-6 shadow-sketchSm"
+                    role="status"
+                  >
+                    <p className="font-display text-xl font-bold text-pen">
+                      Got it!
+                    </p>
+                    <p className="mt-2 font-sans text-lg text-muted-foreground">
+                      We&apos;ll reply before the ink fully dries.
+                    </p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="mt-10 space-y-8">
+                  <div className="grid gap-8 md:grid-cols-2">
+                    <div>
+                      <label htmlFor="name" className="label">
+                        Your name *
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="Scribble your name"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="label">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                  </div>
                   <div>
-                    <label htmlFor="name" className="label">
-                      Your Name *
+                    <label htmlFor="subject" className="label">
+                      Subject *
                     </label>
                     <input
                       type="text"
-                      id="name"
-                      name="name"
+                      id="subject"
+                      name="subject"
                       required
-                      value={formData.name}
+                      value={formData.subject}
                       onChange={handleChange}
                       className="input"
-                      placeholder="John Doe"
+                      placeholder="What’s this about?"
                     />
                   </div>
-
                   <div>
-                    <label htmlFor="email" className="label">
-                      Email Address *
+                    <label htmlFor="message" className="label">
+                      Message *
                     </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
+                    <textarea
+                      id="message"
+                      name="message"
                       required
-                      value={formData.email}
+                      rows={6}
+                      value={formData.message}
                       onChange={handleChange}
-                      className="input"
-                      placeholder="john@example.com"
+                      className="textarea"
+                      placeholder="Go long—we like details."
                     />
                   </div>
-                </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-primary inline-flex w-full items-center justify-center gap-3 md:w-auto focus-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      "Sending…"
+                    ) : (
+                      <>
+                        Send scribble
+                        <Send size={22} strokeWidth={2.5} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </SketchCard>
 
-                <div>
-                  <label htmlFor="subject" className="label">
-                    Subject *
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    required
-                    value={formData.subject}
-                    onChange={handleChange}
-                    className="input"
-                    placeholder="How can we help you?"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="label">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    value={formData.message}
-                    onChange={handleChange}
-                    className="input"
-                    placeholder="Your message here..."
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full btn-primary text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              <p className="mt-8 text-center font-sans text-muted-foreground md:text-left">
+                Prefer the old ways?{" "}
+                <Link
+                  to="/directory"
+                  className="text-pen underline decoration-wavy decoration-2 underline-offset-4 hover:text-accent"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FaPaperPlane />
-                      Send Message
-                    </>
-                  )}
-                </button>
-              </form>
+                  Find a coordinator in the directory
+                </Link>
+                .
+              </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Media Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="container-custom text-center">
-          <h2 className="text-3xl font-bold mb-4">Connect With Us</h2>
-          <p className="text-lg text-primary-100 mb-8">
-            Follow us on social media for the latest updates
-          </p>
-
-          <div className="flex justify-center gap-6">
-            {[
-              { icon: <FaFacebook size={32} />, href: "#" },
-              { icon: <FaTwitter size={32} />, href: "#" },
-              { icon: <FaLinkedin size={32} />, href: "#" },
-              { icon: <FaInstagram size={32} />, href: "#" },
-            ].map((social, index) => (
-              <a
-                key={index}
-                href={social.href}
-                className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-all transform hover:scale-110"
-              >
-                {social.icon}
-              </a>
-            ))}
           </div>
         </div>
       </section>
     </div>
   );
 }
-

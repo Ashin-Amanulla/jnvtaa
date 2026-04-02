@@ -4,13 +4,13 @@ import { newsAPI } from "@/api";
 import { useAuthStore } from "@/store/auth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
-  FaArrowLeft,
-  FaHeart,
-  FaComment,
-  FaEye,
-  FaClock,
-  FaUser,
-} from "react-icons/fa";
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Eye,
+  Clock,
+  User,
+} from "lucide-react";
 import { formatDate, formatTimeAgo } from "@/utils/format";
 import { useState } from "react";
 
@@ -43,7 +43,7 @@ export default function NewsDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -52,12 +52,12 @@ export default function NewsDetail() {
   const article = newsData?.data?.news;
   if (!article) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="card p-10 border-[2px] border-border text-center">
+          <h2 className="text-4xl font-display font-medium tracking-tighter mb-6">
             Article not found
           </h2>
-          <button onClick={() => navigate("/news")} className="btn-primary mt-4">
+          <button onClick={() => navigate("/news")} className="btn btn-primary px-8">
             Back to News
           </button>
         </div>
@@ -68,58 +68,59 @@ export default function NewsDetail() {
   const isLiked = article.likes?.some((like) => like._id === user?._id);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background pb-24">
       {/* Back Button */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="sticky-below-nav">
         <div className="container-custom py-4">
           <button
+            type="button"
             onClick={() => navigate("/news")}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+            className="inline-flex items-center gap-2 font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-sm"
           >
-            <FaArrowLeft />
-            <span>Back to News</span>
+            <ArrowLeft size={16} strokeWidth={2} />
+            Back to News
           </button>
         </div>
       </div>
 
       {/* Article Header */}
-      <section className="py-12 bg-white">
+      <section className="pt-24 pb-12 bg-background">
         <div className="container-custom max-w-4xl">
-          <div className="animate-fade-in">
+          <div>
             {/* Category & Date */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg text-sm font-semibold">
+            <div className="flex flex-wrap items-center gap-6 mb-8">
+              <span className="px-4 py-2 bg-foreground text-background text-xs font-mono tracking-widest uppercase font-bold border-[2px] border-foreground">
                 {article.category.replace("_", " ").toUpperCase()}
               </span>
-              <div className="flex items-center text-gray-500 text-sm">
-                <FaClock className="mr-2" />
+              <div className="flex items-center font-mono text-sm uppercase tracking-widest text-muted-foreground">
+                <Clock className="mr-2" size={16} strokeWidth={1.5} />
                 <span>{formatDate(article.publishedAt || article.createdAt, "PPP")}</span>
               </div>
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-5xl md:text-7xl font-display font-medium tracking-tighter mb-12">
               {article.title}
             </h1>
 
             {/* Author & Stats */}
-            <div className="flex items-center justify-between pb-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b-[4px] border-border gap-6">
+              <div className="flex items-center gap-4">
                 {article.author && (
                   <>
                     <img
                       src={
                         article.author.avatar ||
-                        `https://ui-avatars.com/api/?name=${article.author.firstName}`
+                        `https://ui-avatars.com/api/?name=${article.author.firstName}&background=000&color=fff`
                       }
                       alt={article.author.firstName}
-                      className="w-12 h-12 rounded-full"
+                      className="w-16 h-16 grayscale border-[2px] border-foreground"
                     />
                     <div>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-display text-2xl tracking-tighter">
                         {article.author.firstName} {article.author.lastName}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                         {article.author.batch && `Batch of ${article.author.batch.year}`}
                       </p>
                     </div>
@@ -127,17 +128,17 @@ export default function NewsDetail() {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-6 font-mono text-sm uppercase tracking-widest text-muted-foreground">
                 <div className="flex items-center">
-                  <FaEye className="mr-1" />
+                  <Eye className="mr-2" size={16} strokeWidth={1.5} />
                   <span>{article.views || 0}</span>
                 </div>
                 <div className="flex items-center">
-                  <FaHeart className="mr-1" />
+                  <Heart className="mr-2" size={16} strokeWidth={1.5} />
                   <span>{article.likes?.length || 0}</span>
                 </div>
                 <div className="flex items-center">
-                  <FaComment className="mr-1" />
+                  <MessageCircle className="mr-2" size={16} strokeWidth={1.5} />
                   <span>{article.comments?.length || 0}</span>
                 </div>
               </div>
@@ -148,43 +149,44 @@ export default function NewsDetail() {
 
       {/* Cover Image */}
       {article.coverImage && (
-        <section className="py-8 bg-gray-100">
-          <div className="container-custom max-w-4xl">
+        <section className="py-12 bg-background">
+          <div className="container-custom max-w-5xl">
             <img
               src={article.coverImage}
-              alt={article.title}
-              className="w-full rounded-2xl shadow-lg animate-slide-up"
+              alt=""
+              className="w-full border-[3px] border-border object-cover shadow-sketchLg"
+              style={{
+                borderRadius: "20px 240px 20px 200px / 200px 20px 240px 20px",
+              }}
             />
           </div>
         </section>
       )}
 
       {/* Article Content */}
-      <section className="py-12 bg-white">
+      <section className="py-16 bg-background">
         <div className="container-custom max-w-4xl">
-          <div className="prose prose-lg max-w-none animate-fade-in">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line text-lg">
-              {article.content}
-            </p>
+          <div className="font-sans text-xl leading-relaxed text-foreground whitespace-pre-line">
+            {article.content}
           </div>
 
           {/* Like Button */}
           {isAuthenticated && (
-            <div className="mt-12 flex justify-center">
+            <div className="mt-16 flex justify-center pt-16 border-t-[2px] border-border">
               <button
                 onClick={() => likeMutation.mutate()}
                 disabled={likeMutation.isLoading}
-                className={`btn flex items-center gap-2 px-8 py-3 ${
+                className={`btn flex items-center gap-3 px-8 py-4 border-[2px] ${
                   isLiked
-                    ? "bg-red-500 text-white hover:bg-red-600"
-                    : "btn-outline"
+                    ? "bg-foreground text-background border-foreground hover:bg-background hover:text-foreground"
+                    : "bg-background text-foreground border-border hover:border-foreground"
                 }`}
               >
-                <FaHeart className={isLiked ? "text-white" : ""} />
-                <span>{isLiked ? "Liked" : "Like"}</span>
-                <span className="bg-white/20 px-2 py-1 rounded">
-                  {article.likes?.length || 0}
+                <Heart className={isLiked ? "fill-current" : ""} size={20} strokeWidth={1.5} />
+                <span className="font-mono uppercase tracking-widest font-bold">
+                  {isLiked ? "Liked" : "Like Article"}
                 </span>
+                <span className="bg-muted text-foreground px-3 py-1 font-mono">{article.likes?.length || 0}</span>
               </button>
             </div>
           )}
@@ -192,68 +194,68 @@ export default function NewsDetail() {
       </section>
 
       {/* Comments Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-24 bg-muted border-t-[4px] border-border mt-12">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          <h2 className="text-4xl font-display tracking-tighter font-medium mb-12">
             Comments ({article.comments?.length || 0})
           </h2>
 
           {/* Add Comment */}
           {isAuthenticated && (
-            <div className="card p-6 mb-8 animate-slide-up">
+            <div className="card p-8 border-[2px] border-border bg-background mb-12">
+              <h3 className="font-mono text-sm tracking-widest uppercase font-bold mb-4">Leave a Comment</h3>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Share your thoughts..."
-                rows={3}
-                className="input mb-4"
+                rows={4}
+                className="input border-[2px] resize-none mb-6"
               ></textarea>
-              <button
-                onClick={() => commentMutation.mutate(comment)}
-                disabled={!comment.trim() || commentMutation.isLoading}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {commentMutation.isLoading ? "Posting..." : "Post Comment"}
-              </button>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => commentMutation.mutate(comment)}
+                  disabled={!comment.trim() || commentMutation.isLoading}
+                  className="btn btn-primary px-8"
+                >
+                  {commentMutation.isLoading ? "Posting..." : "Post Comment →"}
+                </button>
+              </div>
             </div>
           )}
 
           {/* Comments List */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {article.comments && article.comments.length > 0 ? (
               article.comments.map((comment, index) => (
                 <div
                   key={comment._id || index}
-                  className="card p-6 animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
+                  className="p-8 border-b-[2px] border-border bg-background flex flex-col md:flex-row gap-6"
                 >
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={
-                        comment.user?.avatar ||
-                        `https://ui-avatars.com/api/?name=${comment.user?.firstName}`
-                      }
-                      alt={comment.user?.firstName}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold text-gray-900">
-                          {comment.user?.firstName} {comment.user?.lastName}
-                        </p>
-                        <span className="text-sm text-gray-500">
-                          {formatTimeAgo(comment.createdAt)}
-                        </span>
-                      </div>
-                      <p className="text-gray-700">{comment.content}</p>
+                  <img
+                    src={
+                      comment.user?.avatar ||
+                      `https://ui-avatars.com/api/?name=${comment.user?.firstName}&background=000&color=fff`
+                    }
+                    alt={comment.user?.firstName}
+                    className="w-16 h-16 grayscale border-[2px] border-foreground shrink-0"
+                  />
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                      <p className="font-display text-2xl tracking-tighter font-medium">
+                        {comment.user?.firstName} {comment.user?.lastName}
+                      </p>
+                      <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground border-[1px] border-border px-3 py-1">
+                        {formatTimeAgo(comment.createdAt)}
+                      </span>
                     </div>
+                    <p className="font-sans text-lg leading-relaxed text-foreground">{comment.content}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-gray-500">
-                <FaComment className="text-4xl mx-auto mb-4 text-gray-300" />
-                <p>No comments yet. Be the first to comment!</p>
+              <div className="text-center py-20 border-[2px] border-border border-dashed">
+                <MessageCircle className="mx-auto mb-4 text-border" size={48} strokeWidth={1} />
+                <p className="font-mono uppercase tracking-widest text-muted-foreground">No comments yet. Be the first!</p>
               </div>
             )}
           </div>
@@ -262,4 +264,3 @@ export default function NewsDetail() {
     </div>
   );
 }
-

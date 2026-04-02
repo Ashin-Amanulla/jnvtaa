@@ -1,253 +1,235 @@
-import { FaGraduationCap, FaHandshake, FaHeart, FaUsers } from "react-icons/fa";
+import {
+  GraduationCap,
+  Handshake,
+  Heart,
+  Users,
+} from "lucide-react";
 import Timeline from "@/components/Timeline";
+import { SectionHeading } from "@/components/SectionHeading";
+import { SketchCard } from "@/components/SketchCard";
+import { SketchIconCircle } from "@/components/SketchIconCircle";
+import { SquiggleConnector } from "@/components/HeroSketchDecor";
 
 export default function About() {
   const values = [
     {
-      icon: <FaGraduationCap className="text-4xl" />,
+      icon: <GraduationCap size={26} strokeWidth={2.5} />,
       title: "Excellence",
       description:
-        "Upholding the tradition of academic and personal excellence that JNV instilled in us.",
-      color: "bg-blue-500",
+        "Academic rigor and personal growth—the JNV combo we still carry in our pockets.",
     },
     {
-      icon: <FaHandshake className="text-4xl" />,
+      icon: <Handshake size={26} strokeWidth={2.5} />,
       title: "Networking",
       description:
-        "Building meaningful connections among alumni across generations and geographies.",
-      color: "bg-green-500",
+        "Introductions that feel like study-circle reunions, not stiff mixers.",
     },
     {
-      icon: <FaHeart className="text-4xl" />,
-      title: "Giving Back",
+      icon: <Heart size={26} strokeWidth={2.5} />,
+      title: "Giving back",
       description:
-        "Supporting current students and contributing to the growth of our alma mater.",
-      color: "bg-red-500",
+        "Scholarships, infrastructure, and midnight pep talks for students walking our old corridors.",
     },
     {
-      icon: <FaUsers className="text-4xl" />,
+      icon: <Users size={26} strokeWidth={2.5} />,
       title: "Community",
       description:
-        "Fostering a sense of belonging and camaraderie among all JNV Trivandrum alumni.",
-      color: "bg-purple-500",
+        "A home for every batch—messy, multilingual, and always a little too loud.",
     },
   ];
 
   const leadership = [
-    { name: "Dr. Rajesh Kumar", batch: "1995", role: "President" },
-    { name: "Priya Menon", batch: "2000", role: "Vice President" },
-    { name: "Arun Nair", batch: "2005", role: "Secretary" },
-    { name: "Anjali Sharma", batch: "2008", role: "Treasurer" },
+    { name: "Goutham Krishna", batch: "2019", role: "President" },
+    { name: "Apsima", batch: "2018", role: "Vice President" },
+    { name: "Ashin Amanulla", batch: "2012", role: "Secretary" },
+    { name: "Sanjay JS", batch: "2013", role: "Joint Secretary" },
+    { name: "Abhinandh", batch: "2022", role: "Treasurer" },
+    { name: "Abu", batch: "2023", role: "Joint Treasurer" },
   ];
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-16">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl font-bold mb-4">About JNVTAA</h1>
-          <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-            Connecting hearts, building futures - The Jawahar Navodaya Vidyalaya
-            Thiruvananthapuram Alumni Association
+      <section className="relative overflow-hidden border-b-[3px] border-dashed border-border py-16 md:py-24">
+        <div className="container-custom relative z-10">
+          <p className="mb-4 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
+            About JNVTAA
+          </p>
+          <h1 className="font-display text-5xl font-bold leading-none text-foreground md:text-6xl lg:text-7xl">
+            We’re the alumni desk—sticky notes, coffee rings, big plans
+          </h1>
+          <div className="mt-6 h-1 max-w-md border-b-4 border-dashed border-foreground" />
+          <p className="mt-8 max-w-3xl font-sans text-xl text-muted-foreground md:text-2xl">
+            Jawahar Navodaya Vidyalaya Thiruvananthapuram Alumni Association:
+            connecting hearts, building futures, and never letting a batch
+            reunion stay boring.
           </p>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className="py-16 bg-white">
+      <section className="py-20">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="card p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Our Mission
+          <div className="grid gap-8 md:grid-cols-2">
+            <SketchCard decoration="tape" tilt postit={false} className="p-8 md:p-10">
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Mission
               </h2>
-              <p className="text-gray-600 leading-relaxed">
-                To create a vibrant and engaged community of JNV Trivandrum
-                alumni that supports each other's personal and professional
-                growth, contributes to the development of current students, and
-                preserves the rich legacy of our institution for future
-                generations.
+              <p className="mt-4 font-sans text-lg leading-relaxed text-muted-foreground md:text-xl">
+                Build a vibrant community that helps alumni grow, students
+                thrive, and our school stay unforgettable—for the next decades
+                of Navodayans.
               </p>
-            </div>
-            <div className="card p-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Our Vision
+            </SketchCard>
+            <SketchCard decoration="tack" tilt className="p-8 md:p-10">
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                Vision
               </h2>
-              <p className="text-gray-600 leading-relaxed">
-                To be the most connected and impactful alumni network, where
-                every member feels valued and empowered to contribute to the
-                collective success of our community and our alma mater.
+              <p className="mt-4 font-sans text-lg leading-relaxed text-muted-foreground md:text-xl">
+                Be the most connected, generous, and slightly chaotic alumni
+                network—where every member can pitch in and every story matters.
               </p>
-            </div>
+            </SketchCard>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-16 bg-gray-50">
+      <section className="border-t-[3px] border-dashed border-border bg-foreground py-20 text-background">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Core Values
+          <div className="mb-12 md:mb-16">
+            <p className="mb-3 inline-block rounded-wobblySm border-2 border-dashed border-background/50 bg-background/10 px-3 py-1 font-sans text-lg text-background/90">
+              Non-negotiables
+            </p>
+            <h2 className="text-4xl font-bold leading-none md:text-5xl lg:text-6xl">
+              Core values
             </h2>
-            <p className="text-lg text-gray-600">
-              The principles that guide everything we do
+            <div
+              className="mt-4 h-1 max-w-[10rem] border-b-4 border-dashed border-background"
+              aria-hidden
+            />
+            <p className="mt-6 max-w-2xl font-sans text-lg text-background/85 md:text-xl">
+              Four corners of our doodle—everything else is margin notes.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {values.map((value, index) => (
               <div
-                key={index}
-                className="text-center p-8 bg-white rounded-xl hover:shadow-lg transition-shadow"
+                key={value.title}
+                className="rounded-wobblyMd border-[3px] border-background/40 bg-background/10 p-6 text-center shadow-[4px_4px_0_0_#fdfbf7] transition-transform duration-100 hover:-rotate-1"
               >
-                <div
-                  className={`${value.color} w-20 h-20 rounded-full flex items-center justify-center text-white mx-auto mb-4`}
-                >
+                <SketchIconCircle className="mx-auto mb-4 bg-background text-foreground">
                   {value.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {value.title}
-                </h3>
-                <p className="text-gray-600">{value.description}</p>
+                </SketchIconCircle>
+                <h3 className="font-display text-xl font-bold">{value.title}</h3>
+                <p className="mt-3 font-sans text-base text-background/80">
+                  {value.description}
+                </p>
+                <span
+                  className="mt-4 hidden font-sans text-sm text-background/50 md:block"
+                  aria-hidden
+                >
+                  {index + 1} / {values.length}
+                </span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* History */}
-      <section className="py-16 bg-white">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-              Our Story
-            </h2>
-
-            <div className="space-y-6 text-gray-600 leading-relaxed text-lg">
-              <p className="animate-fade-in">
-                Jawahar Navodaya Vidyalaya Thiruvananthapuram has been a beacon
-                of educational excellence since its inception. Our alumni have
-                gone on to achieve remarkable success in diverse fields across
-                the globe.
+      <section className="py-20">
+        <div className="container-custom max-w-3xl">
+          <SectionHeading
+            eyebrow="Long story, short chapters"
+            title="Our story"
+            description="From chalk dust to cloud docs—same campus soul."
+          />
+          <div className="space-y-6 rounded-wobblyMd border-[3px] border-border bg-white p-8 shadow-sketch md:p-10">
+            {[
+              "JNV Trivandrum has been a beacon of excellence since day one. Alumni now lead across medicine, tech, policy, arts, and a hundred roads in between.",
+              "JNVTAA exists so those paths cross on purpose—mentorships, reunions, fundraising, and the quiet joy of finding your bench partner online.",
+              "Hundreds of alumni across batches contribute time, funds, and stories. We keep the gates open for the next Navodayan wave.",
+            ].map((p) => (
+              <p key={p} className="font-sans text-lg leading-relaxed text-muted-foreground first-letter:float-left first-letter:mr-2 first-line:tracking-tight first-letter:font-display first-letter:text-5xl first-letter:font-bold first-letter:text-accent md:text-xl">
+                {p}
               </p>
-
-              <p className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
-                The JNVTAA was founded to bring together this incredible
-                community of achievers and create a platform for meaningful
-                engagement, networking, and giving back to our beloved
-                institution.
-              </p>
-
-              <p className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                Today, JNVTAA represents hundreds of alumni from various
-                batches, spanning multiple decades. We organize regular
-                reunions, professional networking events, mentorship programs,
-                and fundraising initiatives to support current students.
-              </p>
-
-              <p className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
-                Our association is built on the foundation of the values we
-                learned at JNV - excellence, integrity, social responsibility,
-                and the spirit of community service. We continue to embody these
-                values in all our endeavors.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Timeline */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+      <section className="border-t-[3px] border-dashed border-border py-20">
         <div className="container-custom">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Journey
-            </h2>
-            <p className="text-lg text-gray-600">
-              Key milestones in our remarkable history
-            </p>
+          <div className="mb-10 hidden justify-center text-border md:flex">
+            <SquiggleConnector className="w-48" />
           </div>
-
-          <div className="max-w-6xl mx-auto">
-            <Timeline />
-          </div>
+          <SectionHeading
+            eyebrow="Timeline in pencil"
+            title="Our journey"
+            description="Milestones that deserve a highlighter (or at least a red pen)."
+          />
+          <Timeline />
         </div>
       </section>
 
-      {/* Leadership */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Leadership Team
-            </h2>
-            <p className="text-lg text-gray-600">
-              Meet the people leading JNVTAA
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {leadership.map((leader, index) => (
-              <div key={index} className="card text-center p-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+          <SectionHeading
+            eyebrow="Elected doodlers"
+            title="Leadership"
+            description="Volunteers steering the association with batch pride and spreadsheets."
+          />
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {leadership.map((leader) => (
+              <SketchCard key={leader.name} decoration="tack" tilt className="p-6 text-center">
+                <div
+                  className="mx-auto mb-4 flex h-20 w-20 items-center justify-center border-[3px] border-border bg-postit font-display text-2xl font-bold text-foreground shadow-sketchSm"
+                  style={{
+                    borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px",
+                  }}
+                >
                   {leader.name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  {leader.name}
-                </h3>
-                <p className="text-primary-600 font-semibold mb-1">
-                  {leader.role}
+                <h3 className="font-display text-xl font-bold">{leader.name}</h3>
+                <p className="mt-1 font-sans text-lg text-pen">{leader.role}</p>
+                <p className="mt-2 font-sans text-base text-muted-foreground">
+                  Batch {leader.batch}
                 </p>
-                <p className="text-sm text-gray-500">Batch of {leader.batch}</p>
-              </div>
+              </SketchCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How to Contribute */}
-      <section className="py-16 bg-white">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-gray-900 mb-8">
-              How You Can Contribute
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-              <div className="card p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Mentorship
-                </h3>
-                <p className="text-gray-600">
-                  Guide current students and junior alumni in their career paths
-                  and personal development.
+      <section className="border-t-[3px] border-border bg-muted py-20">
+        <div className="container-custom max-w-5xl">
+          <SectionHeading
+            eyebrow="Pick your marker"
+            title="How you can contribute"
+            description="Mentor, donate, show up—any stroke helps complete the picture."
+          />
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "Mentorship",
+                body: "Guide students and juniors with career and life maps drawn from your JNV years.",
+              },
+              {
+                title: "Donations",
+                body: "Fuel scholarships, labs, libraries, and campus fixes that outlive any single batch.",
+              },
+              {
+                title: "Participate",
+                body: "Attend events, host micro-meetups, share opportunities—energy beats perfection.",
+              },
+            ].map((item, i) => (
+              <SketchCard key={item.title} postit={i === 1} tilt className="p-8">
+                <h3 className="font-display text-2xl font-bold">{item.title}</h3>
+                <p className="mt-3 font-sans text-lg text-muted-foreground">
+                  {item.body}
                 </p>
-              </div>
-
-              <div className="card p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Donations
-                </h3>
-                <p className="text-gray-600">
-                  Support infrastructure development, scholarships, and various
-                  school improvement projects.
-                </p>
-              </div>
-
-              <div className="card p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Participate
-                </h3>
-                <p className="text-gray-600">
-                  Attend events, share your experiences, and stay connected with
-                  the alumni community.
-                </p>
-              </div>
-            </div>
+              </SketchCard>
+            ))}
           </div>
         </div>
       </section>
