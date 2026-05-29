@@ -11,7 +11,7 @@ import connectDB from "./config/database.js";
 import configurePassport from "./config/passport.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 
-// Import routes
+// Import route
 import authRoutes from "./modules/auth/auth.route.js";
 import userRoutes from "./modules/users/users.route.js";
 import batchRoutes from "./modules/batches/batches.route.js";
