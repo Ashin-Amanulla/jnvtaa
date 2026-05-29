@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ExternalLink, Filter, RotateCcw } from "lucide-react";
+import { getBatchDisplayYear, formatBatchOf } from "@/utils/format";
 
 const PAGE_SIZE = 20;
 
@@ -69,7 +70,7 @@ function DirectoryFiltersForm({ filters, batches, updateFilter, onKeyApply }) {
             {Array.isArray(batches) &&
               batches.map((batch) => (
                 <SelectItem key={batch._id} value={batch._id}>
-                  Batch of {batch.year}
+                  Batch of {getBatchDisplayYear(batch)}
                 </SelectItem>
               ))}
           </SelectContent>
@@ -281,8 +282,7 @@ export default function DirectoryAdmin() {
     {
       accessorKey: "batch",
       header: "Batch",
-      cell: ({ row }) =>
-        row.original.batch?.year ? `Batch of ${row.original.batch.year}` : "—",
+      cell: ({ row }) => formatBatchOf(row.original.batch) ?? "—",
     },
     {
       accessorKey: "currentCity",

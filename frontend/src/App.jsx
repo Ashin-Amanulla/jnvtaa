@@ -15,6 +15,7 @@ import DashboardLayout from "@/layout/DashboardLayout";
 import AdminLayout from "@/admin/AdminLayout";
 import AdminRoute from "@/admin/AdminRoute";
 import RequirePermission from "@/admin/RequirePermission";
+import RequireSuperAdmin from "@/admin/RequireSuperAdmin";
 import { PERMISSIONS } from "@/utils/roles";
 
 import Home from "@/pages/Home";
@@ -136,9 +137,9 @@ export default function App() {
             <Route
               path="staff-access"
               element={
-                <RequirePermission permission={PERMISSIONS.USERS_ROLES}>
+                <RequireSuperAdmin>
                   <StaffAccessAdmin />
-                </RequirePermission>
+                </RequireSuperAdmin>
               }
             />
             <Route

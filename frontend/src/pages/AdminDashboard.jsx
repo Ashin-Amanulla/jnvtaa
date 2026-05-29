@@ -11,7 +11,7 @@ import {
   BarChart,
   Settings,
 } from "lucide-react";
-import { formatCurrency } from "@/utils/format";
+import { formatCurrency, getBatchDisplayYear } from "@/utils/format";
 import { SketchCard } from "@/components/SketchCard";
 
 export default function AdminDashboard() {
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                               {user.firstName} {user.lastName}
                             </p>
                             <p className="font-sans text-sm text-muted-foreground md:text-base">
-                              {user.email} · Batch {user.batch?.year}
+                              {user.email} · Batch {getBatchDisplayYear(user.batch) ?? "—"}
                             </p>
                           </div>
                         </div>

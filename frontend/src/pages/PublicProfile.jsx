@@ -13,6 +13,7 @@ import { usersAPI } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { SketchCard } from "@/components/SketchCard";
 import { useAuthStore } from "@/store/auth";
+import { formatBatchOf } from "@/utils/format";
 
 export default function PublicProfile() {
   const { userId } = useParams();
@@ -81,7 +82,7 @@ export default function PublicProfile() {
                 </h1>
                 {user.batch && (
                   <p className="mt-2 font-sans text-xl text-brand">
-                    Batch of {user.batch.year || user.batch.name}
+                    {formatBatchOf(user.batch) || user.batch.name}
                   </p>
                 )}
                 {user.profession && (

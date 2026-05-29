@@ -4,6 +4,7 @@ import { usersAPI, batchesAPI } from "@/api";
 import AlumniCard from "@/components/AlumniCard";
 import SearchBar from "@/components/SearchBar";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { getBatchDisplayYear } from "@/utils/format";
 import { Filter, X } from "lucide-react";
 
 export default function Directory() {
@@ -111,7 +112,7 @@ export default function Directory() {
                     <option value="">All Batches</option>
                     {batches.map((batch) => (
                       <option key={batch._id} value={batch._id}>
-                        Batch of {batch.year}
+                        Batch of {getBatchDisplayYear(batch)}
                       </option>
                     ))}
                   </select>

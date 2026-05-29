@@ -32,7 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatBatchOf } from "@/utils/format";
 
 function UserActionsMenu({
   user,
@@ -193,8 +193,7 @@ export default function UsersAdmin() {
     {
       accessorKey: "batch",
       header: "Batch",
-      cell: ({ row }) =>
-        row.original.batch?.year ? `Batch of ${row.original.batch.year}` : "—",
+      cell: ({ row }) => formatBatchOf(row.original.batch) ?? "—",
     },
     {
       accessorKey: "isVerified",

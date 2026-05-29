@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getBatchDisplayYear } from "@/utils/format";
 
 const quickLinks = [
   {
@@ -96,7 +97,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Batch</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user?.batch?.year || "—"}</div>
+            <div className="text-2xl font-bold">{getBatchDisplayYear(user?.batch) || "—"}</div>
           </CardContent>
         </Card>
         <Card>

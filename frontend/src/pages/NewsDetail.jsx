@@ -11,7 +11,7 @@ import {
   Clock,
   User,
 } from "lucide-react";
-import { formatDate, formatTimeAgo } from "@/utils/format";
+import { formatDate, formatTimeAgo, formatBatchOf } from "@/utils/format";
 import { useState } from "react";
 
 export default function NewsDetail() {
@@ -121,7 +121,7 @@ export default function NewsDetail() {
                         {article.author.firstName} {article.author.lastName}
                       </p>
                       <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                        {article.author.batch && `Batch of ${article.author.batch.year}`}
+                        {article.author.batch && formatBatchOf(article.author.batch)}
                       </p>
                     </div>
                   </>

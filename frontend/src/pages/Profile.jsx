@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatBatchOf } from "@/utils/format";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function Profile() {
@@ -188,7 +189,7 @@ export default function Profile() {
               </div>
               <div className="space-y-2">
                 <Label>Batch</Label>
-                <Input type="text" value={user?.batch?.year ? `Batch of ${user.batch.year}` : "Not set"} disabled className="bg-muted" />
+                <Input type="text" value={formatBatchOf(user?.batch) ?? "Not set"} disabled className="bg-muted" />
               </div>
             </div>
             <div className="space-y-2">

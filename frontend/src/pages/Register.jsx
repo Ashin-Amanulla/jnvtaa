@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import { authAPI, batchesAPI, getGoogleAuthUrl } from "@/api";
 import { SketchCard } from "@/components/SketchCard";
+import { getBatchDisplayYear } from "@/utils/format";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -174,7 +175,7 @@ export default function Register() {
                   <option value="">Pick your year</option>
                   {batchesData?.data?.batches?.map((batch) => (
                     <option key={batch._id} value={batch._id}>
-                      Batch of {batch.year}
+                      Batch of {getBatchDisplayYear(batch)}
                     </option>
                   ))}
                 </select>

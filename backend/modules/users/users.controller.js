@@ -193,10 +193,31 @@ export const getUserStats = asyncHandler(async (req, res) => {
 
   // Users by batch
   const usersByBatch = await User.aggregate([
-    { $match: { ...alumniFilter } },
+    { $match: { ...alumniFilter, batch: { $ne: null } } },
     { $group: { _id: "$batch", count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 10 },
+    {
+      $lookup: {
+        from: "batches",
+        localField: "_id",
+        foreignField: "_id",
+        as: "batch",
+      },
+    },
+    { $unwind: { path: "$batch", preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        _id: 0,
+        count: 1,
+        batch: {
+          _id: "$batch._id",
+          name: "$batch.name",
+          year: "$batch.year",
+          passoutYear: "$batch.passoutYear",
+        },
+      },
+    },
   ]);
 
   // Users by location

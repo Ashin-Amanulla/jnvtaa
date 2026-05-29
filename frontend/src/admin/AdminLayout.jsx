@@ -36,22 +36,25 @@ import {
   hasPermission,
 } from "@/utils/roles";
 
-const NAV_GROUPS = [
+const MAIN_NAV_ITEMS = [
   {
-    id: "overview",
-    label: "Overview",
-    items: [
-      {
-        to: "/admin",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        end: true,
-      },
-    ],
+    to: "/admin",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    end: true,
   },
   {
+    to: "/admin/staff-access",
+    label: "Staff Access",
+    icon: Shield,
+    superAdminOnly: true,
+  },
+];
+
+const NAV_GROUPS = [
+  {
     id: "people",
-    label: "People & Access",
+    label: "People",
     items: [
       {
         to: "/admin/users",
@@ -64,12 +67,6 @@ const NAV_GROUPS = [
         label: "Directory",
         icon: BookUser,
         permission: PERMISSIONS.USERS_READ,
-      },
-      {
-        to: "/admin/staff-access",
-        label: "Staff Access",
-        icon: Shield,
-        permission: PERMISSIONS.USERS_ROLES,
       },
       {
         to: "/admin/batches",
@@ -185,6 +182,12 @@ const NAV_GROUPS = [
 
 const STORAGE_KEY = "admin-nav-groups";
 
+function getVisibleMainNavItems(user) {
+  return MAIN_NAV_ITEMS.filter(
+    (item) => !item.superAdminOnly || isSuperAdmin(user)
+  );
+}
+
 function getVisibleGroups(user) {
   return NAV_GROUPS.map((group) => ({
     ...group,
@@ -224,6 +227,7 @@ export default function AdminLayout() {
   );
 
   const visibleGroups = getVisibleGroups(user);
+  const visibleMainNavItems = getVisibleMainNavItems(user);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(openGroups));
@@ -280,9 +284,20 @@ export default function AdminLayout() {
         )}
       >
         <div className="flex h-14 items-center justify-between border-b px-4">
-          <span className="text-lg font-semibold">
-            {isSuperAdmin(user) ? "JNVTAA Platform" : "JNVTAA Admin"}
-          </span>
+          <Link
+            to="/admin"
+            className="flex min-w-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <img
+              src="/logo.png"
+              alt=""
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+            <span className="truncate text-sm font-semibold leading-tight">
+              {isSuperAdmin(user) ? "JNVTAA Platform" : "JNVTAA Admin"}
+            </span>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
@@ -295,35 +310,35 @@ export default function AdminLayout() {
 
         <nav className="flex-1 overflow-y-auto p-3">
           <ul className="space-y-2">
+            {visibleMainNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {item.label}
+                  </NavLink>
+                </li>
+              );
+            })}
+
+            {visibleMainNavItems.length > 0 && visibleGroups.length > 0 && (
+              <li aria-hidden className="my-2 border-t" />
+            )}
+
             {visibleGroups.map((group) => {
-              const isSingleItemOverview =
-                group.id === "overview" && group.items.length === 1;
-
-              if (isSingleItemOverview) {
-                const item = group.items[0];
-                const Icon = item.icon;
-                return (
-                  <li key={group.id}>
-                    <NavLink
-                      to={item.to}
-                      end={item.end}
-                      onClick={() => setSidebarOpen(false)}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                          isActive
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )
-                      }
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      {item.label}
-                    </NavLink>
-                  </li>
-                );
-              }
-
               const isOpen = openGroups[group.id] ?? false;
 
               return (

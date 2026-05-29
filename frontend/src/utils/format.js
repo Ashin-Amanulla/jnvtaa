@@ -27,3 +27,11 @@ export const truncateText = (text, maxLength = 100) => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + "...";
 };
+
+export const getBatchDisplayYear = (batch) =>
+  batch?.passoutYear ?? batch?.year ?? null;
+
+export const formatBatchOf = (batch) => {
+  const year = getBatchDisplayYear(batch);
+  return year ? `Batch of ${year}` : null;
+};

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Briefcase, Users, Mail } from "lucide-react";
 import { SketchCard } from "@/components/SketchCard";
+import { formatBatchOf } from "@/utils/format";
 
 export default function AlumniCard({ user }) {
   return (
@@ -23,7 +24,7 @@ export default function AlumniCard({ user }) {
             </h3>
             {user.batch && (
               <p className="mt-0.5 font-sans text-sm font-medium text-brand">
-                Batch of {user.batch.year}
+                {formatBatchOf(user.batch)}
               </p>
             )}
             {user.profession && (
