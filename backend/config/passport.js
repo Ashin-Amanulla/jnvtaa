@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../modules/users/users.model.js";
+import { sendRegistrationEmail } from "../services/email.service.js";
 
 const configurePassport = () => {
   if (
@@ -48,6 +49,12 @@ const configurePassport = () => {
               avatar: profile.photos?.[0]?.value || "",
               isVerified: true,
             });
+
+            try {
+              await sendRegistrationEmail(user);
+            } catch (err) {
+              console.error("Registration email failed:", err.message);
+            }
           }
 
           if (!user.isActive) {

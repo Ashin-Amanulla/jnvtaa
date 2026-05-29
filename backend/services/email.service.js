@@ -57,6 +57,47 @@ export async function sendNewsletterCampaign(email, subject, body) {
   });
 }
 
+export async function sendRegistrationEmail(user) {
+  const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(
+    /\/$/,
+    ""
+  );
+  const isGoogleUser = Boolean(user.googleId);
+  const nextStepNote = isGoogleUser
+    ? "<p>Your account is active and ready to use.</p>"
+    : "<p>An admin will review and verify your account shortly. You will receive another email once your account is verified.</p>";
+
+  return sendEmail({
+    to: user.email,
+    subject: "Welcome to JNVTAA — Registration successful",
+    html: `
+      <p>Hi ${user.firstName},</p>
+      <p>Thank you for registering with JNVTAA. Your account has been created successfully.</p>
+      ${nextStepNote}
+      <p><a href="${frontendUrl}">Visit JNVTAA</a></p>
+    `,
+    text: `Hi ${user.firstName}, thank you for registering with JNVTAA. Your account has been created successfully.`,
+  });
+}
+
+export async function sendVerificationEmail(user) {
+  const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(
+    /\/$/,
+    ""
+  );
+
+  return sendEmail({
+    to: user.email,
+    subject: "Your JNVTAA account has been verified",
+    html: `
+      <p>Hi ${user.firstName},</p>
+      <p>Your JNVTAA account has been verified. You now have full access to the alumni platform.</p>
+      <p><a href="${frontendUrl}/dashboard">Go to your dashboard</a></p>
+    `,
+    text: `Hi ${user.firstName}, your JNVTAA account has been verified. You now have full access to the alumni platform.`,
+  });
+}
+
 export async function sendPasswordResetEmail(user, resetToken) {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;

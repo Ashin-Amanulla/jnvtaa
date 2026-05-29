@@ -6,6 +6,7 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import { sendVerificationEmail } from "../../services/email.service.js";
 
 // Get all users with filtering and pagination
 export const getAllUsers = asyncHandler(async (req, res) => {
@@ -148,6 +149,12 @@ export const verifyUser = asyncHandler(async (req, res, next) => {
 
   user.isVerified = true;
   await user.save();
+
+  try {
+    await sendVerificationEmail(user);
+  } catch (err) {
+    console.error("Verification email failed:", err.message);
+  }
 
   sendSuccess(res, 200, { user }, "User verified successfully");
 });
@@ -402,6 +409,8 @@ export const adminUpdateUser = asyncHandler(async (req, res, next) => {
     return next(new AppError("User not found", 404));
   }
 
+  const wasVerified = user.isVerified;
+
   for (const field of allowedFields) {
     if (req.body[field] !== undefined) {
       if (field === "socialLinks" || field === "privacySettings") {
@@ -420,6 +429,14 @@ export const adminUpdateUser = asyncHandler(async (req, res, next) => {
 
   await user.save();
   await user.populate("batch");
+
+  if (!wasVerified && user.isVerified) {
+    try {
+      await sendVerificationEmail(user);
+    } catch (err) {
+      console.error("Verification email failed:", err.message);
+    }
+  }
 
   sendSuccess(res, 200, { user }, "User updated successfully");
 });

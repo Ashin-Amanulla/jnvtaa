@@ -5,7 +5,10 @@ import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import User from "../users/users.model.js";
 import authConfig from "../../config/auth.js";
 import { sendSuccess } from "../../helpers/response.js";
-import { sendPasswordResetEmail } from "../../services/email.service.js";
+import {
+  sendPasswordResetEmail,
+  sendRegistrationEmail,
+} from "../../services/email.service.js";
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -68,6 +71,12 @@ export const register = asyncHandler(async (req, res, next) => {
 
   // Populate batch information
   await user.populate("batch");
+
+  try {
+    await sendRegistrationEmail(user);
+  } catch (err) {
+    console.error("Registration email failed:", err.message);
+  }
 
   sendTokenResponse(user, 201, res);
 });
