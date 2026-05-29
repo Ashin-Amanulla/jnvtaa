@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { jobsAPI } from "@/api";
@@ -41,7 +42,10 @@ export default function Jobs() {
   ];
 
   const JobCard = ({ job }) => (
-    <div className="relative flex flex-col overflow-hidden rounded-wobblyMd border-[3px] border-border bg-white shadow-sketch transition-transform duration-100 hover:-rotate-1 hover:shadow-sketchLg">
+    <Link
+      to={`/jobs/${job._id}`}
+      className="relative flex flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-card transition-transform duration-100 hover:shadow-cardHover focus-ring"
+    >
       <div className="flex flex-grow flex-col p-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
@@ -50,12 +54,12 @@ export default function Jobs() {
               {job.title}
             </h3>
             <div className="flex items-center font-sans text-lg text-foreground">
-              <Building2 className="mr-2" size={18} strokeWidth={2.5} />
+              <Building2 className="mr-2" size={18} strokeWidth={2} />
               <span className="font-bold">{job.company}</span>
             </div>
           </div>
-          <div className="self-start rounded-wobblySm border-2 border-border bg-foreground px-3 py-1 font-sans text-sm text-background shadow-sketchSm">
-            {job.employmentType.replace("-", " ")}
+          <div className="self-start rounded-xl border-2 border-border bg-foreground px-3 py-1 font-sans text-sm text-background shadow-card">
+            {job.employmentType.replace("-", "")}
           </div>
         </div>
 
@@ -64,9 +68,9 @@ export default function Jobs() {
           {job.description}
         </p>
 
-        <div className="mb-8 mt-auto space-y-3 border-t-2 border-dashed border-border pt-6">
+        <div className="mb-8 mt-auto space-y-3 border-t border-border pt-6">
           <div className="flex items-center font-sans text-base">
-            <MapPin className="mr-3 text-muted-foreground" size={18} strokeWidth={2.5} />
+            <MapPin className="mr-3 text-muted-foreground" size={18} strokeWidth={2} />
             <span>
               {job.location.isRemote
                 ? "Remote"
@@ -76,7 +80,7 @@ export default function Jobs() {
 
           {job.salary && (
             <div className="flex items-center font-sans text-base">
-              <IndianRupee className="mr-3 text-muted-foreground" size={18} strokeWidth={2.5} />
+              <IndianRupee className="mr-3 text-muted-foreground" size={18} strokeWidth={2} />
               <span>
                 {formatCurrency(job.salary.min)} - {formatCurrency(job.salary.max)}
                 {job.salary.isNegotiable && " (Neg.)"}
@@ -85,7 +89,7 @@ export default function Jobs() {
           )}
 
           <div className="flex items-center font-sans text-base text-muted-foreground">
-            <Clock className="mr-3" size={18} strokeWidth={2.5} />
+            <Clock className="mr-3" size={18} strokeWidth={2} />
             <span>Posted {formatTimeAgo(job.createdAt)}</span>
           </div>
         </div>
@@ -95,13 +99,13 @@ export default function Jobs() {
             {job.skills.slice(0, 4).map((skill, index) => (
               <span
                 key={index}
-                className="rounded-wobblySm border-2 border-dashed border-border px-2 py-0.5 font-sans text-sm text-muted-foreground"
+                className="rounded-xl border-2 border-border px-2 py-0.5 font-sans text-sm text-muted-foreground"
               >
                 {skill}
               </span>
             ))}
             {job.skills.length > 4 && (
-              <span className="rounded-wobblySm border-2 border-border px-2 py-0.5 font-sans text-sm">
+              <span className="rounded-xl border-2 border-border px-2 py-0.5 font-sans text-sm">
                 +{job.skills.length - 4}
               </span>
             )}
@@ -112,28 +116,29 @@ export default function Jobs() {
           <span className="text-sm text-muted-foreground">
             {job.applicationsCount || 0} applicants
           </span>
-          <span className="text-pen underline decoration-wavy decoration-2">
+          <span className="text-brand font-medium">
             Details →
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+      <section className="relative border-b border-border py-16 md:py-24">
         <div className="container-custom">
-          <p className="mb-3 inline-block rotate-1 rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
+          <p className="mb-3 inline-block rotate-1 rounded-xl border-2 border-border bg-house-yellow-soft px-3 py-1 font-sans text-lg shadow-card">
             Alumni opportunities
           </p>
           <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
             Job board
           </h1>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
-            Roles shared by people who survived the same physics teacher.
+            Opportunities shared by Navodayans — for Navodayans. Support fellow
+            alumni and current students in their careers.
           </p>
         </div>
       </section>
@@ -187,7 +192,7 @@ export default function Jobs() {
 
           {/* Empty State */}
           {!isLoading && jobsData?.data?.jobs?.length === 0 && (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+            <div className="rounded-2xl border border-border py-24 text-center shadow-card">
               <Briefcase className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
               <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
                 No jobs right now

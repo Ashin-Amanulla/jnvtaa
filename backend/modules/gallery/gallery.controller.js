@@ -6,9 +6,14 @@ import {
   getPaginationMeta,
 } from "../../helpers/pagination.js";
 import { fetchUpstreamGalleryImages } from "../../services/galleryS3Upstream.js";
+import {
+  canModifyResource,
+  canViewUnpublished,
+} from "../../helpers/authorization.js";
+import { isStaff } from "../../config/roles.js";
 
 /**
- * Public feed backed by S3 URLs from the live gallery API (jnvta-2026).
+ * Public feed backed by direct S3 object listing.
  * Normalized to match the shape the Gallery page expects (items + folder filters).
  */
 export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
@@ -16,14 +21,14 @@ export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
   try {
     upstreamRes = await fetchUpstreamGalleryImages();
   } catch (err) {
-    return next(new AppError(`Gallery upstream unreachable: ${err.message}`, 502));
+    return next(new AppError(`Gallery S3 fetch failed: ${err.message}`, 502));
   }
 
   if (!upstreamRes.ok) {
     const text = await upstreamRes.text().catch(() => "");
     return next(
       new AppError(
-        `Gallery upstream error (${upstreamRes.status}): ${text.slice(0, 200)}`,
+        `Gallery S3 error (${upstreamRes.status}): ${text.slice(0, 200)}`,
         502,
       ),
     );
@@ -31,7 +36,7 @@ export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
 
   const body = await upstreamRes.json().catch(() => null);
   if (!body?.success || !body?.data) {
-    return next(new AppError("Invalid gallery upstream response", 502));
+    return next(new AppError("Invalid gallery S3 response", 502));
   }
 
   const allImages = Array.isArray(body.data.allImages) ? body.data.allImages : [];
@@ -84,7 +89,12 @@ export const getAllGalleryItems = asyncHandler(async (req, res) => {
   const { category, type, batch, event, search } = req.query;
 
   // Build query
-  const query = { isPublished: true, isApproved: true };
+  const query = {};
+
+  if (!canViewUnpublished(req, "gallery:manage")) {
+    query.isPublished = true;
+    query.isApproved = true;
+  }
 
   if (category) query.category = category;
   if (type) query.type = type;
@@ -138,7 +148,7 @@ export const createGalleryItem = asyncHandler(async (req, res) => {
   const itemData = {
     ...req.body,
     uploadedBy: req.user.id,
-    isApproved: req.user.role === "admin" || req.user.role === "moderator",
+    isApproved: isStaff(req.user),
   };
 
   const item = await Gallery.create(itemData);
@@ -155,8 +165,8 @@ export const updateGalleryItem = asyncHandler(async (req, res, next) => {
     return next(new AppError("Gallery item not found", 404));
   }
 
-  // Check if user is uploader or admin
-  if (item.uploadedBy.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is uploader, admin, or moderator
+  if (!canModifyResource(item.uploadedBy, req.user, "gallery:manage")) {
     return next(new AppError("Not authorized to update this item", 403));
   }
 
@@ -176,8 +186,8 @@ export const deleteGalleryItem = asyncHandler(async (req, res, next) => {
     return next(new AppError("Gallery item not found", 404));
   }
 
-  // Check if user is uploader or admin
-  if (item.uploadedBy.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is uploader, admin, or moderator
+  if (!canModifyResource(item.uploadedBy, req.user, "gallery:manage")) {
     return next(new AppError("Not authorized to delete this item", 403));
   }
 

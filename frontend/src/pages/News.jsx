@@ -26,17 +26,17 @@ export default function News() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+      <section className="relative border-b border-border py-16 md:py-24">
         <div className="container-custom">
-          <p className="mb-3 inline-block rotate-1 rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
-            Bulletin board
+          <p className="mb-3 inline-block rotate-1 rounded-xl border-2 border-border bg-house-yellow-soft px-3 py-1 font-sans text-lg shadow-card">
+            Association news
           </p>
           <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
             News
           </h1>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
-            Wins, updates, and stories that deserve a highlight marker.
+            Alumni achievements, school updates, and announcements from JNVTAA.
           </p>
         </div>
       </section>
@@ -52,10 +52,10 @@ export default function News() {
                   setCategory(cat.value);
                   setPage(1);
                 }}
-                className={`min-h-12 rounded-wobblySm border-[3px] px-5 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
+                className={`min-h-12 rounded-xl border-[3px] px-5 py-2 font-sans text-lg shadow-card transition-transform duration-100 focus-ring ${
                   category === cat.value
-                    ? "border-border bg-foreground text-background"
-                    : "border-border bg-white text-foreground hover:-rotate-1"
+                    ? "border-border bg-brand text-white"
+                    : "border-border bg-white text-foreground"
                 }`}
               >
                 {cat.label}
@@ -107,7 +107,7 @@ export default function News() {
 
           {/* Empty State */}
           {!isLoading && newsData?.data?.news?.length === 0 && (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+            <div className="rounded-2xl border border-border py-24 text-center shadow-card">
               <Newspaper className="mx-auto mb-6 hidden text-muted-foreground md:block" size={64} strokeWidth={2} />
               <h3 className="mb-4 font-display text-3xl font-bold md:text-4xl">
                 No articles yet

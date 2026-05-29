@@ -50,7 +50,7 @@ export default function EventDetail() {
   if (!event) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center card p-10 border-[2px] border-border">
+        <div className="text-center card p-10 border border-border">
           <h2 className="text-4xl font-display font-medium mb-6">
             Event not found
           </h2>
@@ -78,7 +78,7 @@ export default function EventDetail() {
           <button
             type="button"
             onClick={() => navigate("/events")}
-            className="inline-flex items-center gap-2 font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-sm"
+            className="inline-flex items-center gap-2 font-sans text-lg text-brand font-medium focus-ring rounded-sm"
           >
             <ArrowLeft size={16} strokeWidth={2} />
             Back to Events
@@ -87,7 +87,7 @@ export default function EventDetail() {
       </div>
 
       {/* Hero Image */}
-      <div className="relative h-[60vh] min-h-[400px] overflow-hidden border-b-[3px] border-dashed border-border bg-muted">
+      <div className="relative h-[60vh] min-h-[400px] overflow-hidden border-b border-border bg-muted">
         <img
           src={event.coverImage || "https://via.placeholder.com/1200x400"}
           alt={event.title}
@@ -98,11 +98,11 @@ export default function EventDetail() {
         <div className="absolute bottom-0 left-0 right-0 container-custom pb-16">
           <div>
             <div className="flex items-center gap-4 mb-6">
-              <span className="rounded-wobblySm border-[3px] border-border bg-foreground px-3 py-1 font-sans text-sm font-bold text-background shadow-sketchSm">
-                {event.type.replace("_", " ")}
+              <span className="rounded-xl border border-border bg-foreground px-3 py-1 font-sans text-sm font-bold text-background shadow-card">
+                {event.type.replace("_", "")}
               </span>
               {isUpcoming && (
-                <span className="rounded-wobblySm border-[3px] border-border bg-postit px-3 py-1 font-sans text-sm font-bold text-foreground shadow-sketchSm">
+                <span className="rounded-xl border border-border bg-house-yellow-soft px-3 py-1 font-sans text-sm font-bold text-foreground shadow-card">
                   Upcoming
                 </span>
               )}
@@ -110,13 +110,13 @@ export default function EventDetail() {
             <h1 className="mb-8 max-w-4xl font-display text-5xl font-bold md:text-7xl lg:text-8xl">
               {event.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-8 border-t-2 border-dashed border-border/60 pt-6 font-sans text-lg">
+            <div className="flex flex-wrap items-center gap-8 border-t border-border pt-6 font-sans text-lg">
               <div className="flex items-center text-muted-foreground">
-                <Calendar className="mr-3 text-foreground" size={20} strokeWidth={2.5} />
+                <Calendar className="mr-3 text-foreground" size={20} strokeWidth={2} />
                 <span>{formatDate(event.date, "PPP")}</span>
               </div>
               <div className="flex items-center text-muted-foreground">
-                <MapPin className="mr-3 text-foreground" size={20} strokeWidth={2.5} />
+                <MapPin className="mr-3 text-foreground" size={20} strokeWidth={2} />
                 <span>
                   {event.location.isVirtual ? "Virtual Event" : event.location.city}
                 </span>
@@ -133,7 +133,7 @@ export default function EventDetail() {
             {/* Left Column - Event Details */}
             <div className="lg:col-span-8 space-y-12">
               {/* Description */}
-              <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+              <div className="card p-10 border border-border bg-background shadow-none">
                 <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                   About This Event
                 </h2>
@@ -145,7 +145,7 @@ export default function EventDetail() {
 
               {/* Location Details */}
               {event.location && (
-                <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+                <div className="card p-10 border border-border bg-background shadow-none">
                   <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                     Location
                   </h2>
@@ -187,7 +187,7 @@ export default function EventDetail() {
 
               {/* Organizer */}
               {event.organizer && (
-                <div className="card p-10 border-[2px] border-border bg-background shadow-none">
+                <div className="card p-10 border border-border bg-background shadow-none">
                   <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                     Organized By
                   </h2>
@@ -228,7 +228,7 @@ export default function EventDetail() {
                     <>
                       {isRegistered ? (
                         <>
-                          <div className="border-[2px] border-foreground bg-foreground text-background p-4 mb-6 flex items-center justify-center gap-3">
+                          <div className="border-[2px] border-foreground bg-brand text-white p-4 mb-6 flex items-center justify-center gap-3">
                             <CheckCircle2 size={20} strokeWidth={2} />
                             <span className="font-mono text-sm tracking-widest uppercase font-bold">
                               You're registered!
@@ -268,7 +268,7 @@ export default function EventDetail() {
               )}
 
               {/* Event Info Snapshot */}
-              <div className="card p-8 border-[2px] border-border bg-muted shadow-none">
+              <div className="card p-8 border border-border bg-muted shadow-none">
                 <h3 className="font-display text-2xl tracking-tighter font-medium mb-6">Snapshot</h3>
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">

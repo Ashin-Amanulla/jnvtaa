@@ -5,6 +5,10 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import {
+  canModifyResource,
+  canViewUnpublished,
+} from "../../helpers/authorization.js";
 
 // Get all jobs
 export const getAllJobs = asyncHandler(async (req, res) => {
@@ -13,7 +17,12 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     req.query;
 
   // Build query
-  const query = { isPublished: true, status: "active" };
+  const query = {};
+
+  if (!canViewUnpublished(req, "jobs:manage")) {
+    query.isPublished = true;
+    query.status = "active";
+  }
 
   if (employmentType) query.employmentType = employmentType;
   if (experienceLevel) query.experienceLevel = experienceLevel;
@@ -79,8 +88,8 @@ export const updateJob = asyncHandler(async (req, res, next) => {
     return next(new AppError("Job not found", 404));
   }
 
-  // Check if user is poster or admin
-  if (job.postedBy.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is poster, admin, or moderator
+  if (!canModifyResource(job.postedBy, req.user, "jobs:manage")) {
     return next(new AppError("Not authorized to update this job", 403));
   }
 
@@ -100,8 +109,8 @@ export const deleteJob = asyncHandler(async (req, res, next) => {
     return next(new AppError("Job not found", 404));
   }
 
-  // Check if user is poster or admin
-  if (job.postedBy.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is poster, admin, or moderator
+  if (!canModifyResource(job.postedBy, req.user, "jobs:manage")) {
     return next(new AppError("Not authorized to delete this job", 403));
   }
 

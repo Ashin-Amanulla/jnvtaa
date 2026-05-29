@@ -5,7 +5,6 @@ import {
   GraduationCap,
   Globe,
   ArrowRight,
-  Sparkles,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { usersAPI, eventsAPI, newsAPI } from "@/api";
@@ -15,8 +14,6 @@ import StatsCounter from "@/components/StatsCounter";
 import { SectionHeading } from "@/components/SectionHeading";
 import { SketchCard } from "@/components/SketchCard";
 import { SketchIconCircle } from "@/components/SketchIconCircle";
-import { ArrowToCta } from "@/components/HeroSketchDecor";
-import { cn } from "@/utils/cn";
 
 export default function Home() {
   const { data: stats } = useQuery({
@@ -36,184 +33,234 @@ export default function Home() {
 
   return (
     <div>
-      <section className="relative overflow-hidden py-16 md:py-24">
-        <div className="pointer-events-none absolute right-[8%] top-24 hidden text-foreground/25 md:block">
-          <ArrowToCta className="rotate-6" />
-        </div>
-        <div className="container-custom relative z-10">
-          <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div>
-              <p className="mb-4 inline-flex rotate-[-1deg] items-center gap-2 rounded-wobblySm border-2 border-dashed border-border bg-white px-3 py-1 font-sans text-lg text-muted-foreground shadow-sketchSm">
-                <Sparkles className="text-accent" size={20} strokeWidth={2.5} />
-                Alumni network · JNV Trivandrum
-              </p>
-              <h1 className="font-display text-5xl font-bold leading-[0.95] text-foreground md:text-6xl lg:text-7xl">
-                Your batchmates
-                <span className="relative inline-block">
-                  {" "}
-                  live here
-                  <span
-                    className="absolute -right-2 top-0 inline-block font-display text-accent md:-right-4 md:text-6xl"
-                    aria-hidden
-                  >
-                    !
-                  </span>
-                </span>
+      {/* Hero — text left, floating logo over soft colour blobs right */}
+      <section className="relative overflow-hidden bg-background">
+        <div className="container-custom relative z-10 py-16 md:py-24 lg:py-28">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="max-w-2xl">
+              <p className="eyebrow mb-5">JNV Thiruvananthapuram · Navodayan network</p>
+              <h1 className="font-display text-4xl font-bold leading-[1.05] text-foreground sm:text-5xl lg:text-6xl">
+                We carry the{" "}
+                <span className="text-brand">Navodayan spirit</span> forward
               </h1>
-              <p className="mt-6 max-w-xl font-sans text-xl text-muted-foreground md:text-2xl">
-                Jawahar Navodaya Vidyalaya Thiruvananthapuram Alumni Association
-                — reunions, mentorship, scholarships, and inside jokes that
-                never left the dorm.
+              <p className="mt-6 max-w-xl font-sans text-lg text-muted-foreground md:text-xl">
+                Jawahar Navodaya Vidyalaya Thiruvananthapuram Alumni Association —
+                reunions, mentorship, scholarships, and a lifelong bond with the
+                school that brought rural talent together through JNVST.
               </p>
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-                <Link
-                  to="/register"
-                  className="btn-primary inline-flex items-center gap-3 px-8 focus-ring"
-                >
-                  Join the doodle gang
-                  <ArrowRight size={22} strokeWidth={2.5} />
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <Link to="/register" className="btn-primary px-7">
+                  Join JNVTAA
+                  <ArrowRight size={20} aria-hidden />
                 </Link>
-                <Link
-                  to="/directory"
-                  className="btn-secondary inline-flex items-center gap-2 focus-ring"
-                >
-                  Find someone you owe lunch
+                <Link to="/directory" className="btn-secondary">
+                  Browse alumni directory
                 </Link>
               </div>
-              <p className="mt-6 max-w-md font-sans text-lg text-foreground/80">
-                New here? Start with the directory—search by batch, city, or
-                that one friend who always borrowed your notes.
+              <p className="mt-6 max-w-md font-sans text-base text-muted-foreground">
+                New here? Start with the directory — search by batch, city, or
+                profession to reconnect with fellow Navodayans.
               </p>
             </div>
 
-            <SketchCard decoration="tape" tilt className="rotate-1 p-6 md:p-10">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-display text-3xl font-bold text-foreground md:text-4xl">
-                    Open notebooks
-                  </p>
-                  <p className="mt-2 font-sans text-lg text-muted-foreground">
-                    Messy reminders for what JNVTAA actually does.
-                  </p>
-                </div>
-                <SketchIconCircle>
-                  <Users size={26} strokeWidth={2.5} className="text-pen" />
-                </SketchIconCircle>
+            {/* Floating logo over soft colour blobs */}
+            <div className="relative mx-auto flex aspect-square w-full max-w-lg items-center justify-center lg:max-w-xl">
+              {/* Background colour blobs (house colours) */}
+              <div
+                className="pointer-events-none absolute left-[8%] top-[6%] h-44 w-44 animate-blob-drift rounded-full bg-house-blue/35 blur-3xl md:h-56 md:w-56"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute bottom-[8%] right-[6%] h-48 w-48 animate-blob-drift rounded-full bg-house-red/30 blur-3xl md:h-60 md:w-60"
+                style={{ animationDelay: "-4s" }}
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute bottom-[18%] left-[14%] h-36 w-36 animate-blob-drift rounded-full bg-house-yellow/35 blur-3xl md:h-44 md:w-44"
+                style={{ animationDelay: "-8s" }}
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute right-[16%] top-[14%] h-32 w-32 animate-blob-drift rounded-full bg-house-green/30 blur-3xl md:h-40 md:w-40"
+                style={{ animationDelay: "-2s" }}
+                aria-hidden
+              />
+
+              {/* Floating logo on organic blob */}
+              <div className="relative z-10 h-52 w-52 animate-float md:h-64 md:w-64 lg:h-72 lg:w-72">
+                <svg
+                  viewBox="0 0 200 200"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute inset-0 h-full w-full drop-shadow-[0_12px_28px_rgba(30,58,95,0.15)]"
+                  aria-hidden
+                >
+                  <path
+                    fill="var(--brand-soft)"
+                    d="M50.9,-49.8C55.7,-34.6,42.2,-14,36.4,7C30.6,28.1,32.4,49.6,24.7,54.6C17,59.5,-0.2,47.9,-10.6,37.1C-21.1,26.3,-24.7,16.4,-31.3,2.8C-37.9,-10.8,-47.4,-28.1,-42.7,-43.2C-37.9,-58.4,-19,-71.4,2.1,-73C23.1,-74.6,46.2,-64.9,50.9,-49.8Z"
+                    transform="translate(100 100)"
+                  />
+                </svg>
+                <img
+                  src="/logo.png"
+                  alt="JNVTAA logo"
+                  width={288}
+                  height={288}
+                  className="relative z-10 h-full w-full object-contain p-8 md:p-10 lg:p-12"
+                />
               </div>
-              <ul className="mt-8 space-y-4 font-sans text-lg">
-                {[
-                  "Host reunions that feel like time travel (without the exam stress).",
-                  "Run mentorship & job shout-outs across batches.",
-                  "Fund scholarships and campus projects with transparent giving.",
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex gap-3 border-b-2 border-dashed border-border/60 pb-3 last:border-0"
-                  >
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-sm bg-accent" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/events" className="btn-outline text-base">
-                  Peek at events
-                </Link>
-                <Link to="/donate" className="btn-ghost text-base">
-                  Support a student
-                </Link>
-              </div>
-            </SketchCard>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t-[3px] border-dashed border-border py-20">
+      {/* What we do */}
+      <section className="border-t border-border py-16 md:py-20">
+        <div className="container-custom">
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="eyebrow mb-4">Our mission</p>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+                What JNVTAA does
+              </h2>
+              <p className="mt-4 max-w-md font-sans text-lg text-muted-foreground">
+                We serve JNV Thiruvananthapuram and its alumni across
+                generations — keeping the community connected and giving back.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/events" className="btn-outline">
+                  View events
+                </Link>
+                <Link to="/donate" className="btn-ghost">
+                  Support a student
+                </Link>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                {
+                  icon: <Calendar size={22} strokeWidth={2} />,
+                  title: "Reunions",
+                  body: "Gatherings that bring Navodayans back to campus.",
+                  accent: "house-red",
+                },
+                {
+                  icon: <Users size={22} strokeWidth={2} />,
+                  title: "Mentorship",
+                  body: "Career support across batches and regions.",
+                  accent: "house-blue",
+                },
+                {
+                  icon: <GraduationCap size={22} strokeWidth={2} />,
+                  title: "Scholarships",
+                  body: "Transparent giving for students and campus projects.",
+                  accent: "house-green",
+                },
+              ].map((c) => (
+                <div
+                  key={c.title}
+                  className="rounded-2xl border border-border bg-card p-5 shadow-card"
+                >
+                  <span
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-white"
+                    style={{ backgroundColor: `var(--${c.accent})` }}
+                  >
+                    {c.icon}
+                  </span>
+                  <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
+                    {c.title}
+                  </h3>
+                  <p className="mt-1.5 font-sans text-sm text-muted-foreground">
+                    {c.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="border-t border-border bg-muted/40 py-16 md:py-20">
         <div className="container-custom">
           <SectionHeading
-            eyebrow="The messy stats wall"
-            title="Our network (rounded wrong on purpose)"
-            description="Numbers that keep growing—like the list of excuses for skipping morning assembly."
+            eyebrow="Our community"
+            title="Alumni network at a glance"
+            description="A growing community of Navodayans — from JNV Thiruvananthapuram to cities and countries across the world."
           />
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-4 md:gap-6">
             <StatsCounter
               end={stats?.data?.stats?.totalUsers || 500}
               label="Alumni members"
-              icon={<Users size={28} strokeWidth={2.5} />}
+              icon={<Users size={26} strokeWidth={2} />}
             />
             <StatsCounter
               end={25}
               label="Batches"
-              icon={<GraduationCap size={28} strokeWidth={2.5} />}
+              icon={<GraduationCap size={26} strokeWidth={2} />}
             />
             <StatsCounter
               end={50}
-              label="Events thrown"
-              icon={<Calendar size={28} strokeWidth={2.5} />}
+              label="Events hosted"
+              icon={<Calendar size={26} strokeWidth={2} />}
             />
             <StatsCounter
               end={15}
               label="Countries"
-              icon={<Globe size={28} strokeWidth={2.5} />}
+              icon={<Globe size={26} strokeWidth={2} />}
             />
           </div>
         </div>
       </section>
 
-      <section className="border-t-[3px] border-dashed border-border py-20">
+      {/* Events */}
+      <section className="border-t border-border py-16 md:py-20">
         <div className="container-custom">
           <SectionHeading
-            eyebrow="Calendar scribbles"
-            title="What’s coming up"
-            description="Grab a seat before someone sells you a ‘definitely free’ reunion ticket."
+            eyebrow="Upcoming gatherings"
+            title="Events on the calendar"
+            description="Reunions, fundraisers, and association meetings — stay connected with your alma mater."
             action={
-              <Link to="/events" className="btn-ghost text-xl">
-                All events →
+              <Link to="/events" className="btn-ghost">
+                All events
+                <ArrowRight size={18} aria-hidden />
               </Link>
             }
           />
 
           {upcomingEvents?.data?.events?.length > 0 ? (
-            <div className="grid gap-8 md:grid-cols-3">
-              {upcomingEvents.data.events.slice(0, 3).map((event, i) => (
-                <Link key={event._id} to={`/events/${event._id}`} className="block focus-ring rounded-wobblyMd">
-                  <SketchCard
-                    decoration={i % 2 === 0 ? "tack" : "none"}
-                    tilt
-                    className={cn(
-                      "h-full p-0 transition-transform duration-100",
-                      i === 1 && "md:-translate-y-2 md:rotate-[-1deg]",
-                    )}
-                    contentClassName="flex h-full flex-col"
-                  >
-                    <div className="relative h-48 overflow-hidden border-b-[3px] border-border bg-muted">
+            <div className="grid gap-6 md:grid-cols-3">
+              {upcomingEvents.data.events.slice(0, 3).map((event) => (
+                <Link
+                  key={event._id}
+                  to={`/events/${event._id}`}
+                  className="block focus-ring rounded-2xl"
+                >
+                  <SketchCard tilt className="h-full p-0" contentClassName="flex h-full flex-col">
+                    <div className="relative h-44 overflow-hidden border-b border-border bg-muted">
                       <img
-                        src={
-                          event.coverImage ||
-                          "https://via.placeholder.com/800x400?text=EVENT"
-                        }
+                        src={event.coverImage || "https://via.placeholder.com/800x400?text=EVENT"}
                         alt=""
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       />
-                      <span className="absolute left-3 top-3 rounded-wobblySm border-2 border-border bg-white px-2 py-1 font-sans text-sm shadow-sketchSm">
+                      <span className="pill absolute left-3 top-3 bg-house-blue text-white shadow-card">
                         {new Date(event.date).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                         })}
                       </span>
                     </div>
-                    <div className="flex flex-grow flex-col p-6 md:p-8">
-                      <h3 className="font-display text-2xl font-bold leading-tight text-foreground">
+                    <div className="flex flex-grow flex-col p-5">
+                      <h3 className="font-display text-lg font-semibold leading-snug text-foreground">
                         {event.title}
                       </h3>
-                      <p className="mt-3 line-clamp-2 font-sans text-lg text-muted-foreground">
+                      <p className="mt-2 line-clamp-2 font-sans text-sm text-muted-foreground">
                         {event.description}
                       </p>
-                      <div className="mt-auto flex items-center justify-between border-t-2 border-dashed border-border pt-4 font-sans text-base">
-                        <span>{event.location?.city || "TBC"}</span>
-                        <span className="text-pen underline decoration-wavy decoration-2">
-                          Details
+                      <div className="mt-auto flex items-center justify-between border-t border-border pt-4 font-sans text-sm">
+                        <span className="text-muted-foreground">
+                          {event.location?.city || "TBC"}
                         </span>
+                        <span className="font-medium text-brand">Details →</span>
                       </div>
                     </div>
                   </SketchCard>
@@ -221,67 +268,60 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border bg-white py-16 text-center shadow-sketchSm">
-              <p className="font-sans text-xl text-muted-foreground">
-                No upcoming events yet—we’re probably still arguing about the
-                venue.
+            <div className="rounded-2xl border border-border bg-card py-16 text-center shadow-card">
+              <p className="font-sans text-lg text-muted-foreground">
+                No upcoming events at the moment. We will announce new gatherings
+                here soon.
               </p>
             </div>
           )}
         </div>
       </section>
 
-      <section className="border-t-[3px] border-dashed border-border py-20">
+      {/* News */}
+      <section className="border-t border-border py-16 md:py-20">
         <div className="container-custom">
           <SectionHeading
-            eyebrow="From the bulletin board"
+            eyebrow="Association updates"
             title="Latest news"
-            description="Stories, announcements, and mildly chaotic alumni updates."
+            description="Announcements, alumni achievements, and updates from JNV Thiruvananthapuram."
             action={
-              <Link to="/news" className="btn-ghost text-xl">
-                Read everything →
+              <Link to="/news" className="btn-ghost">
+                Read everything
+                <ArrowRight size={18} aria-hidden />
               </Link>
             }
           />
 
           {latestNews?.data?.news?.length > 0 ? (
-            <div className="grid gap-8 md:grid-cols-3">
-              {latestNews.data.news.slice(0, 3).map((article, i) => (
+            <div className="grid gap-6 md:grid-cols-3">
+              {latestNews.data.news.slice(0, 3).map((article) => (
                 <Link
                   key={article._id}
                   to={`/news/${article._id}`}
-                  className="block focus-ring rounded-wobblyMd"
+                  className="block focus-ring rounded-2xl"
                 >
-                  <SketchCard
-                    postit={i === 1}
-                    decoration={i === 2 ? "tape" : "none"}
-                    tilt
-                    className="h-full p-0"
-                    contentClassName="flex h-full flex-col"
-                  >
-                    <div className="h-48 overflow-hidden border-b-[3px] border-border bg-muted">
+                  <SketchCard tilt className="h-full p-0" contentClassName="flex h-full flex-col">
+                    <div className="h-44 overflow-hidden border-b border-border bg-muted">
                       <img
-                        src={
-                          article.coverImage ||
-                          "https://via.placeholder.com/800x400?text=NEWS"
-                        }
+                        src={article.coverImage || "https://via.placeholder.com/800x400?text=NEWS"}
                         alt=""
-                        className="h-full w-full object-cover transition-transform duration-100 hover:scale-[1.02]"
+                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       />
                     </div>
-                    <div className="flex flex-grow flex-col p-6 md:p-8">
+                    <div className="flex flex-grow flex-col p-5">
                       <div className="mb-3 flex flex-wrap items-center gap-2">
-                        <span className="rounded-wobblySm border-2 border-border bg-foreground px-2 py-0.5 font-sans text-sm text-background shadow-sketchSm">
+                        <span className="pill bg-house-red text-white">
                           {article.category}
                         </span>
                         <span className="font-sans text-sm text-muted-foreground">
                           {new Date(article.publishedAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <h3 className="font-display text-2xl font-bold leading-tight text-foreground">
+                      <h3 className="font-display text-lg font-semibold leading-snug text-foreground">
                         {article.title}
                       </h3>
-                      <p className="mt-3 line-clamp-2 font-sans text-lg text-muted-foreground">
+                      <p className="mt-2 line-clamp-2 font-sans text-sm text-muted-foreground">
                         {article.excerpt}
                       </p>
                     </div>
@@ -290,9 +330,10 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border bg-white py-16 text-center shadow-sketchSm">
-              <p className="font-sans text-xl text-muted-foreground">
-                No news for now—the editor is hunting for a red marker.
+            <div className="rounded-2xl border border-border bg-card py-16 text-center shadow-card">
+              <p className="font-sans text-lg text-muted-foreground">
+                No news articles yet. Check back for updates from the
+                association.
               </p>
             </div>
           )}
@@ -303,31 +344,36 @@ export default function Home() {
 
       <Testimonials />
 
-      <section className="relative overflow-hidden border-t-[3px] border-border bg-foreground py-24 text-background">
-        <div
-          className="pointer-events-none absolute -left-10 top-10 h-32 w-32 rounded-full border-2 border-dashed border-background/30 md:block"
+      {/* CTA */}
+      <section className="relative overflow-hidden bg-brand py-20 text-white md:py-24">
+        <span
+          className="absolute inset-x-0 top-0 h-1.5"
+          style={{
+            background:
+              "linear-gradient(90deg, var(--house-green) 0% 25%, var(--house-red) 25% 50%, var(--house-blue) 50% 75%, var(--house-yellow) 75% 100%)",
+          }}
           aria-hidden
         />
         <div className="container-custom relative z-10 text-center">
-          <h2 className="font-display text-5xl font-bold md:text-6xl lg:text-7xl">
-            Reconnect like it’s recess
+          <h2 className="font-display text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+            Stay connected with your alma mater
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-xl text-background/85 md:text-2xl">
-            Membership takes two minutes. The group chat roast takes two
-            seconds.
+          <p className="mx-auto mt-5 max-w-2xl font-sans text-lg text-white/85 md:text-xl">
+            Join JNVTAA to reconnect with fellow Navodayans, access mentorship,
+            and contribute to the NVS mission at JNV Thiruvananthapuram.
           </p>
-          <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               to="/register"
-              className="inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-background bg-background px-8 py-3 font-sans text-xl text-foreground shadow-[4px_4px_0_0_#fdfbf7] transition-transform duration-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_0_#fdfbf7] focus-ring"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-7 py-2.5 font-sans text-base font-semibold text-brand transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cardHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               Become a member
             </Link>
             <Link
               to="/donate"
-              className="inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-dashed border-background bg-transparent px-8 py-3 font-sans text-xl text-background transition-transform duration-100 hover:-rotate-1 focus-ring"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/40 bg-transparent px-7 py-2.5 font-sans text-base font-semibold text-white transition-all duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              Fund a dream
+              Support our students
             </Link>
           </div>
         </div>

@@ -45,3 +45,4 @@ coverage/
 # Production
 /backend/uploads/
 
+/backend/seeds/

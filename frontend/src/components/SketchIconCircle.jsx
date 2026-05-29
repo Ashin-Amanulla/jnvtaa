@@ -4,7 +4,7 @@ export function SketchIconCircle({ children, className }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-wobbly border-2 border-border bg-white p-2 shadow-sketchSm transition-transform duration-100 hover:-rotate-6",
+        "inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-soft text-brand",
         className,
       )}
     >

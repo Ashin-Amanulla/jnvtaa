@@ -6,7 +6,9 @@ import morgan from "morgan";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import passport from "passport";
 import connectDB from "./config/database.js";
+import configurePassport from "./config/passport.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
 
 // Import routes
@@ -18,6 +20,16 @@ import newsRoutes from "./modules/news/news.route.js";
 import galleryRoutes from "./modules/gallery/gallery.route.js";
 import donationRoutes from "./modules/donations/donations.route.js";
 import jobRoutes from "./modules/jobs/jobs.route.js";
+import siteContentRoutes from "./modules/site-content/site-content.route.js";
+import contactRoutes from "./modules/contact-messages/contact-messages.route.js";
+import notificationRoutes from "./modules/notifications/notifications.route.js";
+import auditLogRoutes from "./modules/audit-log/audit-log.route.js";
+import uploadRoutes from "./modules/uploads/uploads.route.js";
+import mentorshipRoutes from "./modules/mentorship/mentorship.route.js";
+import messageRoutes from "./modules/messages/messages.route.js";
+import newsletterRoutes from "./modules/newsletter/newsletter.route.js";
+import searchRoutes from "./modules/search/search.route.js";
+import rolesRoutes from "./modules/roles/roles.route.js";
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +39,10 @@ const app = express();
 
 // Connect to database
 connectDB();
+
+// Passport (Google OAuth)
+configurePassport();
+app.use(passport.initialize());
 
 // Security middleware
 app.use(helmet());
@@ -97,6 +113,16 @@ app.use("/api/news", newsRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/donations", donationRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/site-content", siteContentRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/audit-log", auditLogRoutes);
+app.use("/api/uploads", uploadRoutes);
+app.use("/api/mentorship", mentorshipRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/roles", rolesRoutes);
 
 // Error handling
 app.use(notFound);

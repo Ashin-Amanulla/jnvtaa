@@ -1,5 +1,12 @@
 import { cn } from "@/utils/cn";
 
+/**
+ * Card primitive. Prop API is preserved for back-compat across ~70 call sites:
+ *  - decoration: "tape" | "tack" | "none"  -> now renders a subtle top accent bar
+ *  - postit: boolean                        -> pale cream surface
+ *  - tilt: boolean                          -> subtle hover lift (no rotation)
+ *  - shadow: "sketch" | "lg" | "card"
+ */
 export function SketchCard({
   as: Component = "div",
   children,
@@ -12,33 +19,33 @@ export function SketchCard({
   ...props
 }) {
   const shadowClass =
-    shadow === "sketch"
-      ? "shadow-sketch"
-      : shadow === "lg"
-        ? "shadow-sketchLg"
-        : "shadow-sketchCard";
+    shadow === "sketch" || shadow === "lg" ? "shadow-cardHover" : "shadow-card";
+
+  const accentColor =
+    decoration === "tack"
+      ? "bg-accent"
+      : decoration === "tape"
+        ? "bg-house-blue"
+        : null;
 
   return (
     <Component
       className={cn(
-        "relative overflow-hidden rounded-wobblyMd border-2 border-border",
-        postit ? "bg-postit" : "bg-white",
+        "relative overflow-hidden rounded-2xl border border-border",
+        postit ? "bg-postit" : "bg-card",
         shadowClass,
-        tilt && "transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch md:hover:rotate-1",
+        tilt &&
+          "transition-all duration-200 hover:-translate-y-1 hover:shadow-cardHover",
         className,
       )}
       {...props}
     >
-      {decoration === "tape" && (
+      {accentColor && (
         <span
-          className="pointer-events-none absolute -top-1 left-1/2 z-10 h-5 w-[4.5rem] -translate-x-1/2 rotate-[-3deg] bg-black/20"
-          style={{ borderRadius: "4px 6px 5px 4px / 3px 5px 4px 6px" }}
-          aria-hidden
-        />
-      )}
-      {decoration === "tack" && (
-        <span
-          className="pointer-events-none absolute -top-0.5 left-1/2 z-10 h-4 w-4 -translate-x-1/2 rounded-wobblySm border-2 border-border bg-accent shadow-sketchSm"
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 z-10 h-1",
+            accentColor,
+          )}
           aria-hidden
         />
       )}

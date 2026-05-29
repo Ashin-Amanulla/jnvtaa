@@ -26,7 +26,7 @@ export default function SearchBar({ onSearch, placeholder = "Search..." }) {
         <Search
           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
           size={22}
-          strokeWidth={2.5}
+          strokeWidth={2}
           aria-hidden
         />
       </div>

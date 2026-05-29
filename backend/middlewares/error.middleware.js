@@ -10,6 +10,17 @@ class AppError extends Error {
 }
 
 const errorHandler = (err, req, res, next) => {
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors)
+      .map((e) => e.message)
+      .join(", ");
+    err = new AppError(message, 400);
+  }
+
+  if (err.code === 11000) {
+    err = new AppError("Duplicate field value entered", 400);
+  }
+
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 

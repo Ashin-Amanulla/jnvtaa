@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import passport from "passport";
 import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import User from "../users/users.model.js";
 import authConfig from "../../config/auth.js";
 import { sendSuccess } from "../../helpers/response.js";
+import { sendPasswordResetEmail } from "../../services/email.service.js";
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -82,6 +85,12 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(new AppError("Invalid credentials", 401));
   }
 
+  if (!user.password) {
+    return next(
+      new AppError("Please sign in with Google for this account", 401)
+    );
+  }
+
   // Check password
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
@@ -155,4 +164,93 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
   } catch (error) {
     return next(new AppError("Invalid refresh token", 401));
   }
+});
+
+// Forgot password
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return sendSuccess(
+      res,
+      200,
+      null,
+      "If that email exists, a reset link has been sent"
+    );
+  }
+
+  const resetToken = jwt.sign({ id: user._id }, authConfig.jwt.resetSecret, {
+    expiresIn: "1h",
+  });
+
+  user.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  user.passwordResetExpires = Date.now() + 60 * 60 * 1000;
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await sendPasswordResetEmail(user, resetToken);
+  } catch {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(new AppError("Failed to send reset email", 500));
+  }
+
+  sendSuccess(res, 200, null, "If that email exists, a reset link has been sent");
+});
+
+// Reset password
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, authConfig.jwt.resetSecret);
+  } catch {
+    return next(new AppError("Invalid or expired reset token", 400));
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    _id: decoded.id,
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  }).select("+passwordResetToken +passwordResetExpires");
+
+  if (!user) {
+    return next(new AppError("Invalid or expired reset token", 400));
+  }
+
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
+// Google OAuth callback
+export const googleCallback = asyncHandler(async (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+  if (!req.user) {
+    return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+  }
+
+  req.user.lastLogin = Date.now();
+  await req.user.save({ validateBeforeSave: false });
+  await req.user.populate("batch");
+
+  const token = generateToken(req.user._id);
+  const refreshToken = generateRefreshToken(req.user._id);
+
+  res.redirect(
+    `${frontendUrl}/auth/callback?token=${token}&refreshToken=${refreshToken}`
+  );
 });

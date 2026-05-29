@@ -5,6 +5,10 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import {
+  canModifyResource,
+  canViewUnpublished,
+} from "../../helpers/authorization.js";
 
 // Get all events
 export const getAllEvents = asyncHandler(async (req, res) => {
@@ -12,7 +16,11 @@ export const getAllEvents = asyncHandler(async (req, res) => {
   const { status, type, search } = req.query;
 
   // Build query
-  const query = { isPublished: true };
+  const query = {};
+
+  if (!canViewUnpublished(req, "events:manage")) {
+    query.isPublished = true;
+  }
 
   if (status) query.status = status;
   if (type) query.type = type;
@@ -79,8 +87,8 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
     return next(new AppError("Event not found", 404));
   }
 
-  // Check if user is organizer or admin
-  if (event.organizer.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is organizer, admin, or moderator
+  if (!canModifyResource(event.organizer, req.user, "events:manage")) {
     return next(new AppError("Not authorized to update this event", 403));
   }
 
@@ -102,8 +110,8 @@ export const deleteEvent = asyncHandler(async (req, res, next) => {
     return next(new AppError("Event not found", 404));
   }
 
-  // Check if user is organizer or admin
-  if (event.organizer.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is organizer, admin, or moderator
+  if (!canModifyResource(event.organizer, req.user, "events:manage")) {
     return next(new AppError("Not authorized to delete this event", 403));
   }
 

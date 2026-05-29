@@ -1,5 +1,11 @@
-export { authAPI } from "./auth";
+export { authAPI, getGoogleAuthUrl } from "./auth";
 export { usersAPI } from "./users";
+export { mentorshipAPI } from "./mentorship";
+export { messagesAPI } from "./messages";
+export { notificationsAPI } from "./notifications";
+export { newsletterAPI } from "./newsletter";
+export { searchAPI } from "./search";
+export { contactAPI } from "./contact";
 
 import apiClient from "./client";
 
@@ -62,6 +68,8 @@ export const donationsAPI = {
   getCampaignDonations: (id, params) =>
     apiClient.get(`/donations/campaigns/${id}/donations`, { params }),
   getStats: () => apiClient.get("/donations/stats"),
+  createOrder: (data) => apiClient.post("/donations/order", data),
+  verifyPayment: (data) => apiClient.post("/donations/verify", data),
 };
 
 export const jobsAPI = {
@@ -70,7 +78,30 @@ export const jobsAPI = {
   create: (data) => apiClient.post("/jobs", data),
   update: (id, data) => apiClient.put(`/jobs/${id}`, data),
   delete: (id) => apiClient.delete(`/jobs/${id}`),
-  apply: (id) => apiClient.post(`/jobs/${id}/apply`),
+  apply: (id, data) => apiClient.post(`/jobs/${id}/apply`, data),
   getMyJobs: () => apiClient.get("/jobs/my/posted"),
   getAppliedJobs: () => apiClient.get("/jobs/my/applied"),
 };
+
+export const siteContentAPI = {
+  getByKey: (key) => apiClient.get(`/site-content/${key}`),
+};
+
+export async function downloadDonationReceipt(donationId) {
+  const token = localStorage.getItem("token");
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5454/api";
+  const res = await fetch(`${baseUrl}/donations/${donationId}/receipt.pdf`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error("Failed to download receipt");
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `receipt-${donationId}.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}

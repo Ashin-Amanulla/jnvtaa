@@ -56,17 +56,18 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+      <section className="relative border-b border-border py-16 md:py-24">
         <div className="container-custom">
-          <p className="mb-3 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
-            Photo pile
+          <p className="mb-3 inline-block rounded-xl border border-border bg-white px-3 py-1 font-sans text-lg shadow-card">
+            Campus memories
           </p>
           <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
             Gallery
           </h1>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
-            Sweaty sports days, batch photos, and reunion chaos—pinned with love.
+            Sports days, batch photographs, reunions, and moments from JNV
+            Thiruvananthapuram — shared by our alumni community.
           </p>
         </div>
       </section>
@@ -82,10 +83,10 @@ export default function Gallery() {
                   setFolderId(cat.value);
                   setPage(1);
                 }}
-                className={`min-h-12 rounded-wobblySm border-[3px] px-5 py-2 font-sans text-lg shadow-sketchSm transition-transform duration-100 focus-ring ${
+                className={`min-h-12 rounded-xl border-[3px] px-5 py-2 font-sans text-lg shadow-card transition-transform duration-100 focus-ring ${
                   folderId === cat.value
-                    ? "border-border bg-foreground text-background"
-                    : "border-border bg-white text-foreground hover:-rotate-1"
+                    ? "border-border bg-brand text-white"
+                    : "border-border bg-white text-foreground"
                 }`}
               >
                 {cat.label}
@@ -101,7 +102,7 @@ export default function Gallery() {
           {isLoading && <LoadingSpinner />}
 
           {isError && (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border bg-white px-6 py-12 text-center shadow-sketchSm">
+            <div className="rounded-2xl border border-border bg-white px-6 py-12 text-center shadow-card">
               <h3 className="mb-3 font-display text-2xl font-bold md:text-3xl">
                 Couldn&apos;t load album
               </h3>
@@ -126,15 +127,7 @@ export default function Gallery() {
                         setSelectedItem(item);
                       }
                     }}
-                    className={`group relative aspect-square cursor-pointer overflow-hidden border-[3px] border-border bg-muted shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch ${
-                      i % 3 === 1 ? "md:translate-y-2" : ""
-                    }`}
-                    style={{
-                      borderRadius:
-                        i % 2 === 0
-                          ? "255px 15px 225px 15px / 15px 225px 15px 255px"
-                          : "15px 255px 15px 225px / 225px 15px 255px 15px",
-                    }}
+                    className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-border bg-muted shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-cardHover"
                     onClick={() => setSelectedItem(item)}
                   >
                     <img
@@ -159,8 +152,8 @@ export default function Gallery() {
                     </div>
                     {item.type === "video" && (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white text-foreground shadow-sketch">
-                          <Play size={24} strokeWidth={2.5} className="ml-0.5" />
+                        <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-white text-foreground shadow-card">
+                          <Play size={24} strokeWidth={2} className="ml-0.5" />
                         </div>
                       </div>
                     )}
@@ -174,7 +167,7 @@ export default function Gallery() {
                     type="button"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="min-h-12 rounded-wobblySm border-[3px] border-border bg-white px-6 py-2 font-sans text-lg shadow-sketchSm focus-ring enabled:hover:-rotate-1 disabled:opacity-40"
+                    className="min-h-12 rounded-xl border border-border bg-white px-6 py-2 font-sans text-lg shadow-card focus-ring disabled:opacity-40"
                   >
                     Previous
                   </button>
@@ -185,7 +178,7 @@ export default function Gallery() {
                     type="button"
                     disabled={page >= totalPages}
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    className="min-h-12 rounded-wobblySm border-[3px] border-border bg-white px-6 py-2 font-sans text-lg shadow-sketchSm focus-ring enabled:hover:-rotate-1 disabled:opacity-40"
+                    className="min-h-12 rounded-xl border border-border bg-white px-6 py-2 font-sans text-lg shadow-card focus-ring disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -195,7 +188,7 @@ export default function Gallery() {
           )}
 
           {!isLoading && !isError && filteredItems.length === 0 && (
-            <div className="rounded-wobblyMd border-[3px] border-dashed border-border py-24 text-center shadow-sketchSm">
+            <div className="rounded-2xl border border-border py-24 text-center shadow-card">
               <ImageIcon
                 className="mx-auto mb-6 hidden text-muted-foreground md:block"
                 size={64}
@@ -224,9 +217,9 @@ export default function Gallery() {
           <button
             type="button"
             onClick={() => setSelectedItem(null)}
-            className="absolute right-6 top-6 rounded-wobblySm border-2 border-background bg-background px-3 py-2 text-foreground shadow-sketch focus-ring"
+            className="absolute right-6 top-6 rounded-xl border-2 border-background bg-background px-3 py-2 text-foreground shadow-card focus-ring"
           >
-            <X size={28} strokeWidth={2.5} />
+            <X size={28} strokeWidth={2} />
             <span className="sr-only">Close</span>
           </button>
 

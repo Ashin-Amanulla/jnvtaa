@@ -1,28 +1,45 @@
-/** Decorative SVGs for hero / sections — keep aria-hidden. */
+/** Decorative accents for hero / sections — keep aria-hidden. */
 
+/** Soft blurred colour blob — modern ambient decor. */
+export function HeroBlob({ className, color = "var(--house-blue)" }) {
+  return (
+    <div
+      className={className}
+      aria-hidden
+      style={{
+        background: color,
+        filter: "blur(64px)",
+        opacity: 0.18,
+        borderRadius: "9999px",
+      }}
+    />
+  );
+}
+
+/** Retained for back-compat: previously a dashed arrow. Now renders nothing
+ *  intrusive — a subtle chevron accent in the brand colour. */
 export function ArrowToCta({ className }) {
   return (
     <svg
       className={className}
-      width="120"
-      height="80"
-      viewBox="0 0 120 80"
+      width="64"
+      height="48"
+      viewBox="0 0 64 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
       <path
-        d="M10 20 C 40 5, 70 5, 95 25"
+        d="M6 14 C 24 6, 42 6, 56 22"
         stroke="currentColor"
-        strokeWidth="2.5"
-        strokeDasharray="6 4"
+        strokeWidth="2"
         fill="none"
         strokeLinecap="round"
       />
       <path
-        d="M88 18 L 98 28 L 95 32"
+        d="M50 14 L 58 23 L 49 27"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -31,6 +48,7 @@ export function ArrowToCta({ className }) {
   );
 }
 
+/** Retained for back-compat: previously a dashed squiggle. Now a clean curve. */
 export function SquiggleConnector({ className }) {
   return (
     <svg
@@ -43,10 +61,9 @@ export function SquiggleConnector({ className }) {
       aria-hidden
     >
       <path
-        d="M0 25 Q 50 5, 100 20 T 200 15"
+        d="M0 25 Q 50 8, 100 20 T 200 15"
         stroke="currentColor"
         strokeWidth="2"
-        strokeDasharray="5 5"
         fill="none"
         strokeLinecap="round"
       />

@@ -5,6 +5,13 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import {
+  createRazorpayOrder,
+  verifyRazorpaySignature,
+  getRazorpayKeyId,
+} from "../../services/razorpay.service.js";
+import { isStaff } from "../../config/roles.js";
+import PDFDocument from "pdfkit";
 
 // Campaign Controllers
 
@@ -110,11 +117,33 @@ export const deleteCampaign = asyncHandler(async (req, res, next) => {
 
 // Donation Controllers
 
-// Create donation
-export const createDonation = asyncHandler(async (req, res, next) => {
+const completeDonation = async (donation) => {
+  if (donation.paymentStatus === "completed") {
+    return donation;
+  }
+
+  donation.paymentStatus = "completed";
+  donation.transactionId =
+    donation.razorpayPaymentId ||
+    `TXN${Date.now()}${Math.random().toString(36).substring(7)}`;
+  await donation.save();
+
+  const campaignDoc = await DonationCampaign.findById(donation.campaign);
+  if (campaignDoc) {
+    campaignDoc.raised += donation.amount;
+    if (campaignDoc.raised >= campaignDoc.goal) {
+      campaignDoc.status = "completed";
+    }
+    await campaignDoc.save();
+  }
+
+  return donation;
+};
+
+// Create Razorpay order
+export const createOrder = asyncHandler(async (req, res, next) => {
   const { campaign, amount, paymentMethod, isAnonymous, message } = req.body;
 
-  // Check if campaign exists and is active
   const campaignDoc = await DonationCampaign.findById(campaign);
 
   if (!campaignDoc) {
@@ -125,7 +154,6 @@ export const createDonation = asyncHandler(async (req, res, next) => {
     return next(new AppError("Campaign is not active", 400));
   }
 
-  // Create donation
   const donation = await Donation.create({
     campaign,
     donor: req.user.id,
@@ -133,25 +161,164 @@ export const createDonation = asyncHandler(async (req, res, next) => {
     paymentMethod,
     isAnonymous,
     message,
-    transactionId: `TXN${Date.now()}${Math.random().toString(36).substring(7)}`,
+    paymentStatus: "pending",
   });
 
-  // In a real app, integrate with payment gateway here
-  // For now, we'll mark as completed
-  donation.paymentStatus = "completed";
-  await donation.save();
+  const order = await createRazorpayOrder({
+    amount,
+    currency: donation.currency,
+    receipt: donation._id.toString(),
+    notes: {
+      donationId: donation._id.toString(),
+      campaignId: campaign,
+    },
+  });
 
-  // Update campaign raised amount
-  campaignDoc.raised += amount;
-  if (campaignDoc.raised >= campaignDoc.goal) {
-    campaignDoc.status = "completed";
-  }
-  await campaignDoc.save();
+  donation.razorpayOrderId = order.id;
+  await donation.save();
 
   await donation.populate("donor", "firstName lastName avatar");
   await donation.populate("campaign", "title goal raised");
 
-  sendSuccess(res, 201, { donation }, "Donation created successfully");
+  sendSuccess(
+    res,
+    201,
+    {
+      donation,
+      order,
+      keyId: getRazorpayKeyId(),
+    },
+    "Payment order created successfully"
+  );
+});
+
+// Verify Razorpay payment
+export const verifyPayment = asyncHandler(async (req, res, next) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+    req.body;
+
+  const isValid = verifyRazorpaySignature({
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+    signature: razorpay_signature,
+  });
+
+  if (!isValid) {
+    return next(new AppError("Invalid payment signature", 400));
+  }
+
+  const donation = await Donation.findOne({
+    razorpayOrderId: razorpay_order_id,
+    donor: req.user.id,
+  });
+
+  if (!donation) {
+    return next(new AppError("Donation not found", 404));
+  }
+
+  donation.razorpayPaymentId = razorpay_payment_id;
+  donation.razorpaySignature = razorpay_signature;
+  await completeDonation(donation);
+
+  await donation.populate("donor", "firstName lastName avatar");
+  await donation.populate("campaign", "title goal raised");
+
+  sendSuccess(res, 200, { donation }, "Payment verified successfully");
+});
+
+// Generate PDF receipt
+export const getDonationReceipt = asyncHandler(async (req, res, next) => {
+  const donation = await Donation.findById(req.params.id)
+    .populate("donor", "firstName lastName email")
+    .populate("campaign", "title");
+
+  if (!donation) {
+    return next(new AppError("Donation not found", 404));
+  }
+
+  if (donation.paymentStatus !== "completed") {
+    return next(new AppError("Receipt is only available for completed donations", 400));
+  }
+
+  const isDonor = donation.donor._id.toString() === req.user.id;
+  const isAdmin = isStaff(req.user);
+
+  if (!isDonor && !isAdmin) {
+    return next(new AppError("Not authorized to download this receipt", 403));
+  }
+
+  const doc = new PDFDocument({ margin: 50 });
+  const filename = `receipt-${donation._id}.pdf`;
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+  doc.pipe(res);
+
+  doc.fontSize(20).text("JNVTAA Donation Receipt", { align: "center" });
+  doc.moveDown();
+  doc.fontSize(12).text(`Receipt ID: ${donation._id}`);
+  doc.text(`Date: ${donation.createdAt.toLocaleDateString("en-IN")}`);
+  doc.text(`Campaign: ${donation.campaign.title}`);
+  doc.text(`Amount: ${donation.currency} ${donation.amount}`);
+  doc.text(`Payment ID: ${donation.razorpayPaymentId || donation.transactionId}`);
+  doc.text(`Status: ${donation.paymentStatus}`);
+
+  if (!donation.isAnonymous) {
+    doc.moveDown();
+    doc.text(
+      `Donor: ${donation.donor.firstName} ${donation.donor.lastName}`
+    );
+    doc.text(`Email: ${donation.donor.email}`);
+  }
+
+  if (donation.message) {
+    doc.moveDown();
+    doc.text(`Message: ${donation.message}`);
+  }
+
+  doc.moveDown(2);
+  doc.text("Thank you for your generous contribution.", { align: "center" });
+
+  doc.end();
+});
+
+// Admin: Get all donations
+export const getAllDonationsAdmin = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = getPaginationParams(req.query);
+  const { paymentStatus, campaign } = req.query;
+
+  const query = {};
+  if (paymentStatus) query.paymentStatus = paymentStatus;
+  if (campaign) query.campaign = campaign;
+
+  const donations = await Donation.find(query)
+    .populate("donor", "firstName lastName email avatar")
+    .populate("campaign", "title goal raised")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await Donation.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  sendPaginated(
+    res,
+    200,
+    { donations },
+    pagination,
+    "Donations retrieved successfully"
+  );
+});
+
+// Create donation (legacy stub replaced by order flow)
+export const createDonation = asyncHandler(async (req, res, next) => {
+  return next(
+    new AppError(
+      "Use POST /api/donations/order to create a Razorpay payment order",
+      400
+    )
+  );
 });
 
 // Get all donations for a campaign

@@ -34,22 +34,22 @@ export default function AdminDashboard() {
     {
       label: "Total alumni",
       value: userStats?.data?.stats?.totalUsers || 0,
-      icon: <Users size={26} strokeWidth={2.5} />,
+      icon: <Users size={26} strokeWidth={2} />,
     },
     {
       label: "Verified",
       value: userStats?.data?.stats?.verifiedUsers || 0,
-      icon: <UserCheck size={26} strokeWidth={2.5} />,
+      icon: <UserCheck size={26} strokeWidth={2} />,
     },
     {
       label: "Pending",
       value: userStats?.data?.stats?.unverifiedUsers || 0,
-      icon: <Clock size={26} strokeWidth={2.5} />,
+      icon: <Clock size={26} strokeWidth={2} />,
     },
     {
       label: "Donations",
       value: formatCurrency(donationStats?.data?.stats?.totalRaised || 0),
-      icon: <Banknote size={26} strokeWidth={2.5} />,
+      icon: <Banknote size={26} strokeWidth={2} />,
     },
   ];
 
@@ -57,17 +57,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen py-16 md:py-24">
       <div className="container-custom max-w-7xl">
         <div className="mb-14">
-          <p className="inline-block rotate-1 rounded-wobblySm border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-sketchSm">
+          <p className="inline-block rotate-1 rounded-xl border-2 border-border bg-white px-3 py-1 font-sans text-lg shadow-card">
             Moderators only
           </p>
           <h1 className="mt-4 flex flex-wrap items-center gap-4 font-display text-5xl font-bold md:text-6xl">
-            <LayoutDashboard size={40} strokeWidth={2.5} aria-hidden />
+            <LayoutDashboard size={40} strokeWidth={2} aria-hidden />
             Admin panel
           </h1>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground">
-            Keep the alumni scrapbook organized—without sanding off the
-            personality.
+            Manage members, events, and association content for JNVTAA.
           </p>
         </div>
 
@@ -95,11 +94,11 @@ export default function AdminDashboard() {
             {unverifiedUsers?.data?.users &&
               unverifiedUsers.data.users.length > 0 && (
                 <SketchCard decoration="tape" tilt className="p-0">
-                  <div className="flex flex-col gap-4 border-b-[3px] border-dashed border-border p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+                  <div className="flex flex-col gap-4 border-b border-border p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
                     <h2 className="font-display text-2xl font-bold md:text-3xl">
                       Pending verifications
                     </h2>
-                    <span className="w-fit rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-sm font-bold shadow-sketchSm">
+                    <span className="w-fit rounded-xl border-2 border-border bg-house-yellow-soft px-3 py-1 font-sans text-sm font-bold shadow-card">
                       {unverifiedUsers.pagination.total} waiting
                     </span>
                   </div>
@@ -117,10 +116,9 @@ export default function AdminDashboard() {
                               `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=e5e0d8&color=2d2d2d`
                             }
                             alt=""
-                            className="h-16 w-16 border-[3px] border-border object-cover shadow-sketchSm"
+                            className="h-16 w-16 border border-border object-cover shadow-card"
                             style={{
-                              borderRadius:
-                                "255px 15px 225px 15px / 15px 225px 15px 255px",
+                              borderRadius: "9999px",
                             }}
                           />
                           <div>
@@ -142,10 +140,10 @@ export default function AdminDashboard() {
                     ))}
                   </div>
 
-                  <div className="border-t-2 border-dashed border-border bg-muted p-4 text-center">
+                  <div className="border-t border-border bg-muted p-4 text-center">
                     <button
                       type="button"
-                      className="font-sans text-lg font-bold text-pen underline decoration-wavy decoration-2"
+                      className="font-sans text-lg font-bold text-brand font-medium"
                     >
                       View all pending →
                     </button>
@@ -162,44 +160,44 @@ export default function AdminDashboard() {
               {
                 title: "Users",
                 description: "Accounts & roles",
-                icon: <Users size={24} strokeWidth={2.5} />,
+                icon: <Users size={24} strokeWidth={2} />,
                 link: "#",
               },
               {
                 title: "Events",
                 description: "Create & edit",
-                icon: <Calendar size={24} strokeWidth={2.5} />,
+                icon: <Calendar size={24} strokeWidth={2} />,
                 link: "#",
               },
               {
                 title: "Moderation",
                 description: "Approve posts",
-                icon: <ImageIcon size={24} strokeWidth={2.5} />,
+                icon: <ImageIcon size={24} strokeWidth={2} />,
                 link: "#",
               },
               {
                 title: "Analytics",
                 description: "Trends & exports",
-                icon: <BarChart size={24} strokeWidth={2.5} />,
+                icon: <BarChart size={24} strokeWidth={2} />,
                 link: "#",
               },
               {
                 title: "Settings",
                 description: "Platform config",
-                icon: <Settings size={24} strokeWidth={2.5} />,
+                icon: <Settings size={24} strokeWidth={2} />,
                 link: "#",
               },
             ].map((item) => (
               <a
                 href={item.link}
                 key={item.title}
-                className="flex items-center gap-4 rounded-wobblyMd border-[3px] border-border bg-white p-5 shadow-sketchSm transition-transform duration-100 hover:-rotate-1 hover:shadow-sketch focus-ring"
+                className="flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-card transition-transform duration-100 hover:shadow-card focus-ring"
               >
-                <span className="flex h-12 w-12 items-center justify-center rounded-wobblySm border-2 border-border bg-muted">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
                   {item.icon}
                 </span>
                 <div>
-                  <h3 className="font-display text-xl font-bold underline decoration-dashed decoration-2 underline-offset-4">
+                  <h3 className="font-display text-xl font-bold font-medium">
                     {item.title}
                   </h3>
                   <p className="font-sans text-sm text-muted-foreground">

@@ -1,54 +1,46 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SketchIconCircle } from "@/components/SketchIconCircle";
-import { cn } from "@/utils/cn";
 
-export default function StatsCounter({ end, duration = 2000, label, icon }) {
+export default function StatsCounter({ end, label, icon, duration = 2000 }) {
   const [count, setCount] = useState(0);
+  const ref = useRef(null);
 
   useEffect(() => {
-    let startTime;
-    let animationFrame;
-
-    const animate = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = timestamp - startTime;
-
-      if (progress < duration) {
-        const percentage = progress / duration;
-        const currentCount = Math.floor(end * percentage);
-        setCount(currentCount);
-        animationFrame = requestAnimationFrame(animate);
-      } else {
-        setCount(end);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
-    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          let start = 0;
+          const increment = end / (duration / 16);
+          const timer = setInterval(() => {
+            start += increment;
+            if (start >= end) {
+              setCount(end);
+              clearInterval(timer);
+            } else {
+              setCount(Math.floor(start));
+            }
+          }, 16);
+          return () => clearInterval(timer);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
   }, [end, duration]);
 
   return (
     <div
-      className={cn(
-        "flex flex-col items-center border-[3px] border-border bg-white p-6 text-center shadow-sketch transition-transform duration-100",
-        "hover:-rotate-1 hover:shadow-sketchLg md:p-8",
-      )}
-      style={{
-        borderRadius: "28px 8px 22px 8px / 8px 22px 8px 28px",
-      }}
+      ref={ref}
+      className="rounded-2xl border border-border bg-card p-6 text-center shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-cardHover"
     >
-      <SketchIconCircle className="mb-4 text-foreground">
-        {icon}
-      </SketchIconCircle>
-      <div className="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+      <div className="mb-4 flex justify-center">
+        <SketchIconCircle>{icon}</SketchIconCircle>
+      </div>
+      <div className="font-display text-4xl font-bold text-foreground md:text-5xl">
         {count}+
       </div>
-      <div className="mt-3 font-sans text-base text-muted-foreground md:text-lg">
+      <div className="mt-2 font-sans text-sm text-muted-foreground md:text-base">
         {label}
       </div>
     </div>

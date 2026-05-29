@@ -53,7 +53,7 @@ export default function NewsDetail() {
   if (!article) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="card p-10 border-[2px] border-border text-center">
+        <div className="card p-10 border border-border text-center">
           <h2 className="text-4xl font-display font-medium tracking-tighter mb-6">
             Article not found
           </h2>
@@ -75,7 +75,7 @@ export default function NewsDetail() {
           <button
             type="button"
             onClick={() => navigate("/news")}
-            className="inline-flex items-center gap-2 font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-sm"
+            className="inline-flex items-center gap-2 font-sans text-lg text-brand font-medium focus-ring rounded-sm"
           >
             <ArrowLeft size={16} strokeWidth={2} />
             Back to News
@@ -89,8 +89,8 @@ export default function NewsDetail() {
           <div>
             {/* Category & Date */}
             <div className="flex flex-wrap items-center gap-6 mb-8">
-              <span className="px-4 py-2 bg-foreground text-background text-xs font-mono tracking-widest uppercase font-bold border-[2px] border-foreground">
-                {article.category.replace("_", " ").toUpperCase()}
+              <span className="px-4 py-2 bg-brand text-white text-xs font-mono tracking-widest uppercase font-bold border-[2px] border-foreground">
+                {article.category.replace("_", "").toUpperCase()}
               </span>
               <div className="flex items-center font-mono text-sm uppercase tracking-widest text-muted-foreground">
                 <Clock className="mr-2" size={16} strokeWidth={1.5} />
@@ -154,7 +154,7 @@ export default function NewsDetail() {
             <img
               src={article.coverImage}
               alt=""
-              className="w-full border-[3px] border-border object-cover shadow-sketchLg"
+              className="w-full border border-border object-cover shadow-cardHover"
               style={{
                 borderRadius: "20px 240px 20px 200px / 200px 20px 240px 20px",
               }}
@@ -178,7 +178,7 @@ export default function NewsDetail() {
                 disabled={likeMutation.isLoading}
                 className={`btn flex items-center gap-3 px-8 py-4 border-[2px] ${
                   isLiked
-                    ? "bg-foreground text-background border-foreground hover:bg-background hover:text-foreground"
+                    ? "bg-brand text-white border-foreground hover:bg-background hover:text-foreground"
                     : "bg-background text-foreground border-border hover:border-foreground"
                 }`}
               >
@@ -202,7 +202,7 @@ export default function NewsDetail() {
 
           {/* Add Comment */}
           {isAuthenticated && (
-            <div className="card p-8 border-[2px] border-border bg-background mb-12">
+            <div className="card p-8 border border-border bg-background mb-12">
               <h3 className="font-mono text-sm tracking-widest uppercase font-bold mb-4">Leave a Comment</h3>
               <textarea
                 value={comment}
@@ -253,7 +253,7 @@ export default function NewsDetail() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-20 border-[2px] border-border border-dashed">
+              <div className="text-center py-20 border border-border">
                 <MessageCircle className="mx-auto mb-4 text-border" size={48} strokeWidth={1} />
                 <p className="font-mono uppercase tracking-widest text-muted-foreground">No comments yet. Be the first!</p>
               </div>

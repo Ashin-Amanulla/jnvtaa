@@ -35,6 +35,17 @@ const donationSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    razorpayOrderId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySignature: {
+      type: String,
+    },
     isAnonymous: {
       type: Boolean,
       default: false,

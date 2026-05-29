@@ -4,20 +4,59 @@
 
 @layer base {
   :root {
-    --background: #fdfbf7;
-    --foreground: #2d2d2d;
-    --muted: #e5e0d8;
-    --muted-foreground: #5c5650;
-    --border: #2d2d2d;
-    --accent: #ff4d4d;
-    --pen: #2d5da1;
-    --house-green: #2f9e44;
-    --house-red: #ff4d4d;
-    --house-blue: #2d5da1;
-    --house-yellow: #f0b429;
-    --postit: #fff9c4;
+    /* Surfaces — warm, clean, modern */
+    --background: #fbfaf7;
+    --surface: #ffffff;
+    --foreground: #1f2430;
+    --muted: #f1efe9;
+    --muted-foreground: #5f6470;
+    --border: #e6e2d9;
+
+    /* Brand primary — deep navy, evolved from house-blue */
+    --brand: #1e3a5f;
+    --brand-hover: #15304f;
+    --brand-soft: #e8eef5;
+    --brand-foreground: #ffffff;
+
+    /* Supporting accent palette (refined NVS house colours) */
+    --accent: #e0524b;
+    --pen: #1e3a5f;
+    --house-red: #e0524b;
+    --house-green: #2f9e5b;
+    --house-blue: #2f6bbf;
+    --house-yellow: #e0a431;
+    --house-red-soft: #fbe9e7;
+    --house-green-soft: #e6f4ec;
+    --house-blue-soft: #e8f0fa;
+    --house-yellow-soft: #fbf2dd;
+    --postit: #fffdf5;
+
     --card: #ffffff;
-    --card-foreground: #2d2d2d;
+    --card-foreground: #1f2430;
+
+    /* shadcn admin theme */
+    --primary: 211 52% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 30% 96%;
+    --secondary-foreground: 215 28% 17%;
+    --destructive: 2 70% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --ring: 211 52% 30%;
+    --input: 40 18% 88%;
+    --radius: 0.75rem;
+  }
+
+  .admin-theme {
+    --background: 0 0% 100%;
+    --foreground: 215 28% 17%;
+    --muted: 210 30% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 40 18% 88%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    font-family: "Inter", system-ui, sans-serif;
   }
 
   html {
@@ -40,11 +79,10 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    letter-spacing: 0.02em;
-    line-height: 1.65;
+    line-height: 1.6;
     background-color: var(--background);
-    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
-    background-size: 24px 24px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   h1,
@@ -54,20 +92,22 @@
   h5,
   h6 {
     @apply font-display text-foreground;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
   }
 }
 
 @layer components {
   .container-custom {
-    @apply mx-auto max-w-5xl px-6 md:px-8;
+    @apply mx-auto max-w-content px-5 md:px-8;
   }
 
-  /* Hard-offset sketch buttons */
+  /* Buttons — solid, modern, with subtle elevation + lift on hover */
   .btn {
-    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white px-6 py-3 font-sans text-lg font-normal text-foreground shadow-sketch transition-transform duration-100 md:text-xl;
-    @apply hover:bg-accent hover:text-white hover:shadow-sketchSm hover:translate-x-0.5 hover:translate-y-0.5;
-    @apply active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline-none;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent bg-brand px-6 py-2.5 font-sans text-base font-semibold text-brand-foreground shadow-brand transition-all duration-200;
+    @apply hover:bg-brand-hover hover:-translate-y-0.5 hover:shadow-cardHover;
+    @apply active:translate-y-0 active:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-brand;
   }
 
   .btn-primary {
@@ -75,34 +115,35 @@
   }
 
   .btn-secondary {
-    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[3px] border-border bg-muted px-6 py-3 font-sans text-lg font-normal text-foreground shadow-sketch transition-transform duration-100 md:text-xl;
-    @apply hover:bg-pen hover:text-white hover:shadow-sketchSm hover:translate-x-0.5 hover:translate-y-0.5;
-    @apply active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline-none;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-6 py-2.5 font-sans text-base font-semibold text-foreground shadow-card transition-all duration-200;
+    @apply hover:-translate-y-0.5 hover:border-brand hover:shadow-cardHover;
+    @apply active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-outline {
-    @apply inline-flex min-h-12 items-center justify-center rounded-wobblySm border-[2px] border-dashed border-border bg-transparent px-6 py-3 font-sans text-lg text-foreground shadow-none transition-transform duration-100;
-    @apply hover:border-solid hover:border-[3px] hover:shadow-sketch hover:-rotate-1;
-    @apply active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-none;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-brand bg-transparent px-6 py-2.5 font-sans text-base font-semibold text-brand transition-all duration-200;
+    @apply hover:bg-brand hover:text-brand-foreground hover:-translate-y-0.5 hover:shadow-cardHover;
+    @apply active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .btn-ghost {
-    @apply inline-flex min-h-12 items-center justify-center border-2 border-transparent bg-transparent px-3 py-2 font-sans text-lg text-foreground underline decoration-dashed decoration-2 underline-offset-[6px];
-    @apply hover:text-accent hover:decoration-accent hover:line-through decoration-solid;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-transparent bg-transparent px-4 py-2 font-sans text-base font-semibold text-brand transition-colors duration-200;
+    @apply hover:bg-brand-soft;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .card {
-    @apply rounded-wobblyMd border-2 border-border bg-card p-6 text-card-foreground shadow-sketchCard md:p-8;
+    @apply rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-card md:p-8;
   }
 
   .card-inverted {
-    @apply rounded-wobblyMd border-[3px] border-border bg-foreground p-6 text-background shadow-sketch md:p-8;
+    @apply rounded-2xl border border-brand bg-brand p-6 text-brand-foreground shadow-card md:p-8;
   }
 
   .input {
-    @apply w-full rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-lg text-foreground placeholder:text-muted-foreground;
-    @apply focus:border-pen focus:outline-none focus:ring-2 focus:ring-pen focus:ring-offset-2 focus:ring-offset-background;
+    @apply w-full rounded-xl border border-border bg-surface px-4 py-2.5 font-sans text-base text-foreground placeholder:text-muted-foreground transition-colors duration-200;
+    @apply focus:border-brand focus:outline-none focus:ring-2 focus:ring-ring;
   }
 
   .textarea {
@@ -110,17 +151,27 @@
   }
 
   .label {
-    @apply mb-2 block font-sans text-base font-medium text-foreground;
+    @apply mb-1.5 block font-sans text-sm font-medium text-foreground;
   }
 
   .section-divider {
-    @apply w-full border-t-2 border-dashed border-border;
+    @apply w-full border-t border-border;
   }
 
-  /* Wavy underline utility for nav/footer */
+  /* Clean coloured link */
   .link-sketch {
-    @apply font-sans text-foreground underline decoration-wavy decoration-2 underline-offset-[5px];
-    @apply hover:text-accent transition-colors duration-100;
+    @apply font-sans font-medium text-brand transition-colors duration-200;
+    @apply hover:text-brand-hover;
+  }
+
+  /* Pill badge in a supporting accent colour */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-sm font-medium;
+  }
+
+  /* Eyebrow label above section headings */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 font-sans text-sm font-semibold uppercase tracking-wide text-brand;
   }
 }
 
@@ -130,36 +181,46 @@
   }
 
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pen focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
-  .rotate-sketch-1 {
-    transform: rotate(1deg);
-  }
-
-  .rotate-sketch-2 {
-    transform: rotate(-2deg);
-  }
-
-  .hover-jiggle {
-    @apply transition-transform duration-100 hover:-rotate-2;
-  }
-
-  .hover-jiggle-alt {
-    @apply transition-transform duration-100 hover:rotate-1;
-  }
-
-  .paper-overlay {
-    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
-    background-size: 24px 24px;
+  /* Subtle hover lift for cards/interactive surfaces */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-cardHover;
   }
 
   .sticky-below-nav {
     position: sticky;
     top: 4.5rem;
     z-index: 30;
-    border-bottom: 2px dashed var(--border);
-    background-color: rgba(253, 251, 247, 0.95);
-    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    background-color: rgba(251, 250, 247, 0.9);
+    backdrop-filter: blur(10px);
+  }
+
+  /* ---------------------------------------------------------------
+     Back-compat aliases for the retired "sketch" aesthetic.
+     These keep ~600 inline references rendering cleanly while
+     pages are migrated in Wave B. They intentionally map the old
+     names onto the new clean system.
+     --------------------------------------------------------------- */
+  .rounded-wobbly,
+  .rounded-wobblyMd {
+    border-radius: 1.125rem; /* rounded-2xl */
+  }
+  .rounded-wobblySm {
+    border-radius: 0.875rem; /* rounded-xl */
+  }
+  .shadow-sketch,
+  .shadow-sketchLg {
+    box-shadow:
+      0 10px 24px -8px rgba(16, 24, 40, 0.16),
+      0 4px 8px -4px rgba(16, 24, 40, 0.08);
+  }
+  .shadow-sketchSm,
+  .shadow-sketchCard {
+    box-shadow:
+      0 1px 2px rgba(16, 24, 40, 0.04),
+      0 1px 3px rgba(16, 24, 40, 0.08);
   }
 }

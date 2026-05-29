@@ -1,6 +1,7 @@
 import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import User from "./users.model.js";
 import { sendSuccess, sendPaginated } from "../../helpers/response.js";
+import { ROLES } from "../../config/roles.js";
 import {
   getPaginationParams,
   getPaginationMeta,
@@ -11,8 +12,8 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPaginationParams(req.query);
   const { batch, currentCity, profession, industry, search } = req.query;
 
-  // Build query
-  const query = { isActive: true };
+  // Build query — alumni directory only (exclude platform super admin)
+  const query = { isActive: true, role: { $ne: ROLES.SUPER_ADMIN } };
 
   if (batch) query.batch = batch;
   if (currentCity) query.currentCity = new RegExp(currentCity, "i");
@@ -51,6 +52,10 @@ export const getUserById = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.params.id).populate("batch");
 
   if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  if (user.role === ROLES.SUPER_ADMIN) {
     return next(new AppError("User not found", 404));
   }
 
@@ -175,19 +180,20 @@ export const getUnverifiedUsers = asyncHandler(async (req, res) => {
 
 // Get user statistics
 export const getUserStats = asyncHandler(async (req, res) => {
-  const totalUsers = await User.countDocuments({ isActive: true });
+  const alumniFilter = { isActive: true, role: { $ne: ROLES.SUPER_ADMIN } };
+  const totalUsers = await User.countDocuments(alumniFilter);
   const verifiedUsers = await User.countDocuments({
+    ...alumniFilter,
     isVerified: true,
-    isActive: true,
   });
   const unverifiedUsers = await User.countDocuments({
+    ...alumniFilter,
     isVerified: false,
-    isActive: true,
   });
 
   // Users by batch
   const usersByBatch = await User.aggregate([
-    { $match: { isActive: true } },
+    { $match: { ...alumniFilter } },
     { $group: { _id: "$batch", count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 10 },
@@ -195,7 +201,7 @@ export const getUserStats = asyncHandler(async (req, res) => {
 
   // Users by location
   const usersByLocation = await User.aggregate([
-    { $match: { isActive: true, currentCity: { $ne: null } } },
+    { $match: { ...alumniFilter, currentCity: { $ne: null } } },
     { $group: { _id: "$currentCity", count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 10 },
@@ -215,4 +221,184 @@ export const getUserStats = asyncHandler(async (req, res) => {
     },
     "Statistics retrieved successfully"
   );
+});
+
+// Admin: List all users with filters
+export const getAllUsersAdmin = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = getPaginationParams(req.query);
+  const {
+    role,
+    isVerified,
+    isActive,
+    batch,
+    search,
+    currentCity,
+    currentCountry,
+    profession,
+    company,
+    industry,
+    gender,
+    staffOnly,
+    membersOnly,
+  } = req.query;
+
+  const query = { role: { $ne: ROLES.SUPER_ADMIN } };
+
+  if (staffOnly === "true") {
+    query.role = { $nin: [ROLES.MEMBER, ROLES.SUPER_ADMIN] };
+  } else if (membersOnly === "true") {
+    query.role = ROLES.MEMBER;
+  } else if (role && role !== ROLES.SUPER_ADMIN) {
+    query.role = role;
+  }
+  if (isVerified !== undefined && isVerified !== "")
+    query.isVerified = isVerified === "true";
+  if (isActive !== undefined && isActive !== "")
+    query.isActive = isActive === "true";
+  if (batch) query.batch = batch;
+  if (currentCity) query.currentCity = new RegExp(currentCity, "i");
+  if (currentCountry) query.currentCountry = new RegExp(currentCountry, "i");
+  if (profession) query.profession = new RegExp(profession, "i");
+  if (company) query.company = new RegExp(company, "i");
+  if (industry) query.industry = new RegExp(industry, "i");
+  if (gender) query.gender = gender;
+  if (search) {
+    query.$or = [
+      { firstName: new RegExp(search, "i") },
+      { lastName: new RegExp(search, "i") },
+      { email: new RegExp(search, "i") },
+      { profession: new RegExp(search, "i") },
+      { company: new RegExp(search, "i") },
+    ];
+  }
+
+  const users = await User.find(query)
+    .populate("batch")
+    .select("-password")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await User.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  sendPaginated(
+    res,
+    200,
+    { users },
+    pagination,
+    "Users retrieved successfully"
+  );
+});
+
+// Super admin: Change user role
+export const updateUserRole = asyncHandler(async (req, res, next) => {
+  const { role } = req.body;
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  if (user._id.toString() === req.user.id) {
+    return next(new AppError("You cannot change your own role", 400));
+  }
+
+  if (role === ROLES.SUPER_ADMIN) {
+    return next(
+      new AppError("Super admin accounts are platform-only and cannot be assigned", 403)
+    );
+  }
+
+  if (
+    user.role === ROLES.SUPER_ADMIN &&
+    role !== ROLES.SUPER_ADMIN
+  ) {
+    const superAdminCount = await User.countDocuments({
+      role: ROLES.SUPER_ADMIN,
+      isActive: true,
+    });
+    if (superAdminCount <= 1) {
+      return next(
+        new AppError("Cannot demote the last active super admin", 400)
+      );
+    }
+  }
+
+  user.role = role;
+  await user.save();
+  await user.populate("batch");
+
+  sendSuccess(res, 200, { user }, "User role updated successfully");
+});
+
+// Admin: Deactivate user
+export const deactivateUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  if (user._id.toString() === req.user.id) {
+    return next(new AppError("You cannot deactivate your own account", 400));
+  }
+
+  user.isActive = false;
+  await user.save();
+  await user.populate("batch");
+
+  sendSuccess(res, 200, { user }, "User deactivated successfully");
+});
+
+// Admin/Moderator: Edit user profile
+export const adminUpdateUser = asyncHandler(async (req, res, next) => {
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "batch",
+    "rollNumber",
+    "dateOfBirth",
+    "gender",
+    "avatar",
+    "bio",
+    "currentCity",
+    "currentCountry",
+    "profession",
+    "company",
+    "industry",
+    "isVerified",
+    "isActive",
+    "socialLinks",
+    "privacySettings",
+  ];
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      if (field === "socialLinks" || field === "privacySettings") {
+        user[field] = { ...user[field], ...req.body[field] };
+      } else {
+        user[field] = req.body[field];
+      }
+    }
+  }
+
+  if (req.body.role !== undefined) {
+    return next(
+      new AppError("Role changes must use the dedicated role endpoint", 403)
+    );
+  }
+
+  await user.save();
+  await user.populate("batch");
+
+  sendSuccess(res, 200, { user }, "User updated successfully");
 });

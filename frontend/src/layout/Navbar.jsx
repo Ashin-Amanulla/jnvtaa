@@ -1,18 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown, MessageCircle } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/utils/cn";
+import { canAccessAdmin, isSuperAdmin, isAlumniMember } from "@/utils/roles";
+import NotificationBell from "@/components/NotificationBell";
 
 const discoverItems = [
   { name: "Events", path: "/events" },
   { name: "News", path: "/news" },
   { name: "Jobs", path: "/jobs" },
   { name: "Gallery", path: "/gallery" },
+  { name: "Batches", path: "/batches" },
+  { name: "Mentorship", path: "/mentorship" },
+  { name: "Map", path: "/map" },
+  { name: "Achievements", path: "/achievements" },
 ];
 
-const linkClass =
-  "rounded-wobblySm px-3 py-2 font-sans text-lg text-foreground underline decoration-dashed decoration-2 underline-offset-[6px] hover:text-accent hover:decoration-accent focus-ring";
+const linkBase =
+  "rounded-lg px-3 py-2 font-sans text-base font-medium transition-colors focus-ring";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +32,19 @@ export default function Navbar() {
   const isDiscoverActive = discoverItems.some(
     (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
   );
+
+  const isActive = (path) =>
+    path === "/" ? pathname === "/" : pathname.startsWith(path);
+
+  const navLinkClass = (path) =>
+    cn(
+      linkBase,
+      isActive(path)
+        ? "bg-brand-soft text-brand"
+        : "text-foreground hover:bg-muted hover:text-brand",
+    );
+
+  const directoryPath = canAccessAdmin(user) ? "/admin/directory" : "/directory";
 
   useEffect(() => {
     if (!discoverOpen) return;
@@ -65,35 +84,39 @@ export default function Navbar() {
 
   return (
     <nav
-      className="sticky top-0 z-50 border-b-[3px] border-dashed border-border bg-background/95 shadow-sketchSm backdrop-blur-sm"
+      className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md"
       aria-label="Main"
     >
       <div className="container-custom">
-        <div className="flex h-[4.5rem] items-center justify-between md:h-20">
+        <div className="flex h-16 items-center justify-between md:h-[4.5rem]">
           <Link
             to="/"
-            className="group inline-flex items-center gap-2 focus-ring rounded-wobblySm md:gap-3"
+            className="group inline-flex items-center gap-2.5 focus-ring rounded-lg"
             aria-label="JNVTAA home"
           >
             <img
               src="/logo.png"
               alt=""
-              width={48}
-              height={48}
-              className="h-11 w-11 shrink-0 rotate-[-2deg] border-[3px] border-border bg-white object-cover shadow-sketch transition-transform duration-100 group-hover:rotate-0 md:h-12 md:w-12"
-              style={{ borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px" }}
+              width={44}
+              height={44}
+              className="h-10 w-10 shrink-0 rounded-xl border border-border bg-white object-cover md:h-11 md:w-11"
             />
-            <span className="hidden items-center gap-1 md:inline-flex" aria-hidden>
-              <span className="h-2.5 w-2.5 rounded-full bg-house-green" />
-              <span className="h-2.5 w-2.5 rounded-full bg-house-red" />
-              <span className="h-2.5 w-2.5 rounded-full bg-house-blue" />
-              <span className="h-2.5 w-2.5 rounded-full bg-house-yellow" />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-lg font-bold text-foreground">
+                JNVTAA
+              </span>
+              <span className="mt-1 hidden items-center gap-1 md:inline-flex" aria-hidden>
+                <span className="h-1.5 w-4 rounded-full bg-house-green" />
+                <span className="h-1.5 w-4 rounded-full bg-house-red" />
+                <span className="h-1.5 w-4 rounded-full bg-house-blue" />
+                <span className="h-1.5 w-4 rounded-full bg-house-yellow" />
+              </span>
             </span>
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">
             {navLinks.slice(0, 2).map((link) => (
-              <Link key={link.path} to={link.path} className={linkClass}>
+              <Link key={link.path} to={link.path} className={navLinkClass(link.path)}>
                 {link.name}
               </Link>
             ))}
@@ -102,9 +125,11 @@ export default function Navbar() {
                 type="button"
                 id="nav-discover-trigger"
                 className={cn(
-                  linkClass,
-                  "inline-flex items-center gap-0.5 !no-underline hover:underline",
-                  isDiscoverActive && "text-accent decoration-accent",
+                  linkBase,
+                  "inline-flex items-center gap-0.5",
+                  isDiscoverActive
+                    ? "bg-brand-soft text-brand"
+                    : "text-foreground hover:bg-muted hover:text-brand",
                 )}
                 aria-expanded={discoverOpen}
                 aria-haspopup="menu"
@@ -117,7 +142,6 @@ export default function Navbar() {
                     "h-4 w-4 shrink-0 transition-transform duration-200",
                     discoverOpen && "rotate-180",
                   )}
-                  strokeWidth={2.5}
                   aria-hidden
                 />
               </button>
@@ -128,13 +152,13 @@ export default function Navbar() {
                   aria-labelledby="nav-discover-trigger"
                   className="absolute left-0 top-full z-50 min-w-[12rem] pt-2"
                 >
-                  <div className="rounded-wobblySm border-[3px] border-border bg-white py-2 shadow-sketch">
+                  <div className="overflow-hidden rounded-xl border border-border bg-surface py-1.5 shadow-cardHover">
                     {discoverItems.map((item) => (
                       <Link
                         key={item.path}
                         role="menuitem"
                         to={item.path}
-                        className="block px-4 py-2.5 font-sans text-lg text-foreground hover:bg-muted focus-ring"
+                        className="block px-4 py-2 font-sans text-base text-foreground transition-colors hover:bg-muted hover:text-brand focus-ring"
                         onClick={() => setDiscoverOpen(false)}
                       >
                         {item.name}
@@ -145,64 +169,86 @@ export default function Navbar() {
               )}
             </div>
             {navLinks.slice(2).map((link) => (
-              <Link key={link.path} to={link.path} className={linkClass}>
+              <Link key={link.path} to={link.path} className={navLinkClass(link.path)}>
                 {link.name}
               </Link>
             ))}
           </div>
 
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden items-center gap-2 lg:flex">
             {isAuthenticated ? (
-              <>
-                {(user?.role === "admin" || user?.role === "moderator") && (
-                  <Link
-                    to="/admin"
-                    className="font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-wobblySm px-2"
+              isSuperAdmin(user) ? (
+                <>
+                  <Link to="/admin" className={navLinkClass("/admin")}>
+                    Platform Admin
+                  </Link>
+                  <Link to="/admin/directory" className={navLinkClass("/admin/directory")}>
+                    Directory
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 font-sans text-base font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-ring"
                   >
+                    <LogOut size={18} aria-hidden />
+                    Logout
+                  </button>
+                </>
+              ) : (
+              <>
+                <NotificationBell />
+                <Link
+                  to="/messages"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition-colors hover:bg-muted hover:text-brand focus-ring"
+                  aria-label="Messages"
+                >
+                  <MessageCircle size={19} />
+                </Link>
+                {canAccessAdmin(user) && (
+                  <Link to="/admin" className={navLinkClass("/admin")}>
                     Admin
                   </Link>
                 )}
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center gap-2 rounded-wobblySm border-2 border-border bg-white px-3 py-2 font-sans text-lg shadow-sketchSm focus-ring hover:-rotate-1"
-                >
-                  <User size={20} strokeWidth={2.5} aria-hidden />
-                  <span>{user?.firstName}</span>
+                <Link to={directoryPath} className={navLinkClass(directoryPath)}>
+                  Directory
                 </Link>
                 <Link
-                  to="/directory"
-                  className="font-sans text-lg text-house-blue underline decoration-wavy decoration-2 underline-offset-4 focus-ring rounded-wobblySm px-2"
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 font-sans text-base font-medium transition-colors hover:bg-muted hover:text-brand focus-ring"
                 >
-                  Directory
+                  <User size={18} aria-hidden />
+                  <span>{user?.firstName}</span>
                 </Link>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 rounded-wobblySm border-2 border-dashed border-border px-3 py-2 font-sans text-lg focus-ring hover:border-solid hover:shadow-sketchSm"
+                  className="inline-flex items-center gap-2 rounded-lg px-3 py-2 font-sans text-base font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-ring"
                 >
-                  <LogOut size={20} strokeWidth={2.5} aria-hidden />
+                  <LogOut size={18} aria-hidden />
                   Logout
                 </button>
               </>
+              )
             ) : (
-              <Link to="/login" className="btn-ghost px-4 py-2 text-base md:text-lg">
-                Login
-              </Link>
+              <>
+                <Link to="/login" className={navLinkClass("/login")}>
+                  Login
+                </Link>
+                <Link to="/register" className="btn-primary px-5 py-2 text-sm">
+                  Join JNVTAA
+                </Link>
+              </>
             )}
           </div>
 
           <button
             type="button"
             onClick={() => setIsOpen((o) => !o)}
-            className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-wobblySm border-[3px] border-border bg-white shadow-sketch lg:hidden focus-ring"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-surface text-foreground lg:hidden focus-ring"
             aria-expanded={isOpen}
             aria-controls="mobile-nav"
           >
-            {isOpen ? (
-              <X size={24} strokeWidth={2.5} aria-hidden />
-            ) : (
-              <Menu size={24} strokeWidth={2.5} aria-hidden />
-            )}
+            {isOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
             <span className="sr-only">Menu</span>
           </button>
         </div>
@@ -211,23 +257,23 @@ export default function Navbar() {
       {isOpen && (
         <div
           id="mobile-nav"
-          className="border-t-[3px] border-dashed border-border bg-background lg:hidden"
+          className="border-t border-border bg-surface lg:hidden"
         >
-          <div className="container-custom space-y-2 py-6">
+          <div className="container-custom space-y-1.5 py-5">
             {navLinks.slice(0, 2).map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className="block rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-xl shadow-sketchSm focus-ring"
+                className="block rounded-lg px-4 py-2.5 font-sans text-base font-medium text-foreground transition-colors hover:bg-muted focus-ring"
               >
                 {link.name}
               </Link>
             ))}
-            <div className="space-y-2">
+            <div>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-xl shadow-sketchSm focus-ring"
+                className="flex w-full items-center justify-between rounded-lg px-4 py-2.5 font-sans text-base font-medium text-foreground transition-colors hover:bg-muted focus-ring"
                 aria-expanded={mobileDiscoverOpen}
                 onClick={() => setMobileDiscoverOpen((o) => !o)}
               >
@@ -237,12 +283,11 @@ export default function Navbar() {
                     "h-5 w-5 shrink-0 transition-transform duration-200",
                     mobileDiscoverOpen && "rotate-180",
                   )}
-                  strokeWidth={2.5}
                   aria-hidden
                 />
               </button>
               {mobileDiscoverOpen && (
-                <div className="ml-3 space-y-2 border-l-[3px] border-dashed border-border pl-3">
+                <div className="ml-3 mt-1 space-y-1 border-l border-border pl-3">
                   {discoverItems.map((item) => (
                     <Link
                       key={item.path}
@@ -251,7 +296,7 @@ export default function Navbar() {
                         setIsOpen(false);
                         setMobileDiscoverOpen(false);
                       }}
-                      className="block rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-lg shadow-sketchSm focus-ring"
+                      className="block rounded-lg px-4 py-2 font-sans text-base text-foreground transition-colors hover:bg-muted focus-ring"
                     >
                       {item.name}
                     </Link>
@@ -264,47 +309,112 @@ export default function Navbar() {
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className="block rounded-wobblySm border-2 border-border bg-white px-4 py-3 font-sans text-xl shadow-sketchSm focus-ring"
+                className="block rounded-lg px-4 py-2.5 font-sans text-base font-medium text-foreground transition-colors hover:bg-muted focus-ring"
               >
                 {link.name}
               </Link>
             ))}
-            <div className="section-divider my-4" />
+            <div className="section-divider my-3" />
             {isAuthenticated ? (
-              <div className="flex flex-col gap-3">
+              isSuperAdmin(user) ? (
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-primary w-full"
+                  >
+                    Platform Admin
+                  </Link>
+                  <Link
+                    to="/admin/directory"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-secondary w-full"
+                  >
+                    Directory
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="btn-ghost w-full justify-center"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+              <div className="flex flex-col gap-2.5">
                 <Link
                   to="/dashboard"
                   onClick={() => setIsOpen(false)}
-                  className="btn-secondary w-full justify-center"
+                  className="btn-primary w-full"
                 >
                   Dashboard
                 </Link>
-                <Link
-                  to="/directory"
-                  onClick={() => setIsOpen(false)}
-                  className="btn-outline w-full justify-center"
-                >
-                  Directory
-                </Link>
+                {isAlumniMember(user) && (
+                  <>
+                    <Link
+                      to={directoryPath}
+                      onClick={() => setIsOpen(false)}
+                      className="btn-secondary w-full"
+                    >
+                      Directory
+                    </Link>
+                    <Link
+                      to="/messages"
+                      onClick={() => setIsOpen(false)}
+                      className="btn-secondary w-full"
+                    >
+                      Messages
+                    </Link>
+                    <Link
+                      to="/notifications"
+                      onClick={() => setIsOpen(false)}
+                      className="btn-secondary w-full"
+                    >
+                      Notifications
+                    </Link>
+                  </>
+                )}
+                {canAccessAdmin(user) && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-secondary w-full"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={() => {
                     handleLogout();
                     setIsOpen(false);
                   }}
-                  className="btn-outline w-full justify-center"
+                  className="btn-ghost w-full justify-center"
                 >
                   Logout
                 </button>
               </div>
+              )
             ) : (
-              <Link
-                to="/login"
-                onClick={() => setIsOpen(false)}
-                className="btn-primary mt-2 w-full justify-center"
-              >
-                Login
-              </Link>
+              <div className="flex flex-col gap-2.5">
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="btn-secondary w-full"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="btn-primary w-full"
+                >
+                  Join JNVTAA
+                </Link>
+              </div>
             )}
           </div>
         </div>

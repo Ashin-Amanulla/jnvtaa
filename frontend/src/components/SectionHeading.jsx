@@ -8,23 +8,19 @@ export function SectionHeading({
   action,
 }) {
   return (
-    <div className={cn("mb-12 md:mb-16", className)}>
-      {eyebrow && (
-        <p className="mb-3 inline-block rounded-wobblySm border-2 border-dashed border-border bg-white px-3 py-1 font-sans text-base text-muted-foreground shadow-sketchSm rotate-[-1deg]">
-          {eyebrow}
-        </p>
-      )}
+    <div className={cn("mb-10 md:mb-14", className)}>
+      {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-4xl font-bold leading-none text-foreground md:text-5xl lg:text-6xl">
+          <h2 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl lg:text-[2.75rem]">
             {title}
           </h2>
           <div
-            className="mt-4 h-1 max-w-[10rem] border-b-4 border-dashed border-foreground"
+            className="mt-4 h-1 w-16 rounded-full bg-brand"
             aria-hidden
           />
           {description && (
-            <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
               {description}
             </p>
           )}

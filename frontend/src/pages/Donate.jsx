@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { donationsAPI } from "@/api";
 import { useAuthStore } from "@/store/auth";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -7,9 +7,28 @@ import { CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/utils/format";
 import { SketchCard } from "@/components/SketchCard";
 
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src ="https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 export default function Donate() {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const { isAuthenticated } = useAuthStore();
+  const [amount, setAmount] = useState("");
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const { data: campaignsData, isLoading } = useQuery({
     queryKey: ["donation-campaigns"],
@@ -35,12 +54,12 @@ export default function Donate() {
         </div>
         <div className="flex flex-grow flex-col p-8">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="rounded-wobblySm border-2 border-border bg-foreground px-2 py-0.5 font-sans text-sm text-background shadow-sketchSm">
+            <span className="rounded-xl border-2 border-border bg-brand px-2 py-0.5 font-sans text-sm text-background shadow-card">
               {campaign.category}
             </span>
             {campaign.status === "completed" && (
-              <span className="flex items-center gap-1 rounded-wobblySm border-2 border-border bg-postit px-2 py-0.5 font-sans text-sm font-bold">
-                <CheckCircle2 size={14} strokeWidth={2.5} />
+              <span className="flex items-center gap-1 rounded-xl border-2 border-border bg-house-yellow-soft px-2 py-0.5 font-sans text-sm font-bold">
+                <CheckCircle2 size={14} strokeWidth={2} />
                 Done
               </span>
             )}
@@ -58,7 +77,7 @@ export default function Donate() {
                 of {formatCurrency(campaign.goal)}
               </span>
             </div>
-            <div className="h-4 w-full border-[3px] border-border bg-muted">
+            <div className="h-4 w-full border border-border bg-muted">
               <div
                 className="h-full bg-accent transition-all duration-1000 ease-out"
                 style={{ width: `${progress}%` }}
@@ -81,26 +100,95 @@ export default function Donate() {
     );
   };
 
+  const handlePayment = async () => {
+    const parsedAmount = Number(amount);
+    if (!parsedAmount || parsedAmount < 1) {
+      setPaymentError("Please enter a valid donation amount.");
+      return;
+    }
+
+    setIsPaying(true);
+    setPaymentError("");
+
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        throw new Error("Payment gateway failed to load.");
+      }
+
+      const orderRes = await donationsAPI.createOrder({
+        campaign: selectedCampaign._id,
+        amount: parsedAmount,
+        paymentMethod: "razorpay",
+        isAnonymous: false,
+      });
+
+      const { order, keyId } = orderRes.data;
+
+      const options = {
+        key: keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "JNVTAA",
+        description: selectedCampaign.title,
+        order_id: order.id,
+        prefill: {
+          name: user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+          email: user?.email,
+        },
+        handler: async (response) => {
+          try {
+            await donationsAPI.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            setPaymentSuccess(true);
+            queryClient.invalidateQueries({ queryKey: ["donation-campaigns"] });
+            queryClient.invalidateQueries({ queryKey: ["donation-stats"] });
+          } catch (err) {
+            setPaymentError(err.message || "Payment verification failed.");
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setIsPaying(false),
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", () => {
+        setPaymentError("Payment failed. Please try again.");
+        setIsPaying(false);
+      });
+      rzp.open();
+    } catch (err) {
+      setPaymentError(err.message || "Unable to initiate payment.");
+      setIsPaying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative border-b-[3px] border-dashed border-border py-16 md:py-24">
+      <section className="relative border-b border-border py-16 md:py-24">
         <div className="container-custom">
-          <p className="mb-3 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketch">
-            Open heart, red pen
+          <p className="mb-3 inline-block rounded-xl border-2 border-border bg-house-yellow-soft px-3 py-1 font-sans text-lg shadow-card">
+            Give back to Navodaya
           </p>
           <h1 className="font-display text-5xl font-bold uppercase md:text-6xl lg:text-7xl">
             Support JNV
           </h1>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-xl text-muted-foreground md:text-2xl">
-            Fund scholarships, labs, and little joys for students walking our
-            old corridors.
+            Fund scholarships, laboratories, and student welfare at JNV
+            Thiruvananthapuram — honoring the NVS mandate through alumni giving.
           </p>
 
           {stats && (
             <div className="mt-14 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-wobblyMd border-[3px] border-border bg-foreground p-6 text-background shadow-sketch md:rotate-[-1deg]">
+              <div className="rounded-2xl border border-border bg-foreground p-6 text-background shadow-card">
                 <div className="font-display text-4xl font-bold md:text-5xl">
                   {formatCurrency(stats.data.stats.totalRaised)}
                 </div>
@@ -108,7 +196,7 @@ export default function Donate() {
                   Total raised
                 </div>
               </div>
-              <div className="rounded-wobblyMd border-[3px] border-border bg-white p-6 shadow-sketch md:translate-y-2">
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-card md:translate-y-2">
                 <div className="font-display text-4xl font-bold md:text-5xl">
                   {stats.data.stats.activeCampaigns}
                 </div>
@@ -116,7 +204,7 @@ export default function Donate() {
                   Active drives
                 </div>
               </div>
-              <div className="rounded-wobblyMd border-[3px] border-border bg-white p-6 shadow-sketch md:rotate-1">
+              <div className="rounded-2xl border border-border bg-white p-6 shadow-card">
                 <div className="font-display text-4xl font-bold md:text-5xl">
                   {stats.data.stats.totalDonors}
                 </div>
@@ -130,29 +218,30 @@ export default function Donate() {
       </section>
 
       {/* Impact Section */}
-      <section className="border-t-[3px] border-dashed border-border py-20">
+      <section className="border-t border-border py-20">
         <div className="container-custom">
           <h2 className="font-display text-4xl font-bold md:text-5xl">
-            Where your ink lands
+            Where your contribution goes
           </h2>
-          <div className="mt-4 h-1 max-w-md border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-md border-b-2 border-brand" />
           <p className="mt-6 max-w-2xl font-sans text-lg text-muted-foreground md:text-xl">
-            Pick a lane; we track every rupee like a neat margin note.
+            Every rupee is tracked transparently and directed toward programs
+            that benefit current Navodayans at JNV Thiruvananthapuram.
           </p>
 
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {[
               {
                 t: "Scholarships",
-                d: "Keep bright kids learning without worrying about fees.",
+                d: "Help talented students continue their education without financial barriers.",
               },
               {
                 t: "Infrastructure",
-                d: "Labs, roofs, desks—the unglamorous stuff that changes days.",
+                d: "Improve laboratories, classrooms, and campus facilities for every batch.",
               },
               {
                 t: "Resources",
-                d: "Books, kits, and tools for classrooms that stay curious.",
+                d: "Provide books, equipment, and learning materials for curious Navodayan minds.",
               },
             ].map((x) => (
               <SketchCard key={x.t} tilt className="p-8" postit={x.t === "Infrastructure"}>
@@ -172,9 +261,9 @@ export default function Donate() {
           <h2 className="font-display text-4xl font-bold md:text-5xl">
             Active campaigns
           </h2>
-          <div className="mt-4 h-1 max-w-sm border-b-4 border-dashed border-foreground" />
+          <div className="mt-4 h-1 max-w-sm border-b-2 border-brand" />
           <p className="mt-6 font-sans text-xl text-muted-foreground">
-            Choose the story you want to underline.
+            Choose a campaign that aligns with how you wish to give back.
           </p>
 
           {isLoading && <LoadingSpinner />}
@@ -198,7 +287,7 @@ export default function Donate() {
           aria-modal="true"
         >
           <div
-            className="w-full max-w-md rounded-wobblyMd border-[3px] border-border bg-background p-8 shadow-sketchLg md:p-10"
+            className="w-full max-w-md rounded-2xl border border-border bg-background p-8 shadow-cardHover md:p-10"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-3xl font-display tracking-tighter font-medium mb-6">
@@ -214,11 +303,34 @@ export default function Donate() {
                   Login to Continue →
                 </a>
               </div>
+            ) : paymentSuccess ? (
+              <div className="space-y-6 text-center">
+                <CheckCircle2 className="mx-auto text-house-green" size={48} />
+                <p className="font-sans text-lg">
+                  Thank you for your generous contribution to {selectedCampaign.title}.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCampaign(null);
+                    setPaymentSuccess(false);
+                    setAmount("");
+                  }}
+                  className="btn-primary w-full"
+                >
+                  Close
+                </button>
+              </div>
             ) : (
               <div>
-                <p className="text-sm font-sans text-muted-foreground mb-8 p-4 border-[2px] border-border">
-                  In a production environment, this would integrate with a payment gateway like Razorpay or Stripe.
+                <p className="mb-6 font-sans text-sm text-muted-foreground">
+                  Secure payment via Razorpay. You will receive a receipt after successful payment.
                 </p>
+                {paymentError && (
+                  <p className="mb-4 rounded-xl border-2 border-house-red bg-white p-3 font-sans text-sm text-house-red">
+                    {paymentError}
+                  </p>
+                )}
                 <div className="space-y-6">
                   <div>
                     <label className="label">Donation Amount (INR)</label>
@@ -227,10 +339,17 @@ export default function Donate() {
                       placeholder="Enter amount"
                       className="input font-mono text-xl"
                       min="1"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                     />
                   </div>
-                  <button className="w-full btn btn-primary">
-                    Proceed to Payment →
+                  <button
+                    type="button"
+                    className="btn btn-primary w-full"
+                    onClick={handlePayment}
+                    disabled={isPaying}
+                  >
+                    {isPaying ? "Processing…" : "Proceed to Payment →"}
                   </button>
                 </div>
               </div>

@@ -14,12 +14,12 @@ export default function NotFound() {
 
         <SketchCard decoration="tack" tilt className="p-10 md:p-12">
           <h1 className="font-display text-4xl font-bold md:text-5xl">
-            Page ran away
+            Page not found
           </h1>
-          <div className="mx-auto mt-4 h-1 max-w-xs border-b-4 border-dashed border-foreground" />
+          <div className="mx-auto mt-4 h-1 max-w-xs border-b-2 border-brand" />
           <p className="mt-6 font-sans text-xl text-muted-foreground">
-            Maybe it&apos;s hiding behind a loose sheet—try home or the
-            directory hunt.
+            The page you are looking for does not exist. Try returning home or
+            searching the alumni directory.
           </p>
 
           <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
@@ -27,23 +27,23 @@ export default function NotFound() {
               to="/"
               className="btn-primary inline-flex flex-1 items-center justify-center gap-2 focus-ring"
             >
-              <Home size={22} strokeWidth={2.5} />
+              <Home size={22} strokeWidth={2} />
               Home
             </Link>
             <Link
               to="/directory"
               className="btn-secondary inline-flex flex-1 items-center justify-center gap-2 focus-ring"
             >
-              <Search size={22} strokeWidth={2.5} />
+              <Search size={22} strokeWidth={2} />
               Directory
             </Link>
           </div>
 
           <p className="mt-10 font-sans text-lg text-muted-foreground">
-            Need a human?{" "}
+            Need a human?{""}
             <Link
               to="/contact"
-              className="text-pen underline decoration-wavy decoration-2 underline-offset-4 hover:text-accent"
+              className="text-brand font-medium hover:text-accent"
             >
               Contact
             </Link>

@@ -7,7 +7,8 @@ import {
   deleteBatch,
   addReunion,
 } from "./batches.controller.js";
-import { protect, restrictTo } from "../../middlewares/auth.middleware.js";
+import { protect, hasPermission } from "../../middlewares/auth.middleware.js";
+import { PERMISSIONS } from "../../config/roles.js";
 
 const router = express.Router();
 
@@ -16,13 +17,18 @@ router.get("/", getAllBatches);
 router.get("/:id", getBatchById);
 
 // Admin routes
-router.post("/", protect, restrictTo("admin", "moderator"), createBatch);
-router.put("/:id", protect, restrictTo("admin", "moderator"), updateBatch);
-router.delete("/:id", protect, restrictTo("admin"), deleteBatch);
+router.post("/", protect, hasPermission(PERMISSIONS.BATCHES_MANAGE), createBatch);
+router.put("/:id", protect, hasPermission(PERMISSIONS.BATCHES_MANAGE), updateBatch);
+router.delete(
+  "/:id",
+  protect,
+  hasPermission(PERMISSIONS.BATCHES_DELETE),
+  deleteBatch
+);
 router.post(
   "/:id/reunions",
   protect,
-  restrictTo("admin", "moderator"),
+  hasPermission(PERMISSIONS.BATCHES_MANAGE),
   addReunion
 );
 

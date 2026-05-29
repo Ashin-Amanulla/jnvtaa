@@ -6,6 +6,10 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import {
+  canModifyResource,
+  canViewUnpublished,
+} from "../../helpers/authorization.js";
 
 // Get all news
 export const getAllNews = asyncHandler(async (req, res) => {
@@ -13,7 +17,11 @@ export const getAllNews = asyncHandler(async (req, res) => {
   const { category, search, tags } = req.query;
 
   // Build query
-  const query = { isPublished: true };
+  const query = {};
+
+  if (!canViewUnpublished(req, "news:manage")) {
+    query.isPublished = true;
+  }
 
   if (category) query.category = category;
   if (tags) query.tags = { $in: tags.split(",") };
@@ -81,8 +89,8 @@ export const updateNews = asyncHandler(async (req, res, next) => {
     return next(new AppError("News not found", 404));
   }
 
-  // Check if user is author or admin
-  if (news.author.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is author, admin, or moderator
+  if (!canModifyResource(news.author, req.user, "news:manage")) {
     return next(new AppError("Not authorized to update this news", 403));
   }
 
@@ -102,8 +110,8 @@ export const deleteNews = asyncHandler(async (req, res, next) => {
     return next(new AppError("News not found", 404));
   }
 
-  // Check if user is author or admin
-  if (news.author.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is author, admin, or moderator
+  if (!canModifyResource(news.author, req.user, "news:manage")) {
     return next(new AppError("Not authorized to delete this news", 403));
   }
 
@@ -180,8 +188,8 @@ export const deleteComment = asyncHandler(async (req, res, next) => {
     return next(new AppError("Comment not found", 404));
   }
 
-  // Check if user is comment author or admin
-  if (comment.user.toString() !== req.user.id && req.user.role !== "admin") {
+  // Check if user is comment author, admin, or moderator
+  if (!canModifyResource(comment.user, req.user, "news:manage")) {
     return next(new AppError("Not authorized to delete this comment", 403));
   }
 

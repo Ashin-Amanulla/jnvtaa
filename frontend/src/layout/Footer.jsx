@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { siteContact, getSocialNavLinks } from "@/config/site";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -9,6 +10,7 @@ export default function Footer() {
   const quickLinks = [
     { name: "About Us", path: "/about" },
     { name: "Directory", path: "/directory" },
+    { name: "Batches", path: "/batches" },
     { name: "Events", path: "/events" },
     { name: "News", path: "/news" },
   ];
@@ -16,68 +18,72 @@ export default function Footer() {
   const resources = [
     { name: "Gallery", path: "/gallery" },
     { name: "Jobs", path: "/jobs" },
+    { name: "Mentorship", path: "/mentorship" },
+    { name: "Achievements", path: "/achievements" },
     { name: "Donate", path: "/donate" },
     { name: "Contact", path: "/contact" },
   ];
 
+  const footerLinkClass =
+    "font-sans text-base text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white";
+
   return (
-    <footer className="relative mt-auto border-t-[3px] border-border bg-postit">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35] paper-overlay"
+    <footer className="relative mt-auto bg-brand text-white">
+      <span
+        className="block h-1 w-full"
+        style={{
+          background:
+            "linear-gradient(90deg, var(--house-green) 0% 25%, var(--house-red) 25% 50%, var(--house-blue) 50% 75%, var(--house-yellow) 75% 100%)",
+        }}
         aria-hidden
       />
-      <div className="container-custom relative py-16 md:py-20">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+      <div className="container-custom relative py-14 md:py-16">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           <div className="lg:col-span-1">
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-3">
               <img
                 src="/logo.png"
                 alt=""
-                width={48}
-                height={48}
-                className="h-12 w-12 shrink-0 rotate-2 border-[3px] border-border bg-white object-cover shadow-sketch"
-                style={{
-                  borderRadius: "15px 255px 15px 225px / 225px 15px 255px 15px",
-                }}
+                width={44}
+                height={44}
+                className="h-11 w-11 shrink-0 rounded-xl border border-white/20 bg-white object-cover"
               />
               <div>
-                <div className="font-display text-xl font-bold text-foreground">
+                <div className="font-display text-lg font-bold text-white">
                   JNVTAA
                 </div>
-                <div className="font-sans text-sm text-muted-foreground">
-                  Alumni association · hand-drawn heart
+                <div className="font-sans text-sm text-white/60">
+                  JNV Thiruvananthapuram Alumni Association
                 </div>
               </div>
             </div>
-            <p className="max-w-sm font-sans text-lg text-foreground/90">
-              Connecting JNV Trivandrum alumni worldwide—messy notes, real
-              friendships, and giving back like we&apos;re still on campus.
+            <p className="max-w-sm font-sans text-base text-white/70">
+              We connect Navodayans across generations — honouring the NVS
+              mandate, celebrating JNVST talent, and giving back to the school
+              that shaped us.
             </p>
-            <div className="mt-8 flex gap-3">
+            <div className="mt-6 flex gap-3">
               {socialLinks.map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-wobbly border-2 border-border bg-white text-foreground shadow-sketchSm transition-transform duration-100 hover:-rotate-6 focus-ring"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition-colors hover:bg-white hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                 >
-                  <Icon size={20} strokeWidth={2.5} aria-hidden />
+                  <Icon size={18} aria-hidden />
                 </a>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="mb-6 font-display text-2xl font-bold text-foreground underline decoration-wavy decoration-2 underline-offset-[6px]">
+            <h3 className="mb-5 font-display text-base font-semibold uppercase tracking-wide text-white/90">
               Quick links
             </h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="font-sans text-lg text-foreground underline decoration-dashed decoration-2 underline-offset-4 hover:text-accent hover:line-through focus-ring rounded-sm"
-                  >
+                  <Link to={link.path} className={footerLinkClass}>
                     {link.name}
                   </Link>
                 </li>
@@ -86,16 +92,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-6 font-display text-2xl font-bold text-foreground underline decoration-wavy decoration-2 underline-offset-[6px]">
+            <h3 className="mb-5 font-display text-base font-semibold uppercase tracking-wide text-white/90">
               Resources
             </h3>
             <ul className="space-y-3">
               {resources.map((link) => (
                 <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="font-sans text-lg text-foreground underline decoration-dashed decoration-2 underline-offset-4 hover:text-accent hover:line-through focus-ring rounded-sm"
-                  >
+                  <Link to={link.path} className={footerLinkClass}>
                     {link.name}
                   </Link>
                 </li>
@@ -104,40 +107,34 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-6 font-display text-2xl font-bold text-foreground underline decoration-wavy decoration-2 underline-offset-[6px]">
-              Say hi
+            <h3 className="mb-5 font-display text-base font-semibold uppercase tracking-wide text-white/90">
+              Contact us
             </h3>
-            <ul className="space-y-5">
+            <ul className="space-y-4">
               <li className="flex gap-3">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-wobblySm border-2 border-border bg-white shadow-sketchSm">
-                  <MapPin size={18} strokeWidth={2.5} aria-hidden />
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/5">
+                  <MapPin size={17} aria-hidden />
                 </span>
-                <span className="font-sans text-lg leading-snug">
+                <span className="font-sans text-base leading-snug text-white/70">
                   {siteContact.addressLine1}
                   <br />
                   {siteContact.addressLine2}
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-wobblySm border-2 border-border bg-white shadow-sketchSm">
-                  <Mail size={18} strokeWidth={2.5} aria-hidden />
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/5">
+                  <Mail size={17} aria-hidden />
                 </span>
-                <a
-                  href={`mailto:${siteContact.emailPrimary}`}
-                  className="font-sans text-lg underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
-                >
+                <a href={`mailto:${siteContact.emailPrimary}`} className={footerLinkClass}>
                   {siteContact.emailPrimary}
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-wobblySm border-2 border-border bg-white shadow-sketchSm">
-                  <Phone size={18} strokeWidth={2.5} aria-hidden />
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-white/5">
+                  <Phone size={17} aria-hidden />
                 </span>
-                <span className="font-sans text-lg leading-snug">
-                  <a
-                    href={`tel:${siteContact.phoneTelPrimary}`}
-                    className="underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
-                  >
+                <span className="font-sans text-base leading-snug text-white/70">
+                  <a href={`tel:${siteContact.phoneTelPrimary}`} className={footerLinkClass}>
                     {siteContact.phoneDisplayPrimary}
                   </a>
                   {siteContact.phoneDisplaySecondary && (
@@ -145,7 +142,7 @@ export default function Footer() {
                       <br />
                       <a
                         href={`tel:${siteContact.phoneTelSecondary}`}
-                        className="underline decoration-wavy decoration-2 underline-offset-4 hover:text-pen focus-ring"
+                        className={footerLinkClass}
                       >
                         {siteContact.phoneDisplaySecondary}
                       </a>
@@ -157,23 +154,25 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="section-divider mt-14" />
-        <div className="mt-8 space-y-4">
+        <NewsletterSignup />
+
+        <div className="mt-12 border-t border-white/15 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
-            <p className="font-sans text-base text-muted-foreground">
-              © {currentYear} JNVTAA — scribbled with love.
+            <p className="font-sans text-sm text-white/60">
+              © {currentYear} JNVTAA — Jawahar Navodaya Vidyalaya
+              Thiruvananthapuram Alumni Association.
             </p>
-            <p className="font-sans text-base text-muted-foreground">
-              Imperfect on purpose · alumni-first
+            <p className="font-sans text-sm text-white/60">
+              Together for Navodaya · alumni-first
             </p>
           </div>
-          <p className="text-center font-sans text-xs text-muted-foreground md:text-left">
+          <p className="mt-4 text-center font-sans text-xs text-white/45 md:text-left">
             Developed by alumni Ashin Amanulla —{" "}
             <a
               href="https://xyvin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline decoration-dashed decoration-1 underline-offset-2 hover:text-pen focus-ring rounded-sm"
+              className="underline underline-offset-2 transition-colors hover:text-white/80"
             >
               xyvin.com
             </a>

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { ROLE_LIST, getPermissionsForRole } from "../../config/roles.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,8 +24,23 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: 6,
+      select: false,
+      required: function () {
+        return !this.googleId;
+      },
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
       select: false,
     },
     phone: {
@@ -34,7 +50,9 @@ const userSchema = new mongoose.Schema(
     batch: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Batch",
-      required: [true, "Batch is required"],
+      required: function () {
+        return !this.googleId && this.role !== "super_admin";
+      },
     },
     rollNumber: {
       type: String,
@@ -101,8 +119,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin", "moderator"],
-      default: "user",
+      enum: ROLE_LIST,
+      default: "member",
     },
     isVerified: {
       type: Boolean,
@@ -119,6 +137,24 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    googleId: {
+      type: String,
+      sparse: true,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
+    },
   },
   {
     timestamps: true,
@@ -132,13 +168,17 @@ userSchema.virtual("fullName").get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
+userSchema.virtual("permissions").get(function () {
+  return getPermissionsForRole(this.role);
+});
+
 // Index for search
 userSchema.index({ firstName: "text", lastName: "text", email: "text" });
 userSchema.index({ batch: 1, currentCity: 1, profession: 1 });
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     return next();
   }
 
@@ -171,6 +211,9 @@ userSchema.pre("save", function (next) {
 
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

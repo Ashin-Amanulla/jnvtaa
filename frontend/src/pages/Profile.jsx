@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { usersAPI, batchesAPI } from "@/api";
+import { useMutation } from "@tanstack/react-query";
+import { usersAPI } from "@/api";
 import { useAuthStore } from "@/store/auth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { Save, UserCircle, Camera, CheckSquare } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Profile() {
   const { user, updateUser } = useAuthStore();
@@ -33,11 +38,6 @@ export default function Profile() {
     },
   });
   const [success, setSuccess] = useState(false);
-
-  const { data: batchesData } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => batchesAPI.getAll({ limit: 100 }),
-  });
 
   useEffect(() => {
     if (user) {
@@ -106,87 +106,79 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-16 md:py-24">
-      <div className="container-custom max-w-4xl">
-        {/* Header */}
-        <div className="mb-16">
-          <p className="mb-3 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
-            Your alumni card
-          </p>
-          <h1 className="mb-4 font-display text-5xl font-bold md:text-6xl">
-            Edit profile
-          </h1>
-          <div className="h-1 max-w-sm border-b-4 border-dashed border-foreground" />
-          <p className="mt-6 font-sans text-xl text-muted-foreground">
-            Keep classmates from guessing—it&apos;s you, just sharper.
-          </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Edit profile</h1>
+        <p className="text-sm text-muted-foreground">
+          Keep your profile current so fellow Navodayans can connect with you.
+        </p>
+      </div>
+
+      {success && (
+        <div className="flex items-center justify-between rounded-md border border-primary/30 bg-primary/10 p-4 text-sm">
+          <span className="font-medium">Profile updated successfully</span>
+          <CheckSquare className="h-5 w-5 text-primary" />
         </div>
+      )}
 
-        {/* Success Message */}
-        {success && (
-          <div className="border-[2px] border-foreground p-6 mb-12 bg-foreground text-background flex items-center justify-between">
-            <span className="font-mono text-sm tracking-widest uppercase font-bold">Profile updated successfully</span>
-            <CheckSquare className="text-background" size={24} />
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-12">
-          {/* Profile Picture */}
-          <div className="card p-10 border-[2px] border-border bg-background">
-            <h2 className="text-2xl font-display tracking-tighter mb-8 flex items-center gap-3">
-              <Camera size={24} strokeWidth={1.5} />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Camera className="h-4 w-4" />
               Avatar
-            </h2>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
               <img
                 src={
                   user?.avatar ||
                   `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&size=128&background=000&color=fff`
                 }
                 alt={user?.firstName}
-                className="w-32 h-32 object-cover grayscale border-[2px] border-border"
+                className="h-24 w-24 rounded-full border object-cover"
               />
               <div>
-                <p className="font-sans text-muted-foreground mb-6 max-w-sm">
+                <p className="mb-4 max-w-sm text-sm text-muted-foreground">
                   In production, you would be able to upload a new photo here.
                 </p>
-                <button type="button" className="btn btn-outline border-[2px]">
+                <Button type="button" variant="outline" size="sm">
                   Change Photo
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Basic Information */}
-          <div className="card p-10 border-[2px] border-border bg-background">
-            <h2 className="text-2xl font-display tracking-tighter mb-8 flex items-center gap-3">
-              <UserCircle size={24} strokeWidth={1.5} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <UserCircle className="h-4 w-4" />
               Basic Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="label">First Name *</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required className="input border-[2px]" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input id="firstName" type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
               </div>
-
-              <div>
-                <label className="label">Last Name *</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required className="input border-[2px]" />
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input id="lastName" type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
               </div>
-
-              <div>
-                <label className="label">Phone</label>
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="input border-[2px]" placeholder="+91 98765 43210" />
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" />
               </div>
-
-              <div>
-                <label className="label">Date of Birth</label>
-                <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} className="input border-[2px]" />
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input id="dateOfBirth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} />
               </div>
-
-              <div>
-                <label className="label">Gender</label>
-                <select name="gender" value={formData.gender} onChange={handleChange} className="input border-[2px]">
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <select id="gender" name="gender" value={formData.gender} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -194,113 +186,107 @@ export default function Profile() {
                   <option value="prefer_not_to_say">Prefer not to say</option>
                 </select>
               </div>
-
-              <div>
-                <label className="label text-muted-foreground">Batch</label>
-                <input type="text" value={user?.batch?.year ? `Batch of ${user.batch.year}` : "Not set"} disabled className="input border-[2px] bg-muted text-muted-foreground cursor-not-allowed" />
+              <div className="space-y-2">
+                <Label>Batch</Label>
+                <Input type="text" value={user?.batch?.year ? `Batch of ${user.batch.year}` : "Not set"} disabled className="bg-muted" />
               </div>
             </div>
-
-            <div className="mt-8">
-              <label className="label">Bio</label>
-              <textarea name="bio" value={formData.bio} onChange={handleChange} rows={4} maxLength={500} className="input border-[2px] resize-none" placeholder="Tell us about yourself..."></textarea>
-              <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mt-3">
-                {formData.bio.length} / 500 CHARACTERS
-              </p>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows={4} maxLength={500} placeholder="Tell us about yourself..." />
+              <p className="text-xs text-muted-foreground">{formData.bio.length} / 500 characters</p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Professional Information */}
-          <div className="card p-10 border-[2px] border-border bg-background">
-            <h2 className="text-2xl font-display tracking-tighter mb-8">
-              Professional Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <label className="label">Current City</label>
-                <input type="text" name="currentCity" value={formData.currentCity} onChange={handleChange} className="input border-[2px]" placeholder="e.g. Mumbai" />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Professional Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="currentCity">Current City</Label>
+                <Input id="currentCity" type="text" name="currentCity" value={formData.currentCity} onChange={handleChange} placeholder="e.g. Mumbai" />
               </div>
-              <div>
-                <label className="label">Country</label>
-                <input type="text" name="currentCountry" value={formData.currentCountry} onChange={handleChange} className="input border-[2px]" placeholder="e.g. India" />
+              <div className="space-y-2">
+                <Label htmlFor="currentCountry">Country</Label>
+                <Input id="currentCountry" type="text" name="currentCountry" value={formData.currentCountry} onChange={handleChange} placeholder="e.g. India" />
               </div>
-              <div>
-                <label className="label">Profession</label>
-                <input type="text" name="profession" value={formData.profession} onChange={handleChange} className="input border-[2px]" placeholder="e.g. Software Engineer" />
+              <div className="space-y-2">
+                <Label htmlFor="profession">Profession</Label>
+                <Input id="profession" type="text" name="profession" value={formData.profession} onChange={handleChange} placeholder="e.g. Software Engineer" />
               </div>
-              <div>
-                <label className="label">Company</label>
-                <input type="text" name="company" value={formData.company} onChange={handleChange} className="input border-[2px]" placeholder="e.g. Google" />
+              <div className="space-y-2">
+                <Label htmlFor="company">Company</Label>
+                <Input id="company" type="text" name="company" value={formData.company} onChange={handleChange} placeholder="e.g. Google" />
               </div>
-              <div className="md:col-span-2">
-                <label className="label">Industry</label>
-                <input type="text" name="industry" value={formData.industry} onChange={handleChange} className="input border-[2px]" placeholder="e.g. Technology" />
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="industry">Industry</Label>
+                <Input id="industry" type="text" name="industry" value={formData.industry} onChange={handleChange} placeholder="e.g. Technology" />
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Social Links */}
-          <div className="card p-10 border-[2px] border-border bg-background">
-            <h2 className="text-2xl font-display tracking-tighter mb-8">
-              Social Media Links
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <label className="label">LinkedIn</label>
-                <input type="url" name="socialLinks.linkedin" value={formData.socialLinks.linkedin} onChange={handleChange} className="input border-[2px]" placeholder="https://linkedin.com/in/yourprofile" />
-              </div>
-              <div>
-                <label className="label">Facebook</label>
-                <input type="url" name="socialLinks.facebook" value={formData.socialLinks.facebook} onChange={handleChange} className="input border-[2px]" placeholder="https://facebook.com/yourprofile" />
-              </div>
-              <div>
-                <label className="label">Twitter</label>
-                <input type="url" name="socialLinks.twitter" value={formData.socialLinks.twitter} onChange={handleChange} className="input border-[2px]" placeholder="https://twitter.com/yourhandle" />
-              </div>
-              <div>
-                <label className="label">Instagram</label>
-                <input type="url" name="socialLinks.instagram" value={formData.socialLinks.instagram} onChange={handleChange} className="input border-[2px]" placeholder="https://instagram.com/yourhandle" />
-              </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Social Media Links</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="linkedin">LinkedIn</Label>
+              <Input id="linkedin" type="url" name="socialLinks.linkedin" value={formData.socialLinks.linkedin} onChange={handleChange} placeholder="https://linkedin.com/in/yourprofile" />
             </div>
-          </div>
-
-          {/* Privacy Settings */}
-          <div className="card p-10 border-[2px] border-border bg-background">
-            <h2 className="text-2xl font-display tracking-tighter mb-8">
-              Privacy Settings
-            </h2>
-            <div className="space-y-6">
-              <label className="flex items-center gap-4 cursor-pointer group">
-                <input type="checkbox" name="privacy.showEmail" checked={formData.privacySettings.showEmail} onChange={handleChange} className="w-6 h-6 border-[2px] border-border rounded-none accent-foreground focus:ring-0 focus:ring-offset-0 bg-background checked:bg-foreground" />
-                <span className="font-sans text-lg group-hover:text-muted-foreground transition-colors">Show email on profile</span>
-              </label>
-              <label className="flex items-center gap-4 cursor-pointer group">
-                <input type="checkbox" name="privacy.showPhone" checked={formData.privacySettings.showPhone} onChange={handleChange} className="w-6 h-6 border-[2px] border-border rounded-none accent-foreground focus:ring-0 focus:ring-offset-0 bg-background checked:bg-foreground" />
-                <span className="font-sans text-lg group-hover:text-muted-foreground transition-colors">Show phone number on profile</span>
-              </label>
-              <label className="flex items-center gap-4 cursor-pointer group">
-                <input type="checkbox" name="privacy.showLocation" checked={formData.privacySettings.showLocation} onChange={handleChange} className="w-6 h-6 border-[2px] border-border rounded-none accent-foreground focus:ring-0 focus:ring-offset-0 bg-background checked:bg-foreground" />
-                <span className="font-sans text-lg group-hover:text-muted-foreground transition-colors">Show location on profile</span>
-              </label>
-              <label className="flex items-center gap-4 cursor-pointer group">
-                <input type="checkbox" name="privacy.showProfession" checked={formData.privacySettings.showProfession} onChange={handleChange} className="w-6 h-6 border-[2px] border-border rounded-none accent-foreground focus:ring-0 focus:ring-offset-0 bg-background checked:bg-foreground" />
-                <span className="font-sans text-lg group-hover:text-muted-foreground transition-colors">Show profession on profile</span>
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="facebook">Facebook</Label>
+              <Input id="facebook" type="url" name="socialLinks.facebook" value={formData.socialLinks.facebook} onChange={handleChange} placeholder="https://facebook.com/yourprofile" />
             </div>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="twitter">Twitter</Label>
+              <Input id="twitter" type="url" name="socialLinks.twitter" value={formData.socialLinks.twitter} onChange={handleChange} placeholder="https://twitter.com/yourhandle" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="instagram">Instagram</Label>
+              <Input id="instagram" type="url" name="socialLinks.instagram" value={formData.socialLinks.instagram} onChange={handleChange} placeholder="https://instagram.com/yourhandle" />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Submit Button */}
-          <div className="flex flex-col-reverse md:flex-row justify-end gap-6 pt-8 border-t-[4px] border-border">
-            <button type="button" onClick={() => window.history.back()} className="btn btn-secondary px-8 border-[2px]">
-              Cancel
-            </button>
-            <button type="submit" disabled={updateProfileMutation.isLoading} className="btn btn-primary flex items-center justify-center gap-3 px-12 py-4 disabled:opacity-50 border-[2px]">
-              <Save size={18} />
-              {updateProfileMutation.isLoading ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Privacy Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <label className="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" name="privacy.showEmail" checked={formData.privacySettings.showEmail} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <span className="text-sm">Show email on profile</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" name="privacy.showPhone" checked={formData.privacySettings.showPhone} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <span className="text-sm">Show phone number on profile</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" name="privacy.showLocation" checked={formData.privacySettings.showLocation} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <span className="text-sm">Show location on profile</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" name="privacy.showProfession" checked={formData.privacySettings.showProfession} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <span className="text-sm">Show profession on profile</span>
+            </label>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col-reverse justify-end gap-3 border-t pt-6 sm:flex-row">
+          <Button type="button" variant="outline" onClick={() => window.history.back()}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateProfileMutation.isLoading}>
+            <Save className="mr-2 h-4 w-4" />
+            {updateProfileMutation.isLoading ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -1,79 +1,108 @@
 import { SectionHeading } from "@/components/SectionHeading";
 import { SketchCard } from "@/components/SketchCard";
 import { cn } from "@/utils/cn";
+import { useSiteContent } from "@/hooks/useSiteContent";
+
+const DEFAULT_TESTIMONIALS = [
+  {
+    name: "Adarsh Nair",
+    batch: "2009",
+    role: "Software engineer at Google",
+    avatar:
+      "https://ui-avatars.com/api/?name=Adarsh+Nair&background=e5e0d8&color=2d2d2d",
+    quote:
+      "JNVTAA keeps us connected across continents. The mentorship network has been invaluable for Navodayans building careers abroad.",
+  },
+  {
+    name: "Anagha Krishna",
+    batch: "2012",
+    role: "Doctor at Pariyaram Medical College",
+    avatar:
+      "https://ui-avatars.com/api/?name=Anagha+Krishna&background=fff9c4&color=2d2d2d",
+    quote:
+      "Even after years away from campus, JNVTAA helps us stay rooted in the values JNV Thiruvananthapuram instilled in us.",
+  },
+  {
+    name: "Abhinandh",
+    batch: "2009",
+    role: "Software engineer",
+    avatar:
+      "https://ui-avatars.com/api/?name=Abhinandh&background=ff4d4d&color=fff",
+    quote:
+      "I received guidance when I started my career. Today I mentor juniors through JNVTAA — that is the Navodayan way.",
+  },
+];
+
+function mapTestimonialItem(item) {
+  return {
+    name: item.author || item.name,
+    batch: item.batch,
+    role: item.role || item.headline || "",
+    avatar:
+      item.avatar ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(item.author || item.name || "Alumni")}&background=e5e0d8&color=2d2d2d`,
+    quote: item.quote,
+  };
+}
 
 export default function Testimonials() {
-  const testimonials = [
-    {
-      name: "Adarsh Nair",
-      batch: "2009",
-      role: "Software engineer at Google",
-      avatar:
-        "https://ui-avatars.com/api/?name=Vikram+Nair&background=e5e0d8&color=2d2d2d",
-      quote:
-        "JNVTAA connected me with alumni worldwide—networking that actually feels human, not LinkedIn-cold.",
-    },
-    {
-      name: "Anagha Krishna",
-      batch: "2012",
-      role: "Doctor at Pariyaram Medical College",
-      avatar:
-        "https://ui-avatars.com/api/?name=Shalini+Krishna&background=fff9c4&color=2d2d2d",
-      quote:
-        "Keeps me tied to my roots while I chase night shifts—this community is my recharge.",
-    },
-    {
-      name: "Abhinandh",
-      batch: "2009",
-      role: "Software engineer ",
-      avatar:
-        "https://ui-avatars.com/api/?name=Abhinandh&background=ff4d4d&color=fff",
-      quote:
-        "Mentorship when I started; now I mentor juniors. Full circle, full heart.",
-    },
-  ];
+  const { data } = useSiteContent("testimonials");
+
+  const content = data?.data?.content?.data;
+  const apiItems = content?.items;
+  const testimonials =
+    apiItems?.length > 0
+      ? apiItems.map(mapTestimonialItem)
+      : DEFAULT_TESTIMONIALS;
+
+  const accents = ["text-house-red", "text-house-blue", "text-house-yellow"];
 
   return (
-    <section className="border-t-[3px] border-dashed border-border py-20">
+    <section className="border-t border-border bg-muted/40 py-16 md:py-20">
       <div className="container-custom">
         <SectionHeading
-          eyebrow="Speech bubbles"
-          title="Alumni voices"
-          description="Real quotes. Slightly crooked layout. Zero corporate polish."
+          eyebrow="Alumni voices"
+          title={content?.title || "What our members say"}
+          description={
+            content?.description ||
+            "Navodayans sharing how JNVTAA keeps them connected to JNV Thiruvananthapuram and one another."
+          }
         />
 
         <div className="grid gap-8 md:grid-cols-3">
           {testimonials.map((t, i) => (
             <SketchCard
-              key={t.name}
-              decoration="tack"
+              key={`${t.name}-${t.batch}`}
               tilt
-              className={cn("p-0", i === 1 && "md:translate-y-3 md:rotate-1")}
-              contentClassName="relative flex h-full flex-col p-8 md:p-10"
+              className="p-0"
+              contentClassName="relative flex h-full flex-col p-6 md:p-8"
             >
-              <div
-                className="absolute bottom-6 left-8 h-0 w-0 border-[14px] border-transparent border-t-border"
-                style={{ filter: "drop-shadow(2px 2px 0 #2d2d2d)" }}
+              <span
+                className={cn(
+                  "font-display text-5xl font-bold leading-none",
+                  accents[i % accents.length],
+                )}
                 aria-hidden
-              />
-              <p className="relative z-10 flex-grow font-sans text-xl leading-relaxed text-foreground md:text-2xl">
-                “{t.quote}”
+              >
+                &ldquo;
+              </span>
+              <p className="relative z-10 -mt-2 flex-grow font-sans text-base leading-relaxed text-foreground md:text-lg">
+                {t.quote}
               </p>
-              <div className="relative z-10 mt-10 flex items-center gap-4 border-t-[3px] border-border pt-6">
+              <div className="relative z-10 mt-6 flex items-center gap-4 border-t border-border pt-5">
                 <img
                   src={t.avatar}
                   alt=""
-                  className="h-16 w-16 border-[3px] border-border object-cover shadow-sketchSm"
-                  style={{
-                    borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px",
-                  }}
+                  className="h-14 w-14 rounded-full border border-border object-cover"
                 />
                 <div>
-                  <p className="font-display text-xl font-bold">{t.name}</p>
-                  <p className="font-sans text-base text-muted-foreground">
-                    {t.role}
-                  </p>
-                  <p className="mt-1 font-sans text-sm text-pen">
+                  <p className="font-display text-base font-semibold">{t.name}</p>
+                  {t.role && (
+                    <p className="font-sans text-sm text-muted-foreground">
+                      {t.role}
+                    </p>
+                  )}
+                  <p className="mt-0.5 font-sans text-sm text-brand">
                     Batch {t.batch}
                   </p>
                 </div>

@@ -13,28 +13,28 @@ import { SquiggleConnector } from "@/components/HeroSketchDecor";
 export default function About() {
   const values = [
     {
-      icon: <GraduationCap size={26} strokeWidth={2.5} />,
+      icon: <GraduationCap size={26} strokeWidth={2} />,
       title: "Excellence",
       description:
-        "Academic rigor and personal growth—the JNV combo we still carry in our pockets.",
+        "We uphold the academic rigor and personal growth that define the Navodaya experience.",
     },
     {
-      icon: <Handshake size={26} strokeWidth={2.5} />,
+      icon: <Handshake size={26} strokeWidth={2} />,
       title: "Networking",
       description:
-        "Introductions that feel like study-circle reunions, not stiff mixers.",
+        "We connect alumni across batches, professions, and geographies in a spirit of mutual support.",
     },
     {
-      icon: <Heart size={26} strokeWidth={2.5} />,
+      icon: <Heart size={26} strokeWidth={2} />,
       title: "Giving back",
       description:
-        "Scholarships, infrastructure, and midnight pep talks for students walking our old corridors.",
+        "We channel alumni strength into scholarships, infrastructure, and mentorship for current students.",
     },
     {
-      icon: <Users size={26} strokeWidth={2.5} />,
+      icon: <Users size={26} strokeWidth={2} />,
       title: "Community",
       description:
-        "A home for every batch—messy, multilingual, and always a little too loud.",
+        "We welcome every batch and every Navodayan — a home for those shaped by JNV Thiruvananthapuram.",
     },
   ];
 
@@ -49,19 +49,20 @@ export default function About() {
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b-[3px] border-dashed border-border py-16 md:py-24">
+      <section className="relative overflow-hidden border-b border-border py-16 md:py-24">
         <div className="container-custom relative z-10">
-          <p className="mb-4 inline-block rotate-[-1deg] rounded-wobblySm border-2 border-border bg-postit px-3 py-1 font-sans text-lg shadow-sketchSm">
+          <p className="mb-4 inline-block rounded-xl border-2 border-border bg-house-yellow-soft px-3 py-1 font-sans text-lg shadow-card">
             About JNVTAA
           </p>
           <h1 className="font-display text-5xl font-bold leading-none text-foreground md:text-6xl lg:text-7xl">
-            We’re the alumni desk—sticky notes, coffee rings, big plans
+            About JNVTAA — our alumni association
           </h1>
-          <div className="mt-6 h-1 max-w-md border-b-4 border-dashed border-foreground" />
+          <div className="mt-6 h-1 max-w-md border-b-2 border-brand" />
           <p className="mt-8 max-w-3xl font-sans text-xl text-muted-foreground md:text-2xl">
             Jawahar Navodaya Vidyalaya Thiruvananthapuram Alumni Association:
-            connecting hearts, building futures, and never letting a batch
-            reunion stay boring.
+            we connect generations of Navodayans, honor the NVS mandate, and
+            support the school that brought rural talent together through JNVST
+            and the migration program.
           </p>
         </div>
       </section>
@@ -74,9 +75,9 @@ export default function About() {
                 Mission
               </h2>
               <p className="mt-4 font-sans text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Build a vibrant community that helps alumni grow, students
-                thrive, and our school stay unforgettable—for the next decades
-                of Navodayans.
+                We build a vibrant alumni community that helps Navodayans grow,
+                supports current students, and strengthens JNV
+                Thiruvananthapuram for decades to come.
               </p>
             </SketchCard>
             <SketchCard decoration="tack" tilt className="p-8 md:p-10">
@@ -84,41 +85,43 @@ export default function About() {
                 Vision
               </h2>
               <p className="mt-4 font-sans text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Be the most connected, generous, and slightly chaotic alumni
-                network—where every member can pitch in and every story matters.
+                To be the most connected and generous alumni network in the
+                Navodaya family — where every member can contribute and every
+                story matters.
               </p>
             </SketchCard>
           </div>
         </div>
       </section>
 
-      <section className="border-t-[3px] border-dashed border-border bg-foreground py-20 text-background">
+      <section className="border-t border-border bg-foreground py-20 text-background">
         <div className="container-custom">
           <div className="mb-12 md:mb-16">
-            <p className="mb-3 inline-block rounded-wobblySm border-2 border-dashed border-background/50 bg-background/10 px-3 py-1 font-sans text-lg text-background/90">
-              Non-negotiables
+            <p className="mb-3 inline-block rounded-xl border-2 border-background/50 bg-background/10 px-3 py-1 font-sans text-lg text-background/90">
+              Our principles
             </p>
-            <h2 className="text-4xl font-bold leading-none md:text-5xl lg:text-6xl">
+            <h2 className="text-4xl font-bold leading-none text-background md:text-5xl lg:text-6xl">
               Core values
             </h2>
             <div
-              className="mt-4 h-1 max-w-[10rem] border-b-4 border-dashed border-background"
+              className="mt-4 h-1 max-w-[10rem] border-b-4 border-background"
               aria-hidden
             />
             <p className="mt-6 max-w-2xl font-sans text-lg text-background/85 md:text-xl">
-              Four corners of our doodle—everything else is margin notes.
+              Four values that guide everything we do as Navodayans and as an
+              association.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {values.map((value, index) => (
               <div
                 key={value.title}
-                className="rounded-wobblyMd border-[3px] border-background/40 bg-background/10 p-6 text-center shadow-[4px_4px_0_0_#fdfbf7] transition-transform duration-100 hover:-rotate-1"
+                className="rounded-2xl border-[3px] border-background/40 bg-background/10 p-6 text-center shadow-[4px_4px_0_0_#fdfbf7] transition-transform duration-100"
               >
                 <SketchIconCircle className="mx-auto mb-4 bg-background text-foreground">
                   {value.icon}
                 </SketchIconCircle>
-                <h3 className="font-display text-xl font-bold">{value.title}</h3>
+                <h3 className="font-display text-xl font-bold text-background">{value.title}</h3>
                 <p className="mt-3 font-sans text-base text-background/80">
                   {value.description}
                 </p>
@@ -137,15 +140,15 @@ export default function About() {
       <section className="py-20">
         <div className="container-custom max-w-3xl">
           <SectionHeading
-            eyebrow="Long story, short chapters"
+            eyebrow="Our heritage"
             title="Our story"
-            description="From chalk dust to cloud docs—same campus soul."
+            description="From JNVST-selected students to leaders across fields — the Navodayan journey continues."
           />
-          <div className="space-y-6 rounded-wobblyMd border-[3px] border-border bg-white p-8 shadow-sketch md:p-10">
+          <div className="space-y-6 rounded-2xl border border-border bg-white p-8 shadow-card md:p-10">
             {[
-              "JNV Trivandrum has been a beacon of excellence since day one. Alumni now lead across medicine, tech, policy, arts, and a hundred roads in between.",
-              "JNVTAA exists so those paths cross on purpose—mentorships, reunions, fundraising, and the quiet joy of finding your bench partner online.",
-              "Hundreds of alumni across batches contribute time, funds, and stories. We keep the gates open for the next Navodayan wave.",
+              "JNV Thiruvananthapuram has been a beacon of excellence since its founding under the Navodaya Vidyalaya Samiti mandate. Our alumni now lead across medicine, technology, public service, the arts, and many other fields.",
+              "JNVTAA exists so those paths cross with purpose — through mentorship, reunions, fundraising, and the shared pride of being Navodayans shaped by rural talent and the migration program.",
+              "Hundreds of alumni across batches contribute time, resources, and expertise. We keep our doors open for the next generation of JNVST scholars.",
             ].map((p) => (
               <p key={p} className="font-sans text-lg leading-relaxed text-muted-foreground first-letter:float-left first-letter:mr-2 first-line:tracking-tight first-letter:font-display first-letter:text-5xl first-letter:font-bold first-letter:text-accent md:text-xl">
                 {p}
@@ -155,15 +158,15 @@ export default function About() {
         </div>
       </section>
 
-      <section className="border-t-[3px] border-dashed border-border py-20">
+      <section className="border-t border-border py-20">
         <div className="container-custom">
           <div className="mb-10 hidden justify-center text-border md:flex">
             <SquiggleConnector className="w-48" />
           </div>
           <SectionHeading
-            eyebrow="Timeline in pencil"
+            eyebrow="Association milestones"
             title="Our journey"
-            description="Milestones that deserve a highlighter (or at least a red pen)."
+            description="Key moments in the history of JNVTAA and our alumni community."
           />
           <Timeline />
         </div>
@@ -172,26 +175,26 @@ export default function About() {
       <section className="py-20">
         <div className="container-custom">
           <SectionHeading
-            eyebrow="Elected doodlers"
+            eyebrow="Volunteer leadership"
             title="Leadership"
-            description="Volunteers steering the association with batch pride and spreadsheets."
+            description="Elected alumni who guide JNVTAA programs, governance, and outreach."
           />
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {leadership.map((leader) => (
               <SketchCard key={leader.name} decoration="tack" tilt className="p-6 text-center">
                 <div
-                  className="mx-auto mb-4 flex h-20 w-20 items-center justify-center border-[3px] border-border bg-postit font-display text-2xl font-bold text-foreground shadow-sketchSm"
+                  className="mx-auto mb-4 flex h-20 w-20 items-center justify-center border border-border bg-house-yellow-soft font-display text-2xl font-bold text-foreground shadow-card"
                   style={{
-                    borderRadius: "255px 15px 225px 15px / 15px 225px 15px 255px",
+                    borderRadius: "9999px",
                   }}
                 >
                   {leader.name
-                    .split(" ")
+                    .split("")
                     .map((n) => n[0])
                     .join("")}
                 </div>
                 <h3 className="font-display text-xl font-bold">{leader.name}</h3>
-                <p className="mt-1 font-sans text-lg text-pen">{leader.role}</p>
+                <p className="mt-1 font-sans text-lg text-brand">{leader.role}</p>
                 <p className="mt-2 font-sans text-base text-muted-foreground">
                   Batch {leader.batch}
                 </p>
@@ -204,23 +207,23 @@ export default function About() {
       <section className="border-t-[3px] border-border bg-muted py-20">
         <div className="container-custom max-w-5xl">
           <SectionHeading
-            eyebrow="Pick your marker"
+            eyebrow="Get involved"
             title="How you can contribute"
-            description="Mentor, donate, show up—any stroke helps complete the picture."
+            description="Mentor, donate, or participate — every contribution strengthens our Navodayan community."
           />
           <div className="grid gap-8 md:grid-cols-3">
             {[
               {
                 title: "Mentorship",
-                body: "Guide students and juniors with career and life maps drawn from your JNV years.",
+                body: "Guide students and juniors with career and life guidance drawn from your JNV years.",
               },
               {
                 title: "Donations",
-                body: "Fuel scholarships, labs, libraries, and campus fixes that outlive any single batch.",
+                body: "Support scholarships, laboratories, libraries, and campus improvements that benefit every batch.",
               },
               {
                 title: "Participate",
-                body: "Attend events, host micro-meetups, share opportunities—energy beats perfection.",
+                body: "Attend events, host regional meetups, and share opportunities with fellow Navodayans.",
               },
             ].map((item, i) => (
               <SketchCard key={item.title} postit={i === 1} tilt className="p-8">

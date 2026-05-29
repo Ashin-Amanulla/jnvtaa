@@ -1,77 +1,44 @@
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Users } from "lucide-react";
-import { formatDate } from "@/utils/format";
+import { Calendar, MapPin } from "lucide-react";
 import { SketchCard } from "@/components/SketchCard";
 
 export default function EventCard({ event }) {
-  const isUpcoming = new Date(event.date) > new Date();
-  const attendeesCount =
-    event.attendees?.filter((a) => a.status !== "cancelled").length || 0;
-
   return (
-    <Link
-      to={`/events/${event._id}`}
-      className="block h-full focus-ring rounded-wobblyMd"
-    >
+    <Link to={`/events/${event._id}`} className="block focus-ring rounded-2xl">
       <SketchCard
         tilt
-        className="h-full p-0 shadow-sketch hover:shadow-sketchLg"
+        className="h-full p-0"
         contentClassName="flex h-full flex-col"
       >
-        <div className="relative h-48 overflow-hidden border-b-[3px] border-border bg-muted">
+        <div className="relative h-48 overflow-hidden border-b border-border bg-muted">
           <img
-            src={event.coverImage || "https://via.placeholder.com/400x200"}
+            src={event.coverImage || "https://via.placeholder.com/800x400?text=EVENT"}
             alt=""
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
           />
-          <span className="absolute left-3 top-3 rounded-wobblySm border-2 border-border bg-foreground px-2 py-1 font-sans text-sm text-background shadow-sketchSm">
-            {event.type.replace("_", " ")}
+          <span className="pill absolute left-3 top-3 bg-house-blue text-white shadow-card">
+            {new Date(event.date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
           </span>
-          {isUpcoming && (
-            <span className="absolute right-3 top-3 rounded-wobblySm border-2 border-border bg-postit px-2 py-1 font-sans text-sm font-bold text-foreground shadow-sketchSm">
-              Upcoming
-            </span>
-          )}
         </div>
-        <div className="flex flex-grow flex-col p-6 md:p-8">
-          <div className="mb-3 flex items-center gap-2 font-sans text-base text-muted-foreground">
-            <Calendar size={18} strokeWidth={2.5} aria-hidden />
-            <span>{formatDate(event.date, "PPP")}</span>
-          </div>
-          <h3 className="font-display text-2xl font-bold leading-tight text-foreground line-clamp-2">
+        <div className="flex flex-grow flex-col p-6">
+          <h3 className="font-display text-xl font-semibold leading-snug text-foreground">
             {event.title}
           </h3>
-          <p className="mt-3 line-clamp-2 font-sans text-lg text-muted-foreground">
+          <p className="mt-2 line-clamp-2 font-sans text-base text-muted-foreground">
             {event.description}
           </p>
-          <div className="mt-auto space-y-3 border-t-2 border-dashed border-border pt-4 font-sans text-base">
-            {event.location && (
-              <div className="flex items-center gap-2">
-                <MapPin size={18} strokeWidth={2.5} aria-hidden />
-                <span className="truncate">
-                  {event.location.isVirtual
-                    ? "Virtual"
-                    : event.location.venue}
-                </span>
-              </div>
-            )}
-            {event.registrationRequired && (
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Users size={18} strokeWidth={2.5} aria-hidden />
-                  <span>
-                    {attendeesCount}
-                    {event.maxAttendees ? ` / ${event.maxAttendees}` : ""}{" "}
-                    attending
-                  </span>
-                </div>
-                {isUpcoming && (
-                  <span className="text-pen underline decoration-wavy decoration-2">
-                    Register →
-                  </span>
-                )}
-              </div>
-            )}
+          <div className="mt-auto flex flex-col gap-2 border-t border-border pt-4 font-sans text-sm text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <Calendar size={16} aria-hidden />
+              {new Date(event.date).toLocaleDateString()}
+            </span>
+            <span className="flex items-center gap-2">
+              <MapPin size={16} aria-hidden />
+              {event.location?.city || "TBC"}
+            </span>
           </div>
         </div>
       </SketchCard>

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { AppError, asyncHandler } from "./error.middleware.js";
 import User from "../modules/users/users.model.js";
 import authConfig from "../config/auth.js";
+import { ROLES, roleHasPermission } from "../config/roles.js";
 
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -44,11 +45,34 @@ export const protect = asyncHandler(async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
+    if (req.user.role === ROLES.SUPER_ADMIN) {
+      return next();
+    }
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError("You do not have permission to perform this action", 403)
       );
     }
+    next();
+  };
+};
+
+export const hasPermission = (...permissions) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new AppError("Not authorized to access this route", 401));
+    }
+
+    const allowed = permissions.some((permission) =>
+      roleHasPermission(req.user.role, permission)
+    );
+
+    if (!allowed) {
+      return next(
+        new AppError("You do not have permission to perform this action", 403)
+      );
+    }
+
     next();
   };
 };
@@ -59,5 +83,31 @@ export const verifyAlumni = asyncHandler(async (req, res, next) => {
       new AppError("Your account needs to be verified by admin", 403)
     );
   }
+  next();
+});
+
+export const optionalProtect = asyncHandler(async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, authConfig.jwt.secret);
+    req.user = await User.findById(decoded.id).select("-password");
+  } catch {
+    req.user = undefined;
+  }
+
   next();
 });

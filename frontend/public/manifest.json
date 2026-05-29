@@ -1,11 +1,11 @@
 {
-  "name": "JNVTAA - JNV Trivandrum Alumni Association",
+  "name": "JNVTAA — JNV Thiruvananthapuram Alumni Association",
   "short_name": "JNVTAA",
-  "description": "Connect with JNV Trivandrum alumni worldwide",
+  "description": "Connect with JNV Thiruvananthapuram alumni — reunions, mentorship, and giving back to Navodaya.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fdfbf7",
-  "theme_color": "#fdfbf7",
+  "background_color": "#fbfaf7",
+  "theme_color": "#1e3a5f",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -20,14 +20,14 @@
     {
       "name": "Directory",
       "short_name": "Directory",
-      "description": "Browse alumni directory",
+      "description": "Find fellow Navodayans in our alumni directory",
       "url": "/directory",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Events",
       "short_name": "Events",
-      "description": "View upcoming events",
+      "description": "Reunions, gatherings, and association events",
       "url": "/events",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }

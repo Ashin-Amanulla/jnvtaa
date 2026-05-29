@@ -33,15 +33,15 @@ export default function BatchDetail() {
   if (!batch) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="card p-10 border-[2px] border-border text-center">
+        <div className="card p-10 border border-border text-center">
           <h2 className="text-4xl font-display font-medium tracking-tighter mb-6">
             Batch not found
           </h2>
           <button
-            onClick={() => navigate("/directory")}
+            onClick={() => navigate("/batches")}
             className="btn btn-primary px-8"
           >
-            Back to Directory
+            Back to batches
           </button>
         </div>
       </div>
@@ -55,18 +55,18 @@ export default function BatchDetail() {
         <div className="container-custom py-4">
           <button
             type="button"
-            onClick={() => navigate("/directory")}
-            className="inline-flex items-center gap-2 rounded-sm font-sans text-lg text-pen underline decoration-wavy decoration-2 underline-offset-4 focus-ring"
+            onClick={() => navigate("/batches")}
+            className="inline-flex items-center gap-2 rounded-sm font-sans text-lg text-brand font-medium focus-ring"
           >
-            <ArrowLeft size={18} strokeWidth={2.5} />
-            Back to directory
+            <ArrowLeft size={18} strokeWidth={2} />
+            Back to batches
           </button>
         </div>
       </div>
 
       <section className="relative pb-16 pt-20">
         <div className="container-custom max-w-4xl text-center">
-          <span className="mb-6 inline-block rounded-wobblySm border-[3px] border-border bg-foreground px-4 py-2 font-sans text-lg font-bold text-background shadow-sketch">
+          <span className="mb-6 inline-block rounded-xl border border-border bg-foreground px-4 py-2 font-sans text-lg font-bold text-background shadow-card">
             Passout {batch.passoutYear}
           </span>
           <h1 className="mb-12 font-display text-6xl font-bold md:text-8xl">
@@ -76,25 +76,25 @@ export default function BatchDetail() {
           <div className="mt-12 grid grid-cols-1 gap-4 text-left md:grid-cols-3">
             {[
               {
-                icon: <Users size={26} strokeWidth={2.5} />,
+                icon: <Users size={26} strokeWidth={2} />,
                 value: alumni.length,
                 label: "Alumni registered",
               },
               {
-                icon: <GraduationCap size={26} strokeWidth={2.5} />,
+                icon: <GraduationCap size={26} strokeWidth={2} />,
                 value: batch.totalStudents,
                 label: "Students (era)",
               },
               {
-                icon: <CalendarDays size={26} strokeWidth={2.5} />,
+                icon: <CalendarDays size={26} strokeWidth={2} />,
                 value: batch.reunions?.length || 0,
                 label: "Reunions",
               },
             ].map((s, i) => (
               <div
                 key={s.label}
-                className={`rounded-wobblyMd border-[3px] border-border bg-white p-6 shadow-sketch ${
-                  i === 1 ? "md:-translate-y-2 md:rotate-1" : ""
+                className={`rounded-2xl border border-border bg-white p-6 shadow-card ${
+                  i === 1 ? "md:-translate-y-2" : ""
                 }`}
               >
                 <div className="text-foreground">{s.icon}</div>
@@ -112,7 +112,7 @@ export default function BatchDetail() {
       {batch.description && (
         <section className="py-16 bg-background">
           <div className="container-custom max-w-4xl">
-            <div className="card p-12 border-[2px] border-border bg-muted">
+            <div className="card p-12 border border-border bg-muted">
               <h2 className="text-3xl font-display tracking-tighter font-medium mb-6">
                 About This Batch
               </h2>
@@ -154,9 +154,9 @@ export default function BatchDetail() {
               {batch.reunions.map((reunion, index) => (
                 <div
                   key={index}
-                  className="card p-8 border-[2px] border-border hover:border-foreground transition-none bg-muted"
+                  className="card p-8 border border-border hover:border-foreground transition-none bg-muted"
                 >
-                  <div className="inline-block px-3 py-1 bg-foreground text-background font-mono text-xs tracking-widest uppercase font-bold mb-6">
+                  <div className="inline-block px-3 py-1 bg-brand text-white font-mono text-xs tracking-widest uppercase font-bold mb-6">
                     {new Date(reunion.date).getFullYear()}
                   </div>
                   <h3 className="text-3xl font-display tracking-tighter font-medium mb-4">
@@ -196,7 +196,7 @@ export default function BatchDetail() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-32 border-[2px] border-border border-dashed bg-muted">
+            <div className="text-center py-32 border border-border bg-muted">
               <Users className="mx-auto mb-6 text-border" size={64} strokeWidth={1} />
               <h3 className="text-3xl font-display tracking-tighter font-medium mb-4">
                 No registered alumni yet
