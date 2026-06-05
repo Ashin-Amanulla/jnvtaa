@@ -44,8 +44,6 @@ export default function Navbar() {
         : "text-foreground hover:bg-muted hover:text-brand",
     );
 
-  const directoryPath = canAccessAdmin(user) ? "/admin/directory" : "/directory";
-
   useEffect(() => {
     if (!discoverOpen) return;
     const onDoc = (e) => {
@@ -182,9 +180,6 @@ export default function Navbar() {
                   <Link to="/admin" className={navLinkClass("/admin")}>
                     Platform Admin
                   </Link>
-                  <Link to="/admin/directory" className={navLinkClass("/admin/directory")}>
-                    Directory
-                  </Link>
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -209,9 +204,6 @@ export default function Navbar() {
                     Admin
                   </Link>
                 )}
-                <Link to={directoryPath} className={navLinkClass(directoryPath)}>
-                  Directory
-                </Link>
                 <Link
                   to="/dashboard"
                   className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 font-sans text-base font-medium transition-colors hover:bg-muted hover:text-brand focus-ring"
@@ -325,13 +317,6 @@ export default function Navbar() {
                   >
                     Platform Admin
                   </Link>
-                  <Link
-                    to="/admin/directory"
-                    onClick={() => setIsOpen(false)}
-                    className="btn-secondary w-full"
-                  >
-                    Directory
-                  </Link>
                   <button
                     type="button"
                     onClick={() => {
@@ -354,13 +339,6 @@ export default function Navbar() {
                 </Link>
                 {isAlumniMember(user) && (
                   <>
-                    <Link
-                      to={directoryPath}
-                      onClick={() => setIsOpen(false)}
-                      className="btn-secondary w-full"
-                    >
-                      Directory
-                    </Link>
                     <Link
                       to="/messages"
                       onClick={() => setIsOpen(false)}

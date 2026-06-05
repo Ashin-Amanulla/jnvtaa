@@ -67,7 +67,7 @@ export default function Messages() {
               Start a chat from an alumni profile.
             </CardDescription>
             <Button asChild className="mt-6">
-              <Link to="/directory">Browse directory</Link>
+              <Link to="/dashboard/directory">Browse directory</Link>
             </Button>
           </CardContent>
         </Card>

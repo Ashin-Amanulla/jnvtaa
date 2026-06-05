@@ -53,13 +53,13 @@ export default function Home() {
                   Join JNVTAA
                   <ArrowRight size={20} aria-hidden />
                 </Link>
-                <Link to="/directory" className="btn-secondary">
-                  Browse alumni directory
+                <Link to="/login" className="btn-secondary">
+                  Member login
                 </Link>
               </div>
               <p className="mt-6 max-w-md font-sans text-base text-muted-foreground">
-                New here? Start with the directory — search by batch, city, or
-                profession to reconnect with fellow Navodayans.
+                Already a member? Log in to access the alumni directory, messages,
+                and your dashboard.
               </p>
             </div>
 

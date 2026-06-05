@@ -238,12 +238,12 @@ export default function Contact() {
               </SketchCard>
 
               <p className="mt-8 text-center font-sans text-muted-foreground md:text-left">
-                Prefer the old ways?{""}
+                Members can find coordinators in the{" "}
                 <Link
-                  to="/directory"
+                  to="/dashboard/directory"
                   className="text-brand font-medium hover:text-accent"
                 >
-                  Find a coordinator in the directory
+                  alumni directory
                 </Link>
                 .
               </p>

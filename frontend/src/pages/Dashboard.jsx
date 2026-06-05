@@ -151,7 +151,7 @@ export default function Dashboard() {
           {[
             ["Update professional info", "/dashboard/profile"],
             ["Browse upcoming events", "/events"],
-            ["Find fellow alumni", "/directory"],
+            ["Find fellow alumni", "/dashboard/directory"],
           ].map(([label, href]) => (
             <Link
               key={label}

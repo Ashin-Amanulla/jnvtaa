@@ -29,7 +29,7 @@ const baseNavItems = [
   { to: "/dashboard/mentorship", label: "Mentorship", icon: Handshake },
   { to: "/messages", label: "Messages", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Bell },
-  { to: "/directory", label: "Directory", icon: Users, adminPath: "/admin/directory" },
+  { to: "/dashboard/directory", label: "Directory", icon: Users, adminPath: "/admin/directory" },
 ];
 
 export default function DashboardLayout() {

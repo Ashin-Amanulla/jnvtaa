@@ -39,7 +39,7 @@ export default function PublicProfile() {
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
         <SketchCard className="p-10 text-center">
           <h2 className="font-display text-4xl font-bold">Profile not found</h2>
-          <Link to="/directory" className="btn-primary mt-8 inline-flex">
+          <Link to="/dashboard/directory" className="btn-primary mt-8 inline-flex">
             Back to directory
           </Link>
         </SketchCard>
@@ -52,7 +52,7 @@ export default function PublicProfile() {
       <div className="sticky-below-nav">
         <div className="container-custom py-4">
           <Link
-            to="/directory"
+            to="/dashboard/directory"
             className="inline-flex items-center gap-2 font-sans text-lg text-brand font-medium focus-ring"
           >
             <ArrowLeft size={18} strokeWidth={2} />

@@ -19,7 +19,7 @@ export default function NotFound() {
           <div className="mx-auto mt-4 h-1 max-w-xs border-b-2 border-brand" />
           <p className="mt-6 font-sans text-xl text-muted-foreground">
             The page you are looking for does not exist. Try returning home or
-            searching the alumni directory.
+            your member dashboard.
           </p>
 
           <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
@@ -31,11 +31,11 @@ export default function NotFound() {
               Home
             </Link>
             <Link
-              to="/directory"
+              to="/dashboard"
               className="btn-secondary inline-flex flex-1 items-center justify-center gap-2 focus-ring"
             >
               <Search size={22} strokeWidth={2} />
-              Directory
+              Dashboard
             </Link>
           </div>
 

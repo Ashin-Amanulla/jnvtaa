@@ -33,7 +33,7 @@
       "name": "Directory",
       "short_name": "Directory",
       "description": "Find fellow Navodayans in our alumni directory",
-      "url": "/directory",
+      "url": "/dashboard/directory",
       "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" }]
     },
     {

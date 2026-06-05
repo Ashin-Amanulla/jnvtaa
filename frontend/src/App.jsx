@@ -23,7 +23,6 @@ import About from "@/pages/About";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import Directory from "@/pages/Directory";
 import DirectoryRoute from "@/components/DirectoryRoute";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
@@ -269,6 +268,7 @@ export default function App() {
             <Route path="dashboard/applications" element={<MyApplications />} />
             <Route path="dashboard/donations" element={<MyDonations />} />
             <Route path="dashboard/mentorship" element={<MyMentorship />} />
+            <Route path="dashboard/directory" element={<DirectoryRoute />} />
             <Route path="messages" element={<Messages />} />
             <Route path="messages/:conversationId" element={<MessageThread />} />
             <Route path="notifications" element={<Notifications />} />
@@ -293,7 +293,7 @@ export default function App() {
               path="directory"
               element={
                 <MemberRoute>
-                  <DirectoryRoute />
+                  <Navigate to="/dashboard/directory" replace />
                 </MemberRoute>
               }
             />
