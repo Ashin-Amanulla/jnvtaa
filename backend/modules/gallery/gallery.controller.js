@@ -77,16 +77,10 @@ function parseUploadMetadata(raw) {
  * Normalized to match the shape the Gallery page expects (items + folder filters).
  */
 export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
-  // #region agent log
-  fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2f488d'},body:JSON.stringify({sessionId:'2f488d',location:'gallery.controller.js:79',message:'getS3MediaFeed called',data:{origin:req.headers.origin||null,host:req.headers.host||null,env_cors:process.env.CORS_ORIGIN||null,env_bucket:process.env.S3_BUCKET_NAME||process.env.AWS_S3_BUCKET||null,env_region:process.env.AWS_REGION||null,has_aws_key:!!process.env.AWS_ACCESS_KEY_ID,has_aws_secret:!!process.env.AWS_SECRET_ACCESS_KEY,s3_public_base:process.env.S3_PUBLIC_BASE_URL||null},timestamp:Date.now(),hypothesisId:'A,B,C,D'})}).catch(()=>{});
-  // #endregion
   let upstreamRes;
   try {
     upstreamRes = await fetchUpstreamGalleryImages();
   } catch (err) {
-    // #region agent log
-    fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2f488d'},body:JSON.stringify({sessionId:'2f488d',location:'gallery.controller.js:84',message:'fetchUpstreamGalleryImages THREW',data:{error:err.message,stack:err.stack?.slice(0,400)},timestamp:Date.now(),hypothesisId:'B,C'})}).catch(()=>{});
-    // #endregion
     return next(new AppError(`Gallery S3 fetch failed: ${err.message}`, 502));
   }
 
@@ -140,10 +134,6 @@ export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
   const folders = [...folderMap.values()].sort((a, b) =>
     a.name.localeCompare(b.name),
   );
-
-  // #region agent log
-  fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2f488d'},body:JSON.stringify({sessionId:'2f488d',location:'gallery.controller.js:144',message:'getS3MediaFeed success',data:{itemCount:items.length,folderCount:folders.length,sampleUrl:items[0]?.url||null,sampleThumb:items[0]?.thumbnail||null},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-  // #endregion
 
   sendSuccess(
     res,
