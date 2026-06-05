@@ -71,6 +71,9 @@ app.use(
         return;
       }
 
+      // #region agent log
+      fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2f488d'},body:JSON.stringify({sessionId:'2f488d',location:'app.js:74',message:'CORS BLOCKED',data:{blockedOrigin:origin,allowedOrigins},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
