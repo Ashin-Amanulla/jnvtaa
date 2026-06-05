@@ -41,7 +41,8 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     .populate("postedBy", "firstName lastName avatar company")
     .skip(skip)
     .limit(limit)
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   const total = await Job.countDocuments(query);
   const pagination = getPaginationMeta(total, page, limit);

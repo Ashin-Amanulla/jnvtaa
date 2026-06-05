@@ -82,6 +82,19 @@ export const canAccessMemberDashboard = (user) => isAlumniMember(user);
 export const getDefaultLandingPath = (user) =>
   canAccessAdmin(user) ? "/admin" : "/dashboard";
 
+export const needsProfileSetup = (user) =>
+  canAccessMemberDashboard(user) && !user?.batch;
+
+export const getPostAuthPath = (user, nextPath) => {
+  if (nextPath && nextPath.startsWith("/")) {
+    return nextPath;
+  }
+  if (needsProfileSetup(user)) {
+    return "/dashboard/profile?setup=1";
+  }
+  return getDefaultLandingPath(user);
+};
+
 export const formatRoleLabel = (role) =>
   role === ROLES.SUPER_ADMIN
     ? "Super Admin"

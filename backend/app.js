@@ -30,6 +30,7 @@ import messageRoutes from "./modules/messages/messages.route.js";
 import newsletterRoutes from "./modules/newsletter/newsletter.route.js";
 import searchRoutes from "./modules/search/search.route.js";
 import rolesRoutes from "./modules/roles/roles.route.js";
+import { startNewsletterWorker } from "./queues/newsletter.queue.js";
 
 // Load environment variables
 dotenv.config();
@@ -135,6 +136,7 @@ app.listen(PORT, () => {
   console.log(
     `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
   );
+  startNewsletterWorker();
 });
 
 export default app;

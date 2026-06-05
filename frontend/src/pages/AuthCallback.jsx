@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { authAPI } from "@/api";
 import { useAuthStore } from "@/store/auth";
-import { getDefaultLandingPath } from "@/utils/roles";
+import { getPostAuthPath } from "@/utils/roles";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function AuthCallback() {
@@ -36,7 +36,7 @@ export default function AuthCallback() {
     if (data?.data?.user && token) {
       const user = data.data.user;
       login(user, token);
-      navigate(getDefaultLandingPath(user), { replace: true });
+      navigate(getPostAuthPath(user), { replace: true });
     }
   }, [data, token, login, navigate]);
 

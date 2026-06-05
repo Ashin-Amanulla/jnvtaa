@@ -12,6 +12,7 @@ import {
 import Job from "../modules/jobs/jobs.model.js";
 import SiteContent from "../modules/site-content/site-content.model.js";
 import { ROLES } from "../config/roles.js";
+import { seedBatches } from "./batches.js";
 
 dotenv.config();
 
@@ -63,13 +64,14 @@ const seedDatabase = async () => {
     await clearDatabase();
 
     const { superAdmin, password } = await seedSuperAdmin();
+    await seedBatches();
 
     console.log("\nDatabase seeded successfully!");
     console.log("\nPlatform super admin credentials (not an alumni member):");
     console.log(`   Email: ${superAdmin.email}`);
     console.log(`   Password: ${password}`);
     console.log(
-      "\nNote: Create batches and other master data from the admin panel before member registration."
+      "\nNote: Batches (2001–2026) are seeded. Create other master data from the admin panel as needed."
     );
 
     process.exit(0);

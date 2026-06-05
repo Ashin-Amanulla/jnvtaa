@@ -2,13 +2,15 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { GraduationCap, Users } from "lucide-react";
 import { batchesAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { SketchCard } from "@/components/SketchCard";
 
 export default function Batches() {
   const { data, isLoading } = useQuery({
-    queryKey: ["batches", "all"],
-    queryFn: () => batchesAPI.getAll({ limit: 100 }),
+    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
+    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
+    staleTime: STALE_TIME.BATCHES,
   });
 
   const batches = data?.data?.batches || [];

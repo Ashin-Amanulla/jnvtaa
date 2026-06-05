@@ -1,25 +1,40 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { usersAPI } from "@/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { usersAPI, batchesAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
 import { useAuthStore } from "@/store/auth";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { Save, UserCircle, Camera, CheckSquare } from "lucide-react";
+import AvatarUpload from "@/components/AvatarUpload";
+import { Save, UserCircle, Camera, CheckSquare, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatBatchOf } from "@/utils/format";
+import { getBatchDisplayYear } from "@/utils/format";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Profile() {
   const { user, updateUser } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const setupMode = searchParams.get("setup") === "1";
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
+    batch: "",
+    rollNumber: "",
     dateOfBirth: "",
     gender: "",
     bio: "",
+    avatar: "",
     currentCity: "",
     currentCountry: "",
     profession: "",
@@ -39,6 +54,16 @@ export default function Profile() {
     },
   });
   const [success, setSuccess] = useState(false);
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+
+  const { data: batchesData, isLoading: batchesLoading } = useQuery({
+    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
+    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
+    staleTime: STALE_TIME.BATCHES,
+  });
+
+  const batches = batchesData?.data?.batches ?? [];
+  const needsBatch = !user?.batch;
 
   useEffect(() => {
     if (user) {
@@ -46,11 +71,14 @@ export default function Profile() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         phone: user.phone || "",
+        batch: user.batch?._id || user.batch || "",
+        rollNumber: user.rollNumber || "",
         dateOfBirth: user.dateOfBirth
           ? new Date(user.dateOfBirth).toISOString().split("T")[0]
           : "",
         gender: user.gender || "",
         bio: user.bio || "",
+        avatar: user.avatar || "",
         currentCity: user.currentCity || "",
         currentCountry: user.currentCountry || "",
         profession: user.profession || "",
@@ -65,8 +93,8 @@ export default function Profile() {
         privacySettings: {
           showEmail: user.privacySettings?.showEmail || false,
           showPhone: user.privacySettings?.showPhone || false,
-          showLocation: user.privacySettings?.showLocation || true,
-          showProfession: user.privacySettings?.showProfession || true,
+          showLocation: user.privacySettings?.showLocation ?? true,
+          showProfession: user.privacySettings?.showProfession ?? true,
         },
       });
     }
@@ -77,7 +105,23 @@ export default function Profile() {
     onSuccess: (response) => {
       updateUser(response.data.user);
       setSuccess(true);
+      if (setupMode) {
+        setSearchParams({}, { replace: true });
+      }
       setTimeout(() => setSuccess(false), 3000);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update profile");
+    },
+  });
+
+  const avatarMutation = useMutation({
+    mutationFn: (avatar) => usersAPI.updateProfile({ avatar }),
+    onSuccess: (response) => {
+      updateUser(response.data.user);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to save profile photo");
     },
   });
 
@@ -101,10 +145,23 @@ export default function Profile() {
     }
   };
 
+  const handleAvatarChange = (avatarUrl) => {
+    setFormData((prev) => ({ ...prev, avatar: avatarUrl }));
+    avatarMutation.mutate(avatarUrl);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (needsBatch && !formData.batch) {
+      toast.error("Please select your batch to continue");
+      return;
+    }
+
     updateProfileMutation.mutate(formData);
   };
+
+  const isSaving = updateProfileMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -114,6 +171,19 @@ export default function Profile() {
           Keep your profile current so fellow Navodayans can connect with you.
         </p>
       </div>
+
+      {(setupMode || needsBatch) && (
+        <div className="flex items-start gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <p className="font-medium text-foreground">Complete your profile</p>
+            <p className="mt-1 text-muted-foreground">
+              Select your batch below so we can connect you with your classmates.
+              {setupMode ? " This is required after signing in with Google." : ""}
+            </p>
+          </div>
+        </div>
+      )}
 
       {success && (
         <div className="flex items-center justify-between rounded-md border border-primary/30 bg-primary/10 p-4 text-sm">
@@ -127,28 +197,17 @@ export default function Profile() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Camera className="h-4 w-4" />
-              Avatar
+              Profile photo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-              <img
-                src={
-                  user?.avatar ||
-                  `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&size=128&background=000&color=fff`
-                }
-                alt={user?.firstName}
-                className="h-24 w-24 rounded-full border object-cover"
-              />
-              <div>
-                <p className="mb-4 max-w-sm text-sm text-muted-foreground">
-                  In production, you would be able to upload a new photo here.
-                </p>
-                <Button type="button" variant="outline" size="sm">
-                  Change Photo
-                </Button>
-              </div>
-            </div>
+            <AvatarUpload
+              name={`${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
+              value={formData.avatar}
+              onChange={handleAvatarChange}
+              isUploading={isAvatarUploading || avatarMutation.isPending}
+              onUploadingChange={setIsAvatarUploading}
+            />
           </CardContent>
         </Card>
 
@@ -163,23 +222,56 @@ export default function Profile() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name *</Label>
-                <Input id="firstName" type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
+                <Input
+                  id="firstName"
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name *</Label>
-                <Input id="lastName" type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
+                <Input
+                  id="lastName"
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+91 98765 43210"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input id="dateOfBirth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} />
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <select id="gender" name="gender" value={formData.gender} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -188,14 +280,63 @@ export default function Profile() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Batch</Label>
-                <Input type="text" value={formatBatchOf(user?.batch) ?? "Not set"} disabled className="bg-muted" />
+                <Label>
+                  Batch {needsBatch ? "*" : ""}
+                </Label>
+                <Select
+                  value={formData.batch || undefined}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, batch: value }))
+                  }
+                  disabled={batchesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        batchesLoading ? "Loading batches…" : "Select your batch"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {batches.map((batch) => (
+                      <SelectItem key={batch._id} value={batch._id}>
+                        Batch of {getBatchDisplayYear(batch)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!batchesLoading && batches.length === 0 && (
+                  <p className="text-xs text-destructive">
+                    No batches available. Please contact an admin.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="rollNumber">Roll number (optional)</Label>
+                <Input
+                  id="rollNumber"
+                  type="text"
+                  name="rollNumber"
+                  value={formData.rollNumber}
+                  onChange={handleChange}
+                  placeholder="Optional"
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
-              <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows={4} maxLength={500} placeholder="Tell us about yourself..." />
-              <p className="text-xs text-muted-foreground">{formData.bio.length} / 500 characters</p>
+              <Textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                rows={4}
+                maxLength={500}
+                placeholder="Tell us about yourself..."
+              />
+              <p className="text-xs text-muted-foreground">
+                {formData.bio.length} / 500 characters
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -208,23 +349,58 @@ export default function Profile() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="currentCity">Current City</Label>
-                <Input id="currentCity" type="text" name="currentCity" value={formData.currentCity} onChange={handleChange} placeholder="e.g. Mumbai" />
+                <Input
+                  id="currentCity"
+                  type="text"
+                  name="currentCity"
+                  value={formData.currentCity}
+                  onChange={handleChange}
+                  placeholder="e.g. Mumbai"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currentCountry">Country</Label>
-                <Input id="currentCountry" type="text" name="currentCountry" value={formData.currentCountry} onChange={handleChange} placeholder="e.g. India" />
+                <Input
+                  id="currentCountry"
+                  type="text"
+                  name="currentCountry"
+                  value={formData.currentCountry}
+                  onChange={handleChange}
+                  placeholder="e.g. India"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="profession">Profession</Label>
-                <Input id="profession" type="text" name="profession" value={formData.profession} onChange={handleChange} placeholder="e.g. Software Engineer" />
+                <Input
+                  id="profession"
+                  type="text"
+                  name="profession"
+                  value={formData.profession}
+                  onChange={handleChange}
+                  placeholder="e.g. Software Engineer"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company">Company</Label>
-                <Input id="company" type="text" name="company" value={formData.company} onChange={handleChange} placeholder="e.g. Google" />
+                <Input
+                  id="company"
+                  type="text"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  placeholder="e.g. Google"
+                />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="industry">Industry</Label>
-                <Input id="industry" type="text" name="industry" value={formData.industry} onChange={handleChange} placeholder="e.g. Technology" />
+                <Input
+                  id="industry"
+                  type="text"
+                  name="industry"
+                  value={formData.industry}
+                  onChange={handleChange}
+                  placeholder="e.g. Technology"
+                />
               </div>
             </div>
           </CardContent>
@@ -237,19 +413,47 @@ export default function Profile() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input id="linkedin" type="url" name="socialLinks.linkedin" value={formData.socialLinks.linkedin} onChange={handleChange} placeholder="https://linkedin.com/in/yourprofile" />
+              <Input
+                id="linkedin"
+                type="url"
+                name="socialLinks.linkedin"
+                value={formData.socialLinks.linkedin}
+                onChange={handleChange}
+                placeholder="https://linkedin.com/in/yourprofile"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="facebook">Facebook</Label>
-              <Input id="facebook" type="url" name="socialLinks.facebook" value={formData.socialLinks.facebook} onChange={handleChange} placeholder="https://facebook.com/yourprofile" />
+              <Input
+                id="facebook"
+                type="url"
+                name="socialLinks.facebook"
+                value={formData.socialLinks.facebook}
+                onChange={handleChange}
+                placeholder="https://facebook.com/yourprofile"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="twitter">Twitter</Label>
-              <Input id="twitter" type="url" name="socialLinks.twitter" value={formData.socialLinks.twitter} onChange={handleChange} placeholder="https://twitter.com/yourhandle" />
+              <Input
+                id="twitter"
+                type="url"
+                name="socialLinks.twitter"
+                value={formData.socialLinks.twitter}
+                onChange={handleChange}
+                placeholder="https://twitter.com/yourhandle"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="instagram">Instagram</Label>
-              <Input id="instagram" type="url" name="socialLinks.instagram" value={formData.socialLinks.instagram} onChange={handleChange} placeholder="https://instagram.com/yourhandle" />
+              <Input
+                id="instagram"
+                type="url"
+                name="socialLinks.instagram"
+                value={formData.socialLinks.instagram}
+                onChange={handleChange}
+                placeholder="https://instagram.com/yourhandle"
+              />
             </div>
           </CardContent>
         </Card>
@@ -260,19 +464,43 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-4">
             <label className="flex cursor-pointer items-center gap-3">
-              <input type="checkbox" name="privacy.showEmail" checked={formData.privacySettings.showEmail} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <input
+                type="checkbox"
+                name="privacy.showEmail"
+                checked={formData.privacySettings.showEmail}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-input"
+              />
               <span className="text-sm">Show email on profile</span>
             </label>
             <label className="flex cursor-pointer items-center gap-3">
-              <input type="checkbox" name="privacy.showPhone" checked={formData.privacySettings.showPhone} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <input
+                type="checkbox"
+                name="privacy.showPhone"
+                checked={formData.privacySettings.showPhone}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-input"
+              />
               <span className="text-sm">Show phone number on profile</span>
             </label>
             <label className="flex cursor-pointer items-center gap-3">
-              <input type="checkbox" name="privacy.showLocation" checked={formData.privacySettings.showLocation} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <input
+                type="checkbox"
+                name="privacy.showLocation"
+                checked={formData.privacySettings.showLocation}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-input"
+              />
               <span className="text-sm">Show location on profile</span>
             </label>
             <label className="flex cursor-pointer items-center gap-3">
-              <input type="checkbox" name="privacy.showProfession" checked={formData.privacySettings.showProfession} onChange={handleChange} className="h-4 w-4 rounded border-input" />
+              <input
+                type="checkbox"
+                name="privacy.showProfession"
+                checked={formData.privacySettings.showProfession}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-input"
+              />
               <span className="text-sm">Show profession on profile</span>
             </label>
           </CardContent>
@@ -282,9 +510,9 @@ export default function Profile() {
           <Button type="button" variant="outline" onClick={() => window.history.back()}>
             Cancel
           </Button>
-          <Button type="submit" disabled={updateProfileMutation.isLoading}>
+          <Button type="submit" disabled={isSaving || isAvatarUploading}>
             <Save className="mr-2 h-4 w-4" />
-            {updateProfileMutation.isLoading ? "Saving..." : "Save Changes"}
+            {isSaving ? "Saving…" : "Save Changes"}
           </Button>
         </div>
       </form>

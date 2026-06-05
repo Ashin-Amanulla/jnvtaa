@@ -51,7 +51,7 @@ function UserActionsMenu({
   if (!hasMenuItems) {
     return (
       <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-        <Link to={`/alumni/${user._id}`} target="_blank" rel="noopener noreferrer">
+        <Link to={`/dashboard/alumni/${user._id}`} target="_blank" rel="noopener noreferrer">
           <ExternalLink className="h-4 w-4" />
         </Link>
       </Button>
@@ -68,7 +68,7 @@ function UserActionsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem asChild>
-          <Link to={`/alumni/${user._id}`} target="_blank" rel="noopener noreferrer">
+          <Link to={`/dashboard/alumni/${user._id}`} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="mr-2 h-4 w-4" />
             View profile
           </Link>

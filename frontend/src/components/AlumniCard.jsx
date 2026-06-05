@@ -5,7 +5,7 @@ import { formatBatchOf } from "@/utils/format";
 
 export default function AlumniCard({ user }) {
   return (
-    <Link to={`/alumni/${user._id}`} className="block focus-ring rounded-2xl">
+    <Link to={`/dashboard/alumni/${user._id}`} className="block focus-ring rounded-2xl">
       <SketchCard tilt className="p-0" contentClassName="p-6">
         <div className="flex items-start gap-4">
           <div className="shrink-0">

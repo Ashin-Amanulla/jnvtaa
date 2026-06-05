@@ -10,6 +10,12 @@ import {
   canModifyResource,
   canViewUnpublished,
 } from "../../helpers/authorization.js";
+import {
+  getOrSet,
+  bust,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
 // Get all news
 export const getAllNews = asyncHandler(async (req, res) => {
@@ -38,7 +44,8 @@ export const getAllNews = asyncHandler(async (req, res) => {
     .select("-content")
     .skip(skip)
     .limit(limit)
-    .sort({ publishedAt: -1 });
+    .sort({ publishedAt: -1 })
+    .lean();
 
   const total = await News.countDocuments(query);
   const pagination = getPaginationMeta(total, page, limit);
@@ -77,6 +84,7 @@ export const createNews = asyncHandler(async (req, res) => {
 
   const news = await News.create(newsData);
   await news.populate("author", "firstName lastName avatar");
+  await bust(CACHE_KEYS.newsLatest());
 
   sendSuccess(res, 201, { news }, "News created successfully");
 });
@@ -99,6 +107,8 @@ export const updateNews = asyncHandler(async (req, res, next) => {
     runValidators: true,
   }).populate("author", "firstName lastName avatar");
 
+  await bust(CACHE_KEYS.newsLatest());
+
   sendSuccess(res, 200, { news }, "News updated successfully");
 });
 
@@ -116,6 +126,7 @@ export const deleteNews = asyncHandler(async (req, res, next) => {
   }
 
   await news.deleteOne();
+  await bust(CACHE_KEYS.newsLatest());
 
   sendSuccess(res, 200, null, "News deleted successfully");
 });
@@ -201,11 +212,14 @@ export const deleteComment = asyncHandler(async (req, res, next) => {
 
 // Get latest news
 export const getLatestNews = asyncHandler(async (req, res) => {
-  const news = await News.find({ isPublished: true })
-    .populate("author", "firstName lastName avatar")
-    .select("-content")
-    .sort({ publishedAt: -1 })
-    .limit(5);
+  const news = await getOrSet(CACHE_KEYS.newsLatest(), CACHE_TTL.NEWS_LATEST, async () =>
+    News.find({ isPublished: true })
+      .populate("author", "firstName lastName avatar")
+      .select("-content")
+      .sort({ publishedAt: -1 })
+      .limit(5)
+      .lean()
+  );
 
   sendSuccess(res, 200, { news }, "Latest news retrieved successfully");
 });

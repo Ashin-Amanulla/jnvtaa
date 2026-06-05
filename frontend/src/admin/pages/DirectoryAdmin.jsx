@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminUsersAPI, adminBatchesAPI } from "@/api/admin";
+import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -221,8 +222,9 @@ export default function DirectoryAdmin() {
   });
 
   const { data: batchesData } = useQuery({
-    queryKey: ["admin", "batches-list"],
-    queryFn: () => adminBatchesAPI.getAll({ limit: 200 }),
+    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
+    queryFn: () => adminBatchesAPI.getAll(BATCH_LIST_PARAMS),
+    staleTime: STALE_TIME.BATCHES,
   });
 
   const users = data?.data?.users ?? [];
@@ -324,7 +326,7 @@ export default function DirectoryAdmin() {
       header: "",
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" asChild>
-          <Link to={`/alumni/${row.original._id}`} target="_blank" rel="noopener noreferrer">
+          <Link to={`/dashboard/alumni/${row.original._id}`} target="_blank" rel="noopener noreferrer">
             <ExternalLink className="h-4 w-4" />
           </Link>
         </Button>

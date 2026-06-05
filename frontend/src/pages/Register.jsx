@@ -3,8 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import { authAPI, batchesAPI, getGoogleAuthUrl } from "@/api";
+import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
 import { SketchCard } from "@/components/SketchCard";
 import { getBatchDisplayYear } from "@/utils/format";
+import { getPostAuthPath } from "@/utils/roles";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -21,10 +30,13 @@ export default function Register() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
 
-  const { data: batchesData } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => batchesAPI.getAll({ limit: 100 }),
+  const { data: batchesData, isLoading: batchesLoading } = useQuery({
+    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
+    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
+    staleTime: STALE_TIME.BATCHES,
   });
+
+  const batches = batchesData?.data?.batches ?? [];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,11 +46,17 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!formData.batch) {
+      setError("Please select your batch");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await authAPI.register(formData);
-      login(response.data.user, response.data.token);
-      navigate("/dashboard");
+      const user = response.data.user;
+      login(user, response.data.token);
+      navigate(getPostAuthPath(user));
     } catch (err) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -164,21 +182,34 @@ export default function Register() {
                 <label htmlFor="batch" className="label">
                   Batch *
                 </label>
-                <select
-                  id="batch"
-                  name="batch"
-                  required
-                  className="input"
-                  value={formData.batch}
-                  onChange={handleChange}
+                <Select
+                  value={formData.batch || undefined}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, batch: value });
+                    setError("");
+                  }}
+                  disabled={batchesLoading}
                 >
-                  <option value="">Pick your year</option>
-                  {batchesData?.data?.batches?.map((batch) => (
-                    <option key={batch._id} value={batch._id}>
-                      Batch of {getBatchDisplayYear(batch)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="batch" className="input h-auto min-h-[44px]">
+                    <SelectValue
+                      placeholder={
+                        batchesLoading ? "Loading batches…" : "Pick your year"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {batches.map((batch) => (
+                      <SelectItem key={batch._id} value={batch._id}>
+                        Batch of {getBatchDisplayYear(batch)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!batchesLoading && batches.length === 0 && (
+                  <p className="mt-2 font-sans text-sm text-destructive">
+                    No batches available yet. Please try again later.
+                  </p>
+                )}
               </div>
             </div>
 

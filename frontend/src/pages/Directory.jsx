@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { usersAPI, batchesAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -99,7 +100,7 @@ export default function Directory() {
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["users", "directory", page, appliedFilters],
+    queryKey: QUERY_KEYS.usersDirectory(page, appliedFilters),
     queryFn: () =>
       usersAPI.getAllUsers({
         page: page + 1,
@@ -108,11 +109,13 @@ export default function Directory() {
           Object.entries(appliedFilters).filter(([, value]) => value !== "")
         ),
       }),
+    staleTime: STALE_TIME.DIRECTORY,
   });
 
   const { data: batchesData } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => batchesAPI.getAll({ limit: 200 }),
+    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
+    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
+    staleTime: STALE_TIME.BATCHES,
   });
 
   const users = data?.data?.users ?? [];
@@ -191,7 +194,7 @@ export default function Directory() {
       header: "",
       cell: ({ row }) => (
         <Button variant="ghost" size="sm" asChild>
-          <Link to={`/alumni/${row.original._id}`}>
+          <Link to={`/dashboard/alumni/${row.original._id}`}>
             <ExternalLink className="h-4 w-4" />
           </Link>
         </Button>

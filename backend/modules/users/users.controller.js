@@ -1,5 +1,6 @@
 import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import User from "./users.model.js";
+import Batch from "../batches/batches.model.js";
 import { sendSuccess, sendPaginated } from "../../helpers/response.js";
 import { ROLES } from "../../config/roles.js";
 import {
@@ -7,6 +8,12 @@ import {
   getPaginationMeta,
 } from "../../helpers/pagination.js";
 import { sendVerificationEmail } from "../../services/email.service.js";
+import {
+  getOrSet,
+  bust,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
 // Get all users with filtering and pagination
 export const getAllUsers = asyncHandler(async (req, res) => {
@@ -34,7 +41,8 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     .select("-password")
     .skip(skip)
     .limit(limit)
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   const total = await User.countDocuments(query);
   const pagination = getPaginationMeta(total, page, limit);
@@ -83,6 +91,8 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     firstName,
     lastName,
     phone,
+    batch,
+    rollNumber,
     dateOfBirth,
     gender,
     avatar,
@@ -106,6 +116,17 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   if (firstName) user.firstName = firstName;
   if (lastName) user.lastName = lastName;
   if (phone !== undefined) user.phone = phone;
+  if (batch !== undefined) {
+    if (!batch) {
+      return next(new AppError("Batch is required", 400));
+    }
+    const batchDoc = await Batch.findOne({ _id: batch, isActive: true });
+    if (!batchDoc) {
+      return next(new AppError("Invalid batch selected", 400));
+    }
+    user.batch = batch;
+  }
+  if (rollNumber !== undefined) user.rollNumber = rollNumber;
   if (dateOfBirth) user.dateOfBirth = dateOfBirth;
   if (gender) user.gender = gender;
   if (avatar !== undefined) user.avatar = avatar;
@@ -149,6 +170,7 @@ export const verifyUser = asyncHandler(async (req, res, next) => {
 
   user.isVerified = true;
   await user.save();
+  await bust(CACHE_KEYS.usersStats());
 
   try {
     await sendVerificationEmail(user);
@@ -186,7 +208,7 @@ export const getUnverifiedUsers = asyncHandler(async (req, res) => {
 });
 
 // Get user statistics
-export const getUserStats = asyncHandler(async (req, res) => {
+async function fetchUserStats() {
   const alumniFilter = { isActive: true, role: { $ne: ROLES.SUPER_ADMIN } };
   const totalUsers = await User.countDocuments(alumniFilter);
   const verifiedUsers = await User.countDocuments({
@@ -198,7 +220,6 @@ export const getUserStats = asyncHandler(async (req, res) => {
     isVerified: false,
   });
 
-  // Users by batch
   const usersByBatch = await User.aggregate([
     { $match: { ...alumniFilter, batch: { $ne: null } } },
     { $group: { _id: "$batch", count: { $sum: 1 } } },
@@ -227,7 +248,6 @@ export const getUserStats = asyncHandler(async (req, res) => {
     },
   ]);
 
-  // Users by location
   const usersByLocation = await User.aggregate([
     { $match: { ...alumniFilter, currentCity: { $ne: null } } },
     { $group: { _id: "$currentCity", count: { $sum: 1 } } },
@@ -235,18 +255,26 @@ export const getUserStats = asyncHandler(async (req, res) => {
     { $limit: 10 },
   ]);
 
+  return {
+    totalUsers,
+    verifiedUsers,
+    unverifiedUsers,
+    usersByBatch,
+    usersByLocation,
+  };
+}
+
+export const getUserStats = asyncHandler(async (req, res) => {
+  const stats = await getOrSet(
+    CACHE_KEYS.usersStats(),
+    CACHE_TTL.USERS_STATS,
+    fetchUserStats
+  );
+
   sendSuccess(
     res,
     200,
-    {
-      stats: {
-        totalUsers,
-        verifiedUsers,
-        unverifiedUsers,
-        usersByBatch,
-        usersByLocation,
-      },
-    },
+    { stats },
     "Statistics retrieved successfully"
   );
 });
@@ -374,6 +402,7 @@ export const deactivateUser = asyncHandler(async (req, res, next) => {
 
   user.isActive = false;
   await user.save();
+  await bust(CACHE_KEYS.usersStats());
   await user.populate("batch");
 
   sendSuccess(res, 200, { user }, "User deactivated successfully");

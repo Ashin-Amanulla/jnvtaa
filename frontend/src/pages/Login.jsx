@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import { authAPI, getGoogleAuthUrl } from "@/api";
-import { getDefaultLandingPath } from "@/utils/roles";
+import { getPostAuthPath } from "@/utils/roles";
 import { SketchCard } from "@/components/SketchCard";
 
 export default function Login() {
@@ -27,10 +27,7 @@ export default function Login() {
       const response = await authAPI.login(formData);
       const user = response.data.user;
       login(user, response.data.token);
-      const destination =
-        nextPath && nextPath.startsWith("/")
-          ? nextPath
-          : getDefaultLandingPath(user);
+      const destination = getPostAuthPath(user, nextPath);
       navigate(destination);
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");

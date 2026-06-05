@@ -1,5 +1,6 @@
 export { authAPI, getGoogleAuthUrl } from "./auth";
 export { usersAPI } from "./users";
+export { uploadsAPI } from "./uploads";
 export { mentorshipAPI } from "./mentorship";
 export { messagesAPI } from "./messages";
 export { notificationsAPI } from "./notifications";

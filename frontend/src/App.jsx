@@ -76,6 +76,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
     },
   },
 });
@@ -95,6 +96,11 @@ function MemberRoute({ children }) {
 function LegacyBatchRedirect() {
   const { id } = useParams();
   return <Navigate to={`/batches/${id}`} replace />;
+}
+
+function LegacyAlumniRedirect() {
+  const { userId } = useParams();
+  return <Navigate to={`/dashboard/alumni/${userId}`} replace />;
 }
 
 export default function App() {
@@ -269,6 +275,7 @@ export default function App() {
             <Route path="dashboard/donations" element={<MyDonations />} />
             <Route path="dashboard/mentorship" element={<MyMentorship />} />
             <Route path="dashboard/directory" element={<DirectoryRoute />} />
+            <Route path="dashboard/alumni/:userId" element={<PublicProfile />} />
             <Route path="messages" element={<Messages />} />
             <Route path="messages/:conversationId" element={<MessageThread />} />
             <Route path="notifications" element={<Notifications />} />
@@ -278,7 +285,14 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
-            <Route path="alumni/:userId" element={<PublicProfile />} />
+            <Route
+              path="alumni/:userId"
+              element={
+                <MemberRoute>
+                  <LegacyAlumniRedirect />
+                </MemberRoute>
+              }
+            />
             <Route path="batches" element={<Batches />} />
             <Route
               path="batches/:id"

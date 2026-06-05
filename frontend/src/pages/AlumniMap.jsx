@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { MapPin } from "lucide-react";
 import { usersAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import "leaflet/dist/leaflet.css";
 
@@ -26,8 +27,9 @@ const TILE_URL =
 
 export default function AlumniMap() {
   const { data, isLoading } = useQuery({
-    queryKey: ["users", "map"],
+    queryKey: QUERY_KEYS.usersMap,
     queryFn: () => usersAPI.getAllUsers({ limit: 500 }),
+    staleTime: STALE_TIME.ALUMNI_MAP,
   });
 
   const mapUsers = useMemo(() => {
@@ -94,7 +96,7 @@ export default function AlumniMap() {
                             <p className="text-muted-foreground">{u.currentCity}</p>
                           )}
                           <Link
-                            to={`/alumni/${u._id}`}
+                            to={`/dashboard/alumni/${u._id}`}
                             className="text-brand underline"
                           >
                             View profile

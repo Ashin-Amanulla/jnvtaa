@@ -9,6 +9,12 @@ import {
   canModifyResource,
   canViewUnpublished,
 } from "../../helpers/authorization.js";
+import {
+  getOrSet,
+  bust,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
 // Get all events
 export const getAllEvents = asyncHandler(async (req, res) => {
@@ -37,7 +43,8 @@ export const getAllEvents = asyncHandler(async (req, res) => {
     .populate("targetBatches", "year name")
     .skip(skip)
     .limit(limit)
-    .sort({ date: -1 });
+    .sort({ date: -1 })
+    .lean();
 
   const total = await Event.countDocuments(query);
   const pagination = getPaginationMeta(total, page, limit);
@@ -75,6 +82,7 @@ export const createEvent = asyncHandler(async (req, res) => {
   const event = await Event.create(eventData);
   await event.populate("organizer", "firstName lastName avatar");
   await event.populate("targetBatches", "year name");
+  await bust(CACHE_KEYS.eventsUpcoming());
 
   sendSuccess(res, 201, { event }, "Event created successfully");
 });
@@ -99,6 +107,8 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
     .populate("organizer", "firstName lastName avatar")
     .populate("targetBatches", "year name");
 
+  await bust(CACHE_KEYS.eventsUpcoming());
+
   sendSuccess(res, 200, { event }, "Event updated successfully");
 });
 
@@ -116,6 +126,7 @@ export const deleteEvent = asyncHandler(async (req, res, next) => {
   }
 
   await event.deleteOne();
+  await bust(CACHE_KEYS.eventsUpcoming());
 
   sendSuccess(res, 200, null, "Event deleted successfully");
 });
@@ -198,15 +209,21 @@ export const cancelRsvp = asyncHandler(async (req, res, next) => {
 
 // Get upcoming events
 export const getUpcomingEvents = asyncHandler(async (req, res) => {
-  const events = await Event.find({
-    status: "upcoming",
-    isPublished: true,
-    date: { $gte: new Date() },
-  })
-    .populate("organizer", "firstName lastName avatar")
-    .populate("targetBatches", "year name")
-    .sort({ date: 1 })
-    .limit(10);
+  const events = await getOrSet(
+    CACHE_KEYS.eventsUpcoming(),
+    CACHE_TTL.EVENTS_UPCOMING,
+    async () =>
+      Event.find({
+        status: "upcoming",
+        isPublished: true,
+        date: { $gte: new Date() },
+      })
+        .populate("organizer", "firstName lastName avatar")
+        .populate("targetBatches", "year name")
+        .sort({ date: 1 })
+        .limit(10)
+        .lean()
+  );
 
   sendSuccess(res, 200, { events }, "Upcoming events retrieved successfully");
 });

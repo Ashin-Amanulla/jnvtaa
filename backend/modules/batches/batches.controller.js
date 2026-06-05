@@ -6,64 +6,91 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
+import {
+  getOrSet,
+  bustBatchesCache,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
-// Get all batches
-export const getAllBatches = asyncHandler(async (req, res) => {
-  const { page, limit, skip } = getPaginationParams(req.query);
-
+async function fetchBatchesWithCounts(page, limit, skip) {
   const batches = await Batch.find({ isActive: true })
     .skip(skip)
     .limit(limit)
-    .sort({ year: -1 });
+    .sort({ year: -1 })
+    .lean();
 
-  // Get alumni count for each batch
-  const batchesWithCount = await Promise.all(
-    batches.map(async (batch) => {
-      const alumniCount = await User.countDocuments({
-        batch: batch._id,
-        isActive: true,
-      });
-      return {
-        ...batch.toObject(),
-        alumniCount,
-      };
-    })
+  const batchIds = batches.map((batch) => batch._id);
+
+  const counts =
+    batchIds.length > 0
+      ? await User.aggregate([
+          { $match: { batch: { $in: batchIds }, isActive: true } },
+          { $group: { _id: "$batch", count: { $sum: 1 } } },
+        ])
+      : [];
+
+  const countMap = Object.fromEntries(
+    counts.map((entry) => [entry._id.toString(), entry.count])
   );
+
+  const batchesWithCount = batches.map((batch) => ({
+    ...batch,
+    alumniCount: countMap[batch._id.toString()] || 0,
+  }));
 
   const total = await Batch.countDocuments({ isActive: true });
   const pagination = getPaginationMeta(total, page, limit);
 
+  return { batches: batchesWithCount, pagination };
+}
+
+export const getAllBatches = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = getPaginationParams(req.query);
+  const cacheKey = CACHE_KEYS.batchesList(page, limit);
+
+  const cached = await getOrSet(cacheKey, CACHE_TTL.BATCHES, () =>
+    fetchBatchesWithCounts(page, limit, skip)
+  );
+
   sendPaginated(
     res,
     200,
-    { batches: batchesWithCount },
-    pagination,
+    { batches: cached.batches },
+    cached.pagination,
     "Batches retrieved successfully"
   );
 });
 
-// Get single batch by ID
 export const getBatchById = asyncHandler(async (req, res, next) => {
-  const batch = await Batch.findById(req.params.id);
+  const cacheKey = CACHE_KEYS.batch(req.params.id);
 
-  if (!batch) {
+  const cached = await getOrSet(cacheKey, CACHE_TTL.BATCHES, async () => {
+    const batch = await Batch.findById(req.params.id).lean();
+
+    if (!batch) {
+      return null;
+    }
+
+    const alumni = await User.find({ batch: batch._id, isActive: true })
+      .select("-password")
+      .sort({ firstName: 1 })
+      .lean();
+
+    return { batch, alumni };
+  });
+
+  if (!cached) {
     return next(new AppError("Batch not found", 404));
   }
 
-  // Get alumni from this batch
-  const alumni = await User.find({ batch: batch._id, isActive: true })
-    .select("-password")
-    .sort({ firstName: 1 });
-
-  sendSuccess(res, 200, { batch, alumni }, "Batch retrieved successfully");
+  sendSuccess(res, 200, cached, "Batch retrieved successfully");
 });
 
-// Create new batch (Admin only)
 export const createBatch = asyncHandler(async (req, res, next) => {
   const { year, name, passoutYear, totalStudents, groupPhoto, description } =
     req.body;
 
-  // Check if batch already exists
   const batchExists = await Batch.findOne({ year });
   if (batchExists) {
     return next(new AppError("Batch with this year already exists", 400));
@@ -78,10 +105,11 @@ export const createBatch = asyncHandler(async (req, res, next) => {
     description,
   });
 
+  await bustBatchesCache();
+
   sendSuccess(res, 201, { batch }, "Batch created successfully");
 });
 
-// Update batch (Admin only)
 export const updateBatch = asyncHandler(async (req, res, next) => {
   const batch = await Batch.findById(req.params.id);
 
@@ -108,11 +136,11 @@ export const updateBatch = asyncHandler(async (req, res, next) => {
   if (achievements) batch.achievements = achievements;
 
   await batch.save();
+  await bustBatchesCache(batch._id.toString());
 
   sendSuccess(res, 200, { batch }, "Batch updated successfully");
 });
 
-// Delete batch (Admin only - soft delete)
 export const deleteBatch = asyncHandler(async (req, res, next) => {
   const batch = await Batch.findById(req.params.id);
 
@@ -122,11 +150,11 @@ export const deleteBatch = asyncHandler(async (req, res, next) => {
 
   batch.isActive = false;
   await batch.save();
+  await bustBatchesCache(batch._id.toString());
 
   sendSuccess(res, 200, null, "Batch deleted successfully");
 });
 
-// Add reunion to batch
 export const addReunion = asyncHandler(async (req, res, next) => {
   const batch = await Batch.findById(req.params.id);
 
@@ -145,6 +173,7 @@ export const addReunion = asyncHandler(async (req, res, next) => {
   });
 
   await batch.save();
+  await bustBatchesCache(batch._id.toString());
 
   sendSuccess(res, 200, { batch }, "Reunion added successfully");
 });

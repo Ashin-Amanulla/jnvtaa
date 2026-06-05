@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { adminBatchesAPI } from "@/api/admin";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,9 +31,15 @@ export default function BatchesAdmin() {
   const [form, setForm] = useState(emptyForm);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "batches"],
+    queryKey: QUERY_KEYS.adminBatches,
     queryFn: () => adminBatchesAPI.getAll({ limit: 100 }),
+    staleTime: STALE_TIME.BATCHES,
   });
+
+  const invalidateBatchQueries = () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.batchesRoot });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.adminBatches });
+  };
 
   const saveMutation = useMutation({
     mutationFn: (payload) =>
@@ -41,7 +48,7 @@ export default function BatchesAdmin() {
         : adminBatchesAPI.create(payload),
     onSuccess: () => {
       toast.success(editing ? "Batch updated" : "Batch created");
-      queryClient.invalidateQueries({ queryKey: ["admin", "batches"] });
+      invalidateBatchQueries();
       closeDialog();
     },
     onError: (err) => toast.error(err.message),
@@ -51,7 +58,7 @@ export default function BatchesAdmin() {
     mutationFn: (id) => adminBatchesAPI.delete(id),
     onSuccess: () => {
       toast.success("Batch deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "batches"] });
+      invalidateBatchQueries();
     },
     onError: (err) => toast.error(err.message),
   });

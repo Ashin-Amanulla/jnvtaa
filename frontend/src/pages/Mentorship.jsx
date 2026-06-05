@@ -108,7 +108,7 @@ export default function Mentorship() {
                   )}
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Link
-                      to={`/alumni/${mentor.user?._id}`}
+                      to={`/dashboard/alumni/${mentor.user?._id}`}
                       className="btn-outline text-sm"
                     >
                       View profile

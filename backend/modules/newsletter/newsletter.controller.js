@@ -8,8 +8,8 @@ import {
 } from "../../helpers/pagination.js";
 import {
   sendNewsletterConfirmation,
-  sendNewsletterCampaign,
 } from "../../services/email.service.js";
+import { queueNewsletterCampaign } from "../../queues/newsletter.queue.js";
 
 export const subscribe = asyncHandler(async (req, res, next) => {
   const { email, source } = req.body;
@@ -128,31 +128,28 @@ export const sendCampaign = asyncHandler(async (req, res, next) => {
   }
 
   const subscribers = await Subscriber.find({ status: "active" });
-  let sent = 0;
-  const errors = [];
 
-  for (const subscriber of subscribers) {
-    try {
-      await sendNewsletterCampaign(
-        subscriber.email,
-        campaign.subject,
-        campaign.body
-      );
-      sent += 1;
-    } catch (err) {
-      errors.push({ email: subscriber.email, error: err.message });
-    }
+  if (subscribers.length === 0) {
+    return next(new AppError("No active subscribers to send to", 400));
   }
+
+  if (!process.env.REDIS_URL) {
+    return next(
+      new AppError("Newsletter queue requires REDIS_URL to be configured", 503)
+    );
+  }
+
+  const queued = await queueNewsletterCampaign(campaign, subscribers);
 
   campaign.status = "sent";
   campaign.sentAt = new Date();
-  campaign.recipientCount = sent;
+  campaign.recipientCount = queued;
   await campaign.save();
 
   sendSuccess(
     res,
     200,
-    { campaign, sent, failed: errors.length, errors: errors.slice(0, 10) },
-    "Campaign send completed"
+    { campaign, queued },
+    "Campaign queued for delivery"
   );
 });

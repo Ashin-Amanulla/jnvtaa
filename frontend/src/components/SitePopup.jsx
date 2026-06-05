@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSiteContent } from "@/api/siteContent";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import { POPUP_DEFAULTS } from "@/constants/popup";
 import {
   Dialog,
@@ -20,7 +21,7 @@ export default function SitePopup() {
   const [open, setOpen] = useState(false);
 
   const { data } = useQuery({
-    queryKey: ["siteContent", POPUP_KEY],
+    queryKey: QUERY_KEYS.siteContent(POPUP_KEY),
     queryFn: async () => {
       try {
         return await getSiteContent(POPUP_KEY);
@@ -28,7 +29,7 @@ export default function SitePopup() {
         return null;
       }
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_TIME.SITE_CONTENT,
   });
 
   const popup = { ...POPUP_DEFAULTS, ...data?.data?.content?.data };

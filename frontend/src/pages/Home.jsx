@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { usersAPI, eventsAPI, newsAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import FeaturedAlumni from "@/components/FeaturedAlumni";
 import Testimonials from "@/components/Testimonials";
 import StatsCounter from "@/components/StatsCounter";
@@ -17,17 +18,18 @@ import { SketchIconCircle } from "@/components/SketchIconCircle";
 
 export default function Home() {
   const { data: stats } = useQuery({
-    queryKey: ["userStats"],
+    queryKey: QUERY_KEYS.userStats,
     queryFn: () => usersAPI.getUserStats(),
+    staleTime: STALE_TIME.USER_STATS,
   });
 
   const { data: upcomingEvents } = useQuery({
-    queryKey: ["upcomingEvents"],
+    queryKey: QUERY_KEYS.upcomingEvents,
     queryFn: () => eventsAPI.getUpcoming(),
   });
 
   const { data: latestNews } = useQuery({
-    queryKey: ["latestNews"],
+    queryKey: QUERY_KEYS.latestNews,
     queryFn: () => newsAPI.getLatest(),
   });
 

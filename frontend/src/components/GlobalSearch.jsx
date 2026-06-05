@@ -102,7 +102,7 @@ export default function GlobalSearch() {
                     <Command.Item
                       key={u._id}
                       value={`user-${u._id}`}
-                      onSelect={() => go(`/alumni/${u._id}`)}
+                      onSelect={() => go(`/dashboard/alumni/${u._id}`)}
                       className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 font-sans text-base aria-selected:bg-muted"
                     >
                       <User size={18} />
