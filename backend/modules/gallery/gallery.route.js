@@ -12,6 +12,8 @@ import {
   getGalleryFolders,
   getGalleryFolderImages,
   removeGalleryS3Image,
+  renameGalleryFolderHandler,
+  removeGalleryFolder,
   uploadGalleryImages,
   galleryUploadMiddleware,
 } from "./gallery.controller.js";
@@ -22,6 +24,8 @@ import {
   createGallerySchema,
   updateGallerySchema,
   addCommentSchema,
+  renameGalleryFolderSchema,
+  deleteGalleryFolderSchema,
 } from "../../validators/gallery.validator.js";
 
 const router = express.Router();
@@ -47,6 +51,20 @@ router.delete(
   protect,
   hasPermission(PERMISSIONS.GALLERY_MANAGE),
   removeGalleryS3Image,
+);
+router.patch(
+  "/folders/rename",
+  protect,
+  hasPermission(PERMISSIONS.GALLERY_MANAGE),
+  validate(renameGalleryFolderSchema),
+  renameGalleryFolderHandler,
+);
+router.delete(
+  "/folders",
+  protect,
+  hasPermission(PERMISSIONS.GALLERY_MANAGE),
+  validate(deleteGalleryFolderSchema),
+  removeGalleryFolder,
 );
 router.post(
   "/upload",

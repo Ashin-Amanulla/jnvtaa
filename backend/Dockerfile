@@ -3,6 +3,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# ImageMagick + libheif for large iPhone HEIC that exceed WASM decoder memory limits
+RUN apk add --no-cache imagemagick libheif
+
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 -G nodejs
 
 COPY package.json package-lock.json ./

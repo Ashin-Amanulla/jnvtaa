@@ -6,20 +6,32 @@ import {
   ArrowLeft,
   FolderOpen,
   ImagePlus,
+  Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
 import { adminGalleryAPI } from "@/api/admin";
 import GalleryUploadPanel from "@/admin/components/GalleryUploadPanel";
+import DeleteGalleryDialog from "@/admin/components/DeleteGalleryDialog";
+import RenameGalleryDialog from "@/admin/components/RenameGalleryDialog";
 import DataTable from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatDate } from "@/utils/format";
 
 function galleryPath(slug) {
   return `/admin/gallery/${encodeURIComponent(slug)}`;
 }
 
-function GalleryImage({ image, onDelete, isDeleting }) {
+function GalleryImage({ image, onRequestDelete, isDeleting }) {
   const [src, setSrc] = useState(image.thumbnailUrl || image.url);
 
   return (
@@ -36,15 +48,7 @@ function GalleryImage({ image, onDelete, isDeleting }) {
         <button
           type="button"
           disabled={isDeleting}
-          onClick={() => {
-            if (
-              window.confirm(
-                `Delete "${image.title || image.name}" from this gallery?`,
-              )
-            ) {
-              onDelete(image.key);
-            }
-          }}
+          onClick={() => onRequestDelete(image)}
           className="absolute right-2 top-2 rounded-md bg-destructive p-2 text-destructive-foreground opacity-0 shadow transition-opacity group-hover:opacity-100 disabled:opacity-50"
           aria-label="Delete image"
         >
@@ -71,6 +75,9 @@ export default function GalleryAdmin() {
   const { slug: slugParam } = useParams();
   const queryClient = useQueryClient();
   const [showUpload, setShowUpload] = useState(false);
+  const [renameTarget, setRenameTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [imageToDelete, setImageToDelete] = useState(null);
 
   const isCreate =
     location.pathname.endsWith("/gallery/new") || slugParam === "new";
@@ -108,12 +115,43 @@ export default function GalleryAdmin() {
 
   const images = imagesRes?.data?.images ?? [];
 
-  const deleteMutation = useMutation({
+  const invalidateGalleryQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "gallery"] });
+    queryClient.invalidateQueries({ queryKey: ["gallery", "s3-feed"] });
+  };
+
+  const deleteImageMutation = useMutation({
     mutationFn: (key) => adminGalleryAPI.deleteS3Image(key),
     onSuccess: () => {
       toast.success("Image deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "gallery"] });
-      queryClient.invalidateQueries({ queryKey: ["gallery", "s3-feed"] });
+      setImageToDelete(null);
+      invalidateGalleryQueries();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const renameFolderMutation = useMutation({
+    mutationFn: ({ slug, newName }) =>
+      adminGalleryAPI.renameFolder(slug, newName),
+    onSuccess: (res) => {
+      const newSlug = res?.data?.newSlug;
+      toast.success("Gallery renamed");
+      setRenameTarget(null);
+      invalidateGalleryQueries();
+      if (newSlug) {
+        navigate(galleryPath(newSlug));
+      }
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: (slug) => adminGalleryAPI.deleteFolder(slug),
+    onSuccess: () => {
+      toast.success("Gallery deleted");
+      setDeleteTarget(null);
+      invalidateGalleryQueries();
+      navigate("/admin/gallery");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -131,6 +169,19 @@ export default function GalleryAdmin() {
   const backToList = () => {
     setShowUpload(false);
     navigate("/admin/gallery");
+  };
+
+  const handleRenameConfirm = ({ newName }) => {
+    if (!renameTarget?.slug) return;
+    renameFolderMutation.mutate({
+      slug: renameTarget.slug,
+      newName,
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget?.slug) return;
+    deleteFolderMutation.mutate(deleteTarget.slug);
   };
 
   const galleryColumns = [
@@ -180,12 +231,103 @@ export default function GalleryAdmin() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Button size="sm" variant="outline" onClick={() => openGallery(row.original)}>
-          Manage
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => openGallery(row.original)}
+          >
+            Manage
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setRenameTarget(row.original)}
+          >
+            <Pencil className="mr-1 h-3.5 w-3.5" />
+            Rename
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setDeleteTarget(row.original)}
+          >
+            <Trash2 className="mr-1 h-3.5 w-3.5" />
+            Delete
+          </Button>
+        </div>
       ),
     },
   ];
+
+  const dialogProps = {
+    renameOpen: !!renameTarget,
+    deleteOpen: !!deleteTarget,
+    renameTarget,
+    deleteTarget,
+    onRenameOpenChange: (open) => {
+      if (!open) setRenameTarget(null);
+    },
+    onDeleteOpenChange: (open) => {
+      if (!open) setDeleteTarget(null);
+    },
+    onRenameConfirm: handleRenameConfirm,
+    onDeleteConfirm: handleDeleteConfirm,
+    isRenaming: renameFolderMutation.isPending,
+    isDeletingFolder: deleteFolderMutation.isPending,
+  };
+
+  const galleryDialogs = (
+    <>
+      <RenameGalleryDialog
+        open={dialogProps.renameOpen}
+        onOpenChange={dialogProps.onRenameOpenChange}
+        gallery={dialogProps.renameTarget}
+        onConfirm={dialogProps.onRenameConfirm}
+        isPending={dialogProps.isRenaming}
+      />
+      <DeleteGalleryDialog
+        open={dialogProps.deleteOpen}
+        onOpenChange={dialogProps.onDeleteOpenChange}
+        gallery={dialogProps.deleteTarget}
+        onConfirm={dialogProps.onDeleteConfirm}
+        isPending={dialogProps.isDeletingFolder}
+      />
+      <AlertDialog
+        open={!!imageToDelete}
+        onOpenChange={(open) => {
+          if (!open && !deleteImageMutation.isPending) setImageToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete image?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete &quot;{imageToDelete?.title || imageToDelete?.name}&quot;
+              from this gallery? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteImageMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteImageMutation.isPending}
+              onClick={() => {
+                if (imageToDelete?.key) {
+                  deleteImageMutation.mutate(imageToDelete.key);
+                }
+              }}
+            >
+              {deleteImageMutation.isPending ? "Deleting…" : "Delete image"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 
   if (isCreate) {
     return (
@@ -218,6 +360,11 @@ export default function GalleryAdmin() {
   }
 
   if (gallerySlug && selectedGallery) {
+    const detailGallery = {
+      ...selectedGallery,
+      imageCount: images.length || selectedGallery.imageCount,
+    };
+
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -233,10 +380,28 @@ export default function GalleryAdmin() {
               </p>
             </div>
           </div>
-          <Button type="button" onClick={() => setShowUpload((v) => !v)}>
-            <ImagePlus className="mr-2 h-4 w-4" />
-            {showUpload ? "Hide upload" : "Add images"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRenameTarget(detailGallery)}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Rename gallery
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setDeleteTarget(detailGallery)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete gallery
+            </Button>
+            <Button type="button" onClick={() => setShowUpload((v) => !v)}>
+              <ImagePlus className="mr-2 h-4 w-4" />
+              {showUpload ? "Hide upload" : "Add images"}
+            </Button>
+          </div>
         </div>
 
         {showUpload && (
@@ -249,7 +414,9 @@ export default function GalleryAdmin() {
                 queryClient.invalidateQueries({
                   queryKey: ["admin", "gallery", "images", gallerySlug],
                 });
-                queryClient.invalidateQueries({ queryKey: ["admin", "gallery", "folders"] });
+                queryClient.invalidateQueries({
+                  queryKey: ["admin", "gallery", "folders"],
+                });
                 queryClient.invalidateQueries({ queryKey: ["gallery", "s3-feed"] });
               }}
             />
@@ -282,12 +449,14 @@ export default function GalleryAdmin() {
               <GalleryImage
                 key={image.key}
                 image={image}
-                isDeleting={deleteMutation.isPending}
-                onDelete={(key) => deleteMutation.mutate(key)}
+                isDeleting={deleteImageMutation.isPending}
+                onRequestDelete={setImageToDelete}
               />
             ))}
           </div>
         )}
+
+        {galleryDialogs}
       </div>
     );
   }
@@ -315,6 +484,8 @@ export default function GalleryAdmin() {
         searchPlaceholder="Search galleries…"
         emptyMessage="No galleries yet. Create one to get started."
       />
+
+      {galleryDialogs}
     </div>
   );
 }

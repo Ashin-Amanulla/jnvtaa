@@ -1,14 +1,30 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { galleryAPI } from "@/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { Image as ImageIcon, Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Play, X } from "lucide-react";
 
 const PAGE_SIZE = 12;
 
+function GalleryThumb({ item }) {
+  const [src, setSrc] = useState(item.thumbnail || item.url);
+  const handleError = useCallback(() => {
+    if (src !== item.url) setSrc(item.url);
+  }, [src, item.url]);
+
+  return (
+    <img
+      src={src}
+      alt={item.title}
+      className="h-full w-full object-cover transition-transform duration-100 group-hover:scale-[1.03]"
+      onError={handleError}
+    />
+  );
+}
+
 export default function Gallery() {
   const [folderId, setFolderId] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const [page, setPage] = useState(1);
 
   const {
@@ -52,6 +68,50 @@ export default function Gallery() {
     const start = (p - 1) * PAGE_SIZE;
     return filteredItems.slice(start, start + PAGE_SIZE);
   }, [filteredItems, page, totalPages]);
+
+  const selectedItem =
+    selectedIndex !== null ? filteredItems[selectedIndex] : null;
+  const hasPrev = selectedIndex !== null && selectedIndex > 0;
+  const hasNext =
+    selectedIndex !== null && selectedIndex < filteredItems.length - 1;
+
+  const openLightbox = useCallback(
+    (item) => {
+      const index = filteredItems.findIndex((i) => i._id === item._id);
+      if (index >= 0) setSelectedIndex(index);
+    },
+    [filteredItems],
+  );
+
+  const closeLightbox = useCallback(() => setSelectedIndex(null), []);
+
+  const goPrev = useCallback(() => {
+    setSelectedIndex((idx) => (idx !== null && idx > 0 ? idx - 1 : idx));
+  }, []);
+
+  const goNext = useCallback(() => {
+    setSelectedIndex((idx) =>
+      idx !== null && idx < filteredItems.length - 1 ? idx + 1 : idx,
+    );
+  }, [filteredItems.length]);
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedIndex, closeLightbox, goPrev, goNext]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,17 +184,13 @@ export default function Gallery() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        setSelectedItem(item);
+                        openLightbox(item);
                       }
                     }}
                     className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-border bg-muted shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-cardHover"
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => openLightbox(item)}
                   >
-                    <img
-                      src={item.thumbnail || item.url}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-100 group-hover:scale-[1.03]"
-                    />
+                    <GalleryThumb item={item} />
                     <div className="absolute inset-0 flex flex-col justify-end bg-foreground/85 p-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100">
                       <h4 className="font-display text-xl font-bold text-background line-clamp-2">
                         {item.title}
@@ -205,44 +261,76 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95 p-4"
-          onClick={() => setSelectedItem(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          onClick={closeLightbox}
           role="dialog"
           aria-modal="true"
-          aria-label="Gallery item"
+          aria-label="Gallery lightbox"
         >
           <button
             type="button"
-            onClick={() => setSelectedItem(null)}
-            className="absolute right-6 top-6 rounded-xl border-2 border-background bg-background px-3 py-2 text-foreground shadow-card focus-ring"
+            onClick={closeLightbox}
+            className="absolute right-4 top-4 z-10 rounded-xl border-2 border-white/20 bg-white/10 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-ring md:right-6 md:top-6"
           >
             <X size={28} strokeWidth={2} />
             <span className="sr-only">Close</span>
           </button>
 
+          {hasPrev && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+              }}
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-xl border-2 border-white/20 bg-white/10 p-3 text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-ring md:left-6"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={32} strokeWidth={2} />
+            </button>
+          )}
+
+          {hasNext && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+              }}
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-xl border-2 border-white/20 bg-white/10 p-3 text-white backdrop-blur-sm transition-colors hover:bg-white/20 focus-ring md:right-6"
+              aria-label="Next image"
+            >
+              <ChevronRight size={32} strokeWidth={2} />
+            </button>
+          )}
+
           <div
-            className="w-full max-w-5xl"
+            className="flex w-full max-w-5xl flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={selectedItem.url}
+              key={selectedItem._id}
+              src={selectedItem.url || selectedItem.thumbnail}
               alt={selectedItem.title}
-              className="max-h-[80vh] w-full border-[3px] border-background object-contain shadow-[8px_8px_0_0_#fdfbf7]"
+              className="max-h-[75vh] w-full object-contain"
             />
-            <div className="mt-8 text-left text-background">
-              <h3 className="font-display text-3xl font-bold md:text-4xl">
+            <div className="mt-6 w-full text-center text-white">
+              <p className="font-sans text-sm text-white/60">
+                {selectedIndex + 1} of {filteredItems.length}
+              </p>
+              <h3 className="mt-2 font-display text-2xl font-bold md:text-3xl">
                 {selectedItem.title}
               </h3>
               {selectedItem.folderName && (
-                <p className="mt-2 font-sans text-lg text-background/80">
+                <p className="mt-1 font-sans text-base text-white/75">
                   {selectedItem.folderName}
                 </p>
               )}
               {selectedItem.description && (
-                <p className="mt-3 max-w-2xl font-sans text-lg text-background/85">
+                <p className="mx-auto mt-2 max-w-2xl font-sans text-base text-white/80">
                   {selectedItem.description}
                 </p>
               )}

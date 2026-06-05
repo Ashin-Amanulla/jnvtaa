@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path";
-import { randomUUID } from "crypto";
+import { createHash } from "crypto";
 import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import Gallery from "./gallery.model.js";
 import { sendSuccess, sendPaginated } from "../../helpers/response.js";
@@ -13,6 +13,8 @@ import {
   listGalleryFolders,
   listGalleryFolderImages,
   deleteGalleryS3Image,
+  renameGalleryFolder,
+  deleteGalleryFolder,
 } from "../../services/galleryS3Upstream.js";
 import {
   canModifyResource,
@@ -24,7 +26,14 @@ import {
   processGalleryImage,
   isAllowedImageFile,
 } from "../../services/imageProcessor.js";
-import { uploadBufferToS3 } from "../../services/upload.service.js";
+import {
+  uploadBufferToS3,
+  s3ObjectExists,
+} from "../../services/upload.service.js";
+
+function contentHash(buffer) {
+  return createHash("sha256").update(buffer).digest("hex").slice(0, 16);
+}
 
 const galleryUpload = multer({
   storage: multer.memoryStorage(),
@@ -179,6 +188,56 @@ export const removeGalleryS3Image = asyncHandler(async (req, res, next) => {
   }
 });
 
+export const renameGalleryFolderHandler = asyncHandler(async (req, res, next) => {
+  const slug = decodeURIComponent(String(req.body.slug || "")).trim();
+  const newName = String(req.body.newName || "").trim();
+  const newSlug = slugifyGalleryName(newName);
+
+  if (!slug) {
+    return next(new AppError("Gallery slug is required", 400));
+  }
+
+  if (!newSlug) {
+    return next(new AppError("A valid new gallery name is required", 400));
+  }
+
+  if (slug === newSlug) {
+    return next(
+      new AppError("New gallery name must produce a different folder", 400),
+    );
+  }
+
+  try {
+    const result = await renameGalleryFolder(slug, newSlug);
+    sendSuccess(
+      res,
+      200,
+      { ...result, newName },
+      "Gallery renamed successfully",
+    );
+  } catch (err) {
+    if (err.code === "GALLERY_COLLISION") {
+      return next(new AppError(err.message, 409));
+    }
+    return next(new AppError(`Gallery rename failed: ${err.message}`, 502));
+  }
+});
+
+export const removeGalleryFolder = asyncHandler(async (req, res, next) => {
+  const slug = decodeURIComponent(String(req.body.slug || "")).trim();
+
+  if (!slug) {
+    return next(new AppError("Gallery slug is required", 400));
+  }
+
+  try {
+    const result = await deleteGalleryFolder(slug);
+    sendSuccess(res, 200, result, "Gallery deleted successfully");
+  } catch (err) {
+    return next(new AppError(`Gallery delete failed: ${err.message}`, 502));
+  }
+});
+
 export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
   const galleryName = (req.body.galleryName || "").trim();
   const exactSlug = (req.body.gallerySlug || "").trim();
@@ -195,17 +254,37 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
   const metadataList = parseUploadMetadata(req.body.metadata);
   const uploads = [];
   const errors = [];
+  const skipped = [];
 
   for (let i = 0; i < req.files.length; i++) {
     const file = req.files[i];
     const meta = metadataList[i] || {};
 
     try {
-      const { full, thumbnail } = await processGalleryImage(file.buffer);
+      const hash = contentHash(file.buffer);
       const baseName = sanitizeBaseName(meta.title || file.originalname);
-      const uniqueName = `${Date.now()}-${randomUUID()}-${baseName}.webp`;
+      const uniqueName = `${hash}-${baseName}.webp`;
       const fullKey = `${slug}/${uniqueName}`;
       const thumbKey = `${slug}/thumbs/${uniqueName}`;
+
+      const alreadyExists = await s3ObjectExists(fullKey);
+      if (alreadyExists) {
+        skipped.push({
+          fileName: file.originalname,
+          reason: "duplicate",
+          key: fullKey,
+        });
+        // #region agent log
+        fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b2fc89'},body:JSON.stringify({sessionId:'b2fc89',location:'gallery.controller.js:upload-skip',message:'duplicate skipped',data:{fileName:file.originalname,fullKey,hash},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+        // #endregion
+        continue;
+      }
+
+      const { full, thumbnail } = await processGalleryImage(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+      );
 
       const fullResult = await uploadBufferToS3({
         buffer: full,
@@ -232,15 +311,25 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
         gallerySlug: slug,
         galleryName,
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b2fc89'},body:JSON.stringify({sessionId:'b2fc89',location:'gallery.controller.js:upload-ok',message:'file uploaded',data:{fileName:file.originalname,size:file.size,mime:file.mimetype,fullKey},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
     } catch (err) {
       errors.push({
         fileName: file.originalname,
         message: err.message || "Upload failed",
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b2fc89'},body:JSON.stringify({sessionId:'b2fc89',location:'gallery.controller.js:upload-fail',message:'file failed',data:{fileName:file.originalname,size:file.size,mime:file.mimetype,error:err.message},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
     }
   }
 
-  if (!uploads.length) {
+  // #region agent log
+  fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b2fc89'},body:JSON.stringify({sessionId:'b2fc89',location:'gallery.controller.js:upload-summary',message:'batch complete',data:{total:req.files.length,uploaded:uploads.length,failed:errors.length,skipped:skipped.length,slug},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+  // #endregion
+
+  if (!uploads.length && !skipped.length) {
     return next(
       new AppError(
         errors[0]?.message || "All image uploads failed",
@@ -248,6 +337,10 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
       ),
     );
   }
+
+  const parts = [`${uploads.length} image(s) uploaded`];
+  if (skipped.length) parts.push(`${skipped.length} duplicate(s) skipped`);
+  if (errors.length) parts.push(`${errors.length} failed`);
 
   sendSuccess(
     res,
@@ -257,10 +350,12 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
       gallerySlug: slug,
       galleryName,
       uploadedCount: uploads.length,
+      skippedCount: skipped.length,
       failedCount: errors.length,
+      skipped: skipped.length ? skipped : undefined,
       errors: errors.length ? errors : undefined,
     },
-    `${uploads.length} image(s) uploaded successfully`,
+    parts.join(", "),
   );
 });
 

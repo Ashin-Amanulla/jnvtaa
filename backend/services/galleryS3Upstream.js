@@ -2,6 +2,8 @@ import {
   S3Client,
   ListObjectsV2Command,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
+  CopyObjectCommand,
 } from "@aws-sdk/client-s3";
 
 function getRequiredEnv(name) {
@@ -212,6 +214,159 @@ export async function listGalleryFolderImages(slug) {
   });
 
   return images;
+}
+
+export function validateGallerySlug(slug) {
+  if (!slug || typeof slug !== "string") {
+    throw new Error("Gallery slug is required");
+  }
+
+  const trimmed = slug.trim();
+  if (!trimmed) {
+    throw new Error("Gallery slug is required");
+  }
+
+  if (trimmed.includes("..") || trimmed.startsWith("/") || trimmed.endsWith("/")) {
+    throw new Error("Invalid gallery slug");
+  }
+
+  return trimmed;
+}
+
+async function listAllObjectsUnderPrefix(client, bucket, prefix) {
+  const objects = [];
+  let continuationToken;
+
+  do {
+    const response = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const object of response.Contents || []) {
+      if (object.Key && !object.Key.endsWith("/")) {
+        objects.push(object);
+      }
+    }
+
+    continuationToken = response.IsTruncated
+      ? response.NextContinuationToken
+      : undefined;
+  } while (continuationToken);
+
+  return objects;
+}
+
+async function prefixHasObjects(client, bucket, prefix) {
+  const response = await client.send(
+    new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: prefix,
+      MaxKeys: 1,
+    }),
+  );
+
+  return (response.Contents || []).some(
+    (object) => object.Key && !object.Key.endsWith("/"),
+  );
+}
+
+async function batchDeleteKeys(client, bucket, keys) {
+  const deletedKeys = [];
+
+  for (let i = 0; i < keys.length; i += 1000) {
+    const chunk = keys.slice(i, i + 1000);
+    await client.send(
+      new DeleteObjectsCommand({
+        Bucket: bucket,
+        Delete: {
+          Objects: chunk.map((Key) => ({ Key })),
+          Quiet: true,
+        },
+      }),
+    );
+    deletedKeys.push(...chunk);
+  }
+
+  return deletedKeys;
+}
+
+export async function deleteGalleryFolder(slug) {
+  const validSlug = validateGallerySlug(slug);
+  const { bucket, client } = getS3ClientConfig();
+  const prefix = `${validSlug}/`;
+  const objects = await listAllObjectsUnderPrefix(client, bucket, prefix);
+
+  if (!objects.length) {
+    throw new Error("Gallery folder not found or is empty");
+  }
+
+  const keys = objects.map((object) => object.Key);
+  const deletedKeys = await batchDeleteKeys(client, bucket, keys);
+
+  return {
+    slug: validSlug,
+    deletedCount: deletedKeys.length,
+    deletedKeys,
+  };
+}
+
+export async function renameGalleryFolder(oldSlug, newSlug) {
+  const validOldSlug = validateGallerySlug(oldSlug);
+  const validNewSlug = validateGallerySlug(newSlug);
+
+  if (validOldSlug === validNewSlug) {
+    throw new Error("New gallery name must be different from the current name");
+  }
+
+  const { bucket, client } = getS3ClientConfig();
+  const oldPrefix = `${validOldSlug}/`;
+  const newPrefix = `${validNewSlug}/`;
+
+  const collision = await prefixHasObjects(client, bucket, newPrefix);
+  if (collision) {
+    const error = new Error(`Gallery folder "${validNewSlug}" already exists`);
+    error.code = "GALLERY_COLLISION";
+    throw error;
+  }
+
+  const objects = await listAllObjectsUnderPrefix(client, bucket, oldPrefix);
+  if (!objects.length) {
+    throw new Error("Gallery folder not found or is empty");
+  }
+
+  const copyPairs = objects.map((object) => ({
+    oldKey: object.Key,
+    newKey: object.Key.replace(oldPrefix, newPrefix),
+  }));
+
+  for (const { oldKey, newKey } of copyPairs) {
+    try {
+      await client.send(
+        new CopyObjectCommand({
+          Bucket: bucket,
+          CopySource: `${bucket}/${encodeS3Key(oldKey)}`,
+          Key: newKey,
+        }),
+      );
+    } catch (err) {
+      throw new Error(
+        `Failed to copy "${oldKey}" to "${newKey}": ${err.message}`,
+      );
+    }
+  }
+
+  const oldKeys = copyPairs.map((pair) => pair.oldKey);
+  await batchDeleteKeys(client, bucket, oldKeys);
+
+  return {
+    oldSlug: validOldSlug,
+    newSlug: validNewSlug,
+    movedCount: copyPairs.length,
+  };
 }
 
 export async function deleteGalleryS3Image(key) {

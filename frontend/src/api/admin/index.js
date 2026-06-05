@@ -44,6 +44,10 @@ export const adminGalleryAPI = {
     apiClient.get("/gallery/folders/images", { params: { slug } }),
   deleteS3Image: (key) =>
     apiClient.delete("/gallery/s3/image", { data: { key } }),
+  renameFolder: (slug, newName) =>
+    apiClient.patch("/gallery/folders/rename", { slug, newName }),
+  deleteFolder: (slug) =>
+    apiClient.delete("/gallery/folders", { data: { slug } }),
   uploadImages: (formData) =>
     apiClient.post("/gallery/upload", formData, {
       transformRequest: [

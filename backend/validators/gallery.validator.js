@@ -28,3 +28,12 @@ export const updateGallerySchema = createGallerySchema.fork(
 export const addCommentSchema = Joi.object({
   content: Joi.string().min(1).max(1000).required(),
 });
+
+export const renameGalleryFolderSchema = Joi.object({
+  slug: Joi.string().min(1).max(120).required(),
+  newName: Joi.string().min(2).max(120).required(),
+});
+
+export const deleteGalleryFolderSchema = Joi.object({
+  slug: Joi.string().min(1).max(120).required(),
+});

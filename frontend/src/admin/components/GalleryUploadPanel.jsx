@@ -80,25 +80,39 @@ export default function GalleryUploadPanel({
       return;
     }
 
+    let skippedDup = 0;
+    let hitLimit = false;
+
     setFiles((prev) => {
       const existingIds = new Set(prev.map((item) => item.id));
       const next = [...prev];
 
       for (const file of imageFiles) {
-        if (next.length >= MAX_FILES) break;
+        if (next.length >= MAX_FILES) {
+          hitLimit = true;
+          break;
+        }
         const entry = createFileEntry(file);
         if (!existingIds.has(entry.id)) {
           next.push(entry);
           existingIds.add(entry.id);
+        } else {
+          skippedDup++;
         }
-      }
-
-      if (prev.length + imageFiles.length > MAX_FILES) {
-        toast.warning(`Maximum ${MAX_FILES} images per upload batch`);
       }
 
       return next;
     });
+
+    if (skippedDup > 0) {
+      toast.info(`${skippedDup} duplicate(s) removed from selection`);
+    }
+
+    if (hitLimit || imageFiles.length > MAX_FILES) {
+      toast.warning(
+        `Only ${MAX_FILES} images per batch — upload in groups, duplicates are auto-skipped on server`,
+      );
+    }
   }, []);
 
   const removeFile = (id) => {
@@ -143,14 +157,29 @@ export default function GalleryUploadPanel({
       return adminGalleryAPI.uploadImages(formData);
     },
     onSuccess: (res) => {
-      const count = res?.data?.uploadedCount ?? files.length;
+      const count = res?.data?.uploadedCount ?? 0;
+      const skipped = res?.data?.skippedCount ?? 0;
+      const failed = res?.data?.failedCount ?? 0;
+
       toast.success(res?.message || `${count} image(s) uploaded`);
 
-      if (res?.data?.failedCount > 0) {
+      if (skipped > 0) {
+        toast.info(`${skipped} duplicate(s) skipped — already in this gallery`);
+      }
+
+      if (failed > 0) {
+        const names = (res?.data?.errors ?? [])
+          .map((e) => e.fileName)
+          .slice(0, 3)
+          .join(", ");
         toast.warning(
-          `${res.data.failedCount} image(s) failed to upload. Check file sizes and formats.`,
+          `${failed} image(s) failed${names ? `: ${names}${failed > 3 ? "…" : ""}` : ""}`,
         );
       }
+
+      // #region agent log
+      fetch('http://127.0.0.1:7249/ingest/e2bd3e24-2d80-4a40-98be-8c57fba7031d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b2fc89'},body:JSON.stringify({sessionId:'b2fc89',location:'GalleryUploadPanel.jsx:onSuccess',message:'upload response',data:{count,skipped,failed,errors:res?.data?.errors},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
 
       files.forEach((item) => {
         if (item.preview) URL.revokeObjectURL(item.preview);
