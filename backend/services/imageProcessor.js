@@ -49,6 +49,15 @@ export function isAllowedImageMime(mime) {
     "image/png",
     "image/webp",
     "image/gif",
+    "image/heic",
+    "image/heif",
+    "image/heic-sequence",
+    "image/heif-sequence",
   ];
   return allowed.includes((mime || "").toLowerCase());
+}
+
+export function isAllowedImageFile(fileName, mime) {
+  if (isAllowedImageMime(mime)) return true;
+  return /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(fileName || "");
 }

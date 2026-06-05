@@ -22,7 +22,7 @@ import { isStaff } from "../../config/roles.js";
 import { slugifyGalleryName } from "../../helpers/gallerySlug.js";
 import {
   processGalleryImage,
-  isAllowedImageMime,
+  isAllowedImageFile,
 } from "../../services/imageProcessor.js";
 import { uploadBufferToS3 } from "../../services/upload.service.js";
 
@@ -33,11 +33,15 @@ const galleryUpload = multer({
     files: 20,
   },
   fileFilter: (_req, file, cb) => {
-    if (isAllowedImageMime(file.mimetype)) {
+    if (isAllowedImageFile(file.originalname, file.mimetype)) {
       cb(null, true);
       return;
     }
-    cb(new Error("Only image files are allowed (jpg, png, webp, gif)"));
+    cb(
+      new Error(
+        "Only image files are allowed (jpg, png, webp, gif, heic, heif)",
+      ),
+    );
   },
 });
 

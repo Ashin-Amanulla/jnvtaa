@@ -10,7 +10,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const MAX_FILES = 20;
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+];
+const ACCEPTED_EXT = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
+const HEIC_EXT = /\.(heic|heif)$/i;
+
+function isAcceptableFile(file) {
+  return ACCEPTED_TYPES.includes(file.type) || ACCEPTED_EXT.test(file.name);
+}
 
 function slugifyGalleryName(name) {
   return name
@@ -22,10 +35,12 @@ function slugifyGalleryName(name) {
 }
 
 function createFileEntry(file) {
+  const isHeic = HEIC_EXT.test(file.name);
   return {
     id: `${file.name}-${file.size}-${file.lastModified}`,
     file,
-    preview: URL.createObjectURL(file),
+    preview: isHeic ? null : URL.createObjectURL(file),
+    isHeic,
     title: file.name.replace(/\.[^.]+$/, ""),
     description: "",
     expanded: false,
@@ -58,12 +73,10 @@ export default function GalleryUploadPanel({
   );
 
   const addFiles = useCallback((incoming) => {
-    const imageFiles = [...incoming].filter((f) =>
-      ACCEPTED_TYPES.includes(f.type),
-    );
+    const imageFiles = [...incoming].filter(isAcceptableFile);
 
     if (!imageFiles.length) {
-      toast.error("Please select valid image files (jpg, png, webp, gif)");
+      toast.error("Please select valid image files (jpg, png, webp, gif, heic)");
       return;
     }
 
@@ -222,12 +235,13 @@ export default function GalleryUploadPanel({
         <ImagePlus className="mb-3 h-10 w-10 text-muted-foreground" />
         <p className="font-medium">Drag & drop images here</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          or click to browse — up to {MAX_FILES} images, 15 MB each
+          or click to browse — jpg, png, webp, gif, heic — up to {MAX_FILES}{" "}
+          images, 15 MB each
         </p>
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.heic,.heif"
           multiple
           className="hidden"
           onChange={(e) => {
@@ -265,11 +279,23 @@ export default function GalleryUploadPanel({
                 className="overflow-hidden rounded-lg border bg-card"
               >
                 <div className="relative aspect-video bg-muted">
-                  <img
-                    src={item.preview}
-                    alt={item.title}
-                    className="h-full w-full object-cover"
-                  />
+                  {item.isHeic ? (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+                      <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-xs font-medium text-muted-foreground">
+                        HEIC
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Converts to WebP on upload
+                      </p>
+                    </div>
+                  ) : (
+                    <img
+                      src={item.preview}
+                      alt={item.title}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => removeFile(item.id)}
