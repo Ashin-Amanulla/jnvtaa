@@ -167,6 +167,14 @@ export default function App() {
               }
             />
             <Route
+              path="gallery/:slug"
+              element={
+                <RequirePermission permission={PERMISSIONS.GALLERY_MANAGE}>
+                  <GalleryAdmin />
+                </RequirePermission>
+              }
+            />
+            <Route
               path="gallery"
               element={
                 <RequirePermission permission={PERMISSIONS.GALLERY_MANAGE}>

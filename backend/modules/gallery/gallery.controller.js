@@ -1,3 +1,6 @@
+import multer from "multer";
+import path from "path";
+import { randomUUID } from "crypto";
 import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import Gallery from "./gallery.model.js";
 import { sendSuccess, sendPaginated } from "../../helpers/response.js";
@@ -5,12 +8,56 @@ import {
   getPaginationParams,
   getPaginationMeta,
 } from "../../helpers/pagination.js";
-import { fetchUpstreamGalleryImages } from "../../services/galleryS3Upstream.js";
+import {
+  fetchUpstreamGalleryImages,
+  listGalleryFolders,
+  listGalleryFolderImages,
+  deleteGalleryS3Image,
+} from "../../services/galleryS3Upstream.js";
 import {
   canModifyResource,
   canViewUnpublished,
 } from "../../helpers/authorization.js";
 import { isStaff } from "../../config/roles.js";
+import { slugifyGalleryName } from "../../helpers/gallerySlug.js";
+import {
+  processGalleryImage,
+  isAllowedImageMime,
+} from "../../services/imageProcessor.js";
+import { uploadBufferToS3 } from "../../services/upload.service.js";
+
+const galleryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 15 * 1024 * 1024,
+    files: 20,
+  },
+  fileFilter: (_req, file, cb) => {
+    if (isAllowedImageMime(file.mimetype)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Only image files are allowed (jpg, png, webp, gif)"));
+  },
+});
+
+export const galleryUploadMiddleware = galleryUpload.array("files", 20);
+
+function sanitizeBaseName(fileName) {
+  const ext = path.extname(fileName || "");
+  const base = path.basename(fileName || "photo", ext);
+  return base.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "photo";
+}
+
+function parseUploadMetadata(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Public feed backed by direct S3 object listing.
@@ -80,6 +127,136 @@ export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
     200,
     { items, folders, upstream: { totalImages: items.length } },
     "S3 gallery feed retrieved successfully",
+  );
+});
+
+export const getGalleryFolders = asyncHandler(async (req, res, next) => {
+  try {
+    const folders = await listGalleryFolders();
+    sendSuccess(res, 200, { folders }, "Gallery folders retrieved successfully");
+  } catch (err) {
+    return next(new AppError(`Gallery folders fetch failed: ${err.message}`, 502));
+  }
+});
+
+export const getGalleryFolderImages = asyncHandler(async (req, res, next) => {
+  const rawSlug = req.query.slug || req.params.slug || "";
+  const slug = decodeURIComponent(String(rawSlug)).trim();
+
+  if (!slug) {
+    return next(new AppError("Gallery slug is required", 400));
+  }
+
+  try {
+    const images = await listGalleryFolderImages(slug);
+    sendSuccess(
+      res,
+      200,
+      { slug, images, imageCount: images.length },
+      "Gallery images retrieved successfully",
+    );
+  } catch (err) {
+    return next(new AppError(`Gallery images fetch failed: ${err.message}`, 502));
+  }
+});
+
+export const removeGalleryS3Image = asyncHandler(async (req, res, next) => {
+  const key = (req.body.key || "").trim();
+
+  if (!key) {
+    return next(new AppError("Image key is required", 400));
+  }
+
+  try {
+    const result = await deleteGalleryS3Image(key);
+    sendSuccess(res, 200, result, "Gallery image deleted successfully");
+  } catch (err) {
+    return next(new AppError(`Gallery image delete failed: ${err.message}`, 502));
+  }
+});
+
+export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
+  const galleryName = (req.body.galleryName || "").trim();
+  const exactSlug = (req.body.gallerySlug || "").trim();
+  const slug = exactSlug || slugifyGalleryName(galleryName);
+
+  if (!slug) {
+    return next(new AppError("Gallery name is required", 400));
+  }
+
+  if (!req.files?.length) {
+    return next(new AppError("At least one image file is required", 400));
+  }
+
+  const metadataList = parseUploadMetadata(req.body.metadata);
+  const uploads = [];
+  const errors = [];
+
+  for (let i = 0; i < req.files.length; i++) {
+    const file = req.files[i];
+    const meta = metadataList[i] || {};
+
+    try {
+      const { full, thumbnail } = await processGalleryImage(file.buffer);
+      const baseName = sanitizeBaseName(meta.title || file.originalname);
+      const uniqueName = `${Date.now()}-${randomUUID()}-${baseName}.webp`;
+      const fullKey = `${slug}/${uniqueName}`;
+      const thumbKey = `${slug}/thumbs/${uniqueName}`;
+
+      const fullResult = await uploadBufferToS3({
+        buffer: full,
+        fileName: uniqueName,
+        contentType: "image/webp",
+        folder: slug,
+        key: fullKey,
+      });
+
+      const thumbResult = await uploadBufferToS3({
+        buffer: thumbnail,
+        fileName: uniqueName,
+        contentType: "image/webp",
+        folder: `${slug}/thumbs`,
+        key: thumbKey,
+      });
+
+      uploads.push({
+        key: fullResult.key,
+        publicUrl: fullResult.publicUrl,
+        thumbnailUrl: thumbResult.publicUrl,
+        title: meta.title || baseName,
+        description: meta.description || "",
+        gallerySlug: slug,
+        galleryName,
+      });
+    } catch (err) {
+      errors.push({
+        fileName: file.originalname,
+        message: err.message || "Upload failed",
+      });
+    }
+  }
+
+  if (!uploads.length) {
+    return next(
+      new AppError(
+        errors[0]?.message || "All image uploads failed",
+        422,
+      ),
+    );
+  }
+
+  sendSuccess(
+    res,
+    201,
+    {
+      uploads,
+      gallerySlug: slug,
+      galleryName,
+      uploadedCount: uploads.length,
+      failedCount: errors.length,
+      errors: errors.length ? errors : undefined,
+    },
+    `${uploads.length} image(s) uploaded successfully`,
   );
 });
 

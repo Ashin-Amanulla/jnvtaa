@@ -77,11 +77,14 @@ export async function uploadBufferToS3({
   fileName,
   contentType,
   folder = "uploads",
+  key: customKey,
 }) {
   const { bucket, region, client } = getS3Config();
   const ext = path.extname(fileName || "") || "";
   const base = sanitizeFileName(path.basename(fileName || "file", ext));
-  const key = `${folder.replace(/\/$/, "")}/${Date.now()}-${randomUUID()}-${base}${ext}`;
+  const key =
+    customKey ||
+    `${folder.replace(/\/$/, "")}/${Date.now()}-${randomUUID()}-${base}${ext}`;
 
   await client.send(
     new PutObjectCommand({

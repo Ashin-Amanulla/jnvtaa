@@ -39,6 +39,22 @@ export const adminGalleryAPI = {
   getById: (id) => apiClient.get(`/gallery/${id}`),
   approve: (id) => apiClient.put(`/gallery/${id}/approve`),
   delete: (id) => apiClient.delete(`/gallery/${id}`),
+  getFolders: () => apiClient.get("/gallery/folders"),
+  getFolderImages: (slug) =>
+    apiClient.get("/gallery/folders/images", { params: { slug } }),
+  deleteS3Image: (key) =>
+    apiClient.delete("/gallery/s3/image", { data: { key } }),
+  uploadImages: (formData) =>
+    apiClient.post("/gallery/upload", formData, {
+      transformRequest: [
+        (data, headers) => {
+          if (data instanceof FormData) {
+            delete headers["Content-Type"];
+          }
+          return data;
+        },
+      ],
+    }),
 };
 
 export const adminDonationsAPI = {
