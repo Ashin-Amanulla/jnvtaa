@@ -2,22 +2,26 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { notificationsAPI } from "@/api";
+import { useAuthStore } from "@/store/auth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatTimeAgo } from "@/utils/format";
 import { cn } from "@/utils/cn";
 
 export default function NotificationBell() {
   const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const { data: countData } = useQuery({
     queryKey: ["notifications", "unread"],
     queryFn: () => notificationsAPI.getUnreadCount(),
-    refetchInterval: 60000,
+    enabled: isAuthenticated,
+    refetchInterval: isAuthenticated ? 60000 : false,
   });
 
   const { data: listData, isLoading } = useQuery({
     queryKey: ["notifications", "recent"],
     queryFn: () => notificationsAPI.getAll({ limit: 8 }),
+    enabled: isAuthenticated,
   });
 
   const markReadMutation = useMutation({

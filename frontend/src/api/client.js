@@ -1,6 +1,11 @@
 import axios from "axios";
+import { useAuthStore } from "@/store/auth";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5454/api";
+
+const AUTH_PAGES = /^\/(login|register|forgot-password|auth\/callback)(\/|$)/;
+
+let isHandling401 = false;
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -28,11 +33,18 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+    if (error.response?.status === 401 && !isHandling401) {
+      isHandling401 = true;
+
+      // Clear zustand persist (auth-storage) as well as legacy keys
+      useAuthStore.getState().logout();
+
+      const onAuthPage = AUTH_PAGES.test(window.location.pathname);
+      if (!onAuthPage) {
+        window.location.href = "/login";
+      } else {
+        isHandling401 = false;
+      }
     }
 
     const errorMessage =

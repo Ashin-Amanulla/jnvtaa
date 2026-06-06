@@ -34,6 +34,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
       { firstName: new RegExp(search, "i") },
       { lastName: new RegExp(search, "i") },
       { email: new RegExp(search, "i") },
+      { profession: new RegExp(search, "i") },
     ];
   }
 

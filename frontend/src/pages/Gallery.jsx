@@ -1,9 +1,16 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { galleryAPI } from "@/api";
 import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { ChevronLeft, ChevronRight, Image as ImageIcon, Play, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  Loader2,
+  Play,
+  X,
+} from "lucide-react";
 
 const PAGE_SIZE = 12;
 
@@ -26,7 +33,8 @@ function GalleryThumb({ item }) {
 export default function Gallery() {
   const [folderId, setFolderId] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const [page, setPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const loadMoreRef = useRef(null);
 
   const {
     data: feedRes,
@@ -58,17 +66,37 @@ export default function Gallery() {
     return allItems.filter((i) => i.folderId === folderId);
   }, [allItems, folderId]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const visibleItems = useMemo(
+    () => filteredItems.slice(0, visibleCount),
+    [filteredItems, visibleCount],
+  );
+
+  const hasMore = visibleCount < filteredItems.length;
 
   useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+    setVisibleCount(PAGE_SIZE);
+  }, [folderId]);
 
-  const paginatedItems = useMemo(() => {
-    const p = Math.min(Math.max(1, page), totalPages);
-    const start = (p - 1) * PAGE_SIZE;
-    return filteredItems.slice(start, start + PAGE_SIZE);
-  }, [filteredItems, page, totalPages]);
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((count) =>
+            Math.min(count + PAGE_SIZE, filteredItems.length),
+          );
+        }
+      },
+      { rootMargin: "300px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, filteredItems.length]);
 
   const selectedItem =
     selectedIndex !== null ? filteredItems[selectedIndex] : null;
@@ -140,10 +168,7 @@ export default function Gallery() {
               <button
                 key={cat.value || "all"}
                 type="button"
-                onClick={() => {
-                  setFolderId(cat.value);
-                  setPage(1);
-                }}
+                onClick={() => setFolderId(cat.value)}
                 className={`min-h-12 rounded-xl border-[3px] px-5 py-2 font-sans text-lg shadow-card transition-transform duration-100 focus-ring ${
                   folderId === cat.value
                     ? "border-border bg-brand text-white"
@@ -174,10 +199,10 @@ export default function Gallery() {
             </div>
           )}
 
-          {!isLoading && !isError && paginatedItems.length > 0 && (
+          {!isLoading && !isError && visibleItems.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {paginatedItems.map((item, i) => (
+                {visibleItems.map((item) => (
                   <div
                     key={item._id}
                     role="button"
@@ -218,28 +243,20 @@ export default function Gallery() {
                 ))}
               </div>
 
-              {totalPages > 1 && (
-                <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
-                  <button
-                    type="button"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="min-h-12 rounded-xl border border-border bg-white px-6 py-2 font-sans text-lg shadow-card focus-ring disabled:opacity-40"
-                  >
-                    Previous
-                  </button>
-                  <span className="font-sans text-lg text-muted-foreground">
-                    Page {Math.min(page, totalPages)} of {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    className="min-h-12 rounded-xl border border-border bg-white px-6 py-2 font-sans text-lg shadow-card focus-ring disabled:opacity-40"
-                  >
-                    Next
-                  </button>
+              {hasMore && (
+                <div
+                  ref={loadMoreRef}
+                  className="mt-12 flex items-center justify-center gap-3 py-4 font-sans text-lg text-muted-foreground"
+                >
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading more photos…
                 </div>
+              )}
+
+              {!hasMore && filteredItems.length > PAGE_SIZE && (
+                <p className="mt-12 text-center font-sans text-lg text-muted-foreground">
+                  You&apos;ve seen all {filteredItems.length} photos
+                </p>
               )}
             </>
           )}

@@ -75,3 +75,34 @@ https://jnv-tvm.s3.ap-south-1.amazonaws.com/school-old-photos/DSC07701.JPG
 ```
 
 It should load in your browser. Then refresh your gallery page - all images should appear.
+
+## S3 CORS for Profile Photo / Direct Browser Uploads
+
+Profile photos and other uploads use a **presigned PUT URL** — the browser uploads directly to S3, not through CloudFront or your API.
+
+That means the bucket needs a **CORS configuration** allowing your frontend origin.
+
+Go to AWS S3 Console → `jnv-tvm` → **Permissions** → **Cross-origin resource sharing (CORS)** → Edit:
+
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedOrigins": [
+      "https://jnvtaa.in",
+      "https://www.jnvtaa.in",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173"
+    ],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+Without this, uploads from `https://jnvtaa.in` fail with:
+
+`blocked by CORS policy: No 'Access-Control-Allow-Origin' header`
+
+CloudFront does **not** fix this — presigned upload URLs always target `jnv-tvm.s3.ap-south-1.amazonaws.com` directly.

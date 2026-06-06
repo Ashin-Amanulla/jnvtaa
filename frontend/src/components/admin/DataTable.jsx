@@ -23,6 +23,9 @@ export default function DataTable({
   data = [],
   searchPlaceholder = "Search...",
   searchKey,
+  hideSearch = false,
+  searchValue,
+  onSearchChange,
   pageSize = 10,
   manualPagination = false,
   pageCount = 0,
@@ -31,20 +34,38 @@ export default function DataTable({
   isLoading = false,
   emptyMessage = "No results found.",
 }) {
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
   const [internalPageIndex, setInternalPageIndex] = useState(0);
+
+  const isServerSearch = Boolean(manualPagination && onSearchChange);
+  const search =
+    isServerSearch && searchValue !== undefined ? searchValue : internalSearch;
 
   const pageIndex =
     controlledPageIndex !== undefined ? controlledPageIndex : internalPageIndex;
+
+  const handleSearchChange = (value) => {
+    if (isServerSearch) {
+      onSearchChange(value);
+      return;
+    }
+    setInternalSearch(value);
+  };
+
+  const enableClientFilter = !manualPagination && !isServerSearch;
 
   const table = useReactTable({
     data,
     columns,
     state: {
-      globalFilter: searchKey ? undefined : globalFilter,
+      ...(enableClientFilter && searchKey
+        ? { columnFilters: [{ id: searchKey, value: search }] }
+        : enableClientFilter
+          ? { globalFilter: search }
+          : {}),
       pagination: { pageIndex, pageSize },
     },
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: setInternalSearch,
     onPaginationChange: (updater) => {
       const next =
         typeof updater === "function"
@@ -57,26 +78,25 @@ export default function DataTable({
       }
     },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: manualPagination ? undefined : getFilteredRowModel(),
+    getFilteredRowModel: enableClientFilter ? getFilteredRowModel() : undefined,
     getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
     manualPagination,
     pageCount: manualPagination ? pageCount : undefined,
   });
 
   const rows = table.getRowModel().rows;
-  const totalPages = manualPagination
-    ? pageCount
-    : table.getPageCount();
+  const totalPages = manualPagination ? pageCount : table.getPageCount();
+  const showSearch = !hideSearch && (enableClientFilter || isServerSearch);
 
   return (
     <div className="space-y-4">
-      {!searchKey && (
+      {showSearch && (
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>

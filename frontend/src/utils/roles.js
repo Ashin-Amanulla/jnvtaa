@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   SITE_CONTENT_MANAGE: "siteContent:manage",
   AUDIT_LOG_READ: "auditLog:read",
   SETTINGS_MANAGE: "settings:manage",
+  FIFA_MANAGE: "fifa:manage",
 };
 
 export const isSuperAdmin = (user) => user?.role === ROLES.SUPER_ADMIN;
@@ -55,6 +56,7 @@ const ROLE_PERMISSIONS_FALLBACK = {
     PERMISSIONS.NEWSLETTER_MANAGE,
     PERMISSIONS.CONTACT_MANAGE,
     PERMISSIONS.SITE_CONTENT_MANAGE,
+    PERMISSIONS.FIFA_MANAGE,
   ],
   [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS),
 };

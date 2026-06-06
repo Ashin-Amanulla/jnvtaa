@@ -34,6 +34,7 @@ import messageRoutes from "./modules/messages/messages.route.js";
 import newsletterRoutes from "./modules/newsletter/newsletter.route.js";
 import searchRoutes from "./modules/search/search.route.js";
 import rolesRoutes from "./modules/roles/roles.route.js";
+import fifaRoutes from "./modules/fifa/fifa.route.js";
 import { startNewsletterWorker } from "./queues/newsletter.queue.js";
 
 // Load environment variables
@@ -131,6 +132,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/roles", rolesRoutes);
+app.use("/api/fifa", fifaRoutes);
 
 // Error handling
 app.use(notFound);

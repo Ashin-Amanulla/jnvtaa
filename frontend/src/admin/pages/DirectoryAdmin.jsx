@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminUsersAPI, adminBatchesAPI } from "@/api/admin";
@@ -46,17 +46,6 @@ const defaultFilters = {
 function DirectoryFiltersForm({ filters, batches, updateFilter, onKeyApply }) {
   return (
     <div className="space-y-5">
-      <div className="space-y-2">
-        <Label htmlFor="dir-search">Search</Label>
-        <Input
-          id="dir-search"
-          value={filters.search}
-          onChange={(e) => updateFilter("search", e.target.value)}
-          placeholder="Name, email, profession, or company..."
-          onKeyDown={(e) => e.key === "Enter" && onKeyApply?.()}
-        />
-      </div>
-
       <div className="space-y-2">
         <Label>Batch</Label>
         <Select
@@ -208,6 +197,18 @@ export default function DirectoryAdmin() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
+  const [searchInput, setSearchInput] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const search = searchInput.trim();
+      setPage(0);
+      setAppliedFilters((prev) => ({ ...prev, search }));
+      setFilters((prev) => ({ ...prev, search }));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "directory", page, appliedFilters],
@@ -239,12 +240,14 @@ export default function DirectoryAdmin() {
   const applyFilters = () => {
     setPage(0);
     setAppliedFilters(filters);
+    setSearchInput(filters.search);
     setFiltersOpen(false);
   };
 
   const resetFilters = () => {
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
+    setSearchInput("");
     setPage(0);
   };
 
@@ -399,6 +402,9 @@ export default function DirectoryAdmin() {
         pageIndex={page}
         onPageChange={setPage}
         pageSize={PAGE_SIZE}
+        searchPlaceholder="Search by name, email, profession, or company..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
         emptyMessage="No alumni match your filters."
       />
     </div>

@@ -6,7 +6,7 @@ import { usersAPI } from "@/api";
 import { useBatches } from "@/hooks/useBatches";
 import { useAuthStore } from "@/store/auth";
 import AvatarUpload from "@/components/AvatarUpload";
-import { Save, UserCircle, Camera, CheckSquare, AlertCircle } from "lucide-react";
+import { Save, UserCircle, Camera, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,6 @@ export default function Profile() {
       showProfession: true,
     },
   });
-  const [success, setSuccess] = useState(false);
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
 
   const {
@@ -110,11 +109,10 @@ export default function Profile() {
     mutationFn: (data) => usersAPI.updateProfile(data),
     onSuccess: (response) => {
       updateUser(response.data.user);
-      setSuccess(true);
+      toast.success("Profile updated successfully");
       if (setupMode) {
         setSearchParams({}, { replace: true });
       }
-      setTimeout(() => setSuccess(false), 3000);
     },
     onError: (err) => {
       toast.error(err.message || "Failed to update profile");
@@ -188,13 +186,6 @@ export default function Profile() {
               {setupMode ? " This is required after signing in with Google." : ""}
             </p>
           </div>
-        </div>
-      )}
-
-      {success && (
-        <div className="flex items-center justify-between rounded-md border border-primary/30 bg-primary/10 p-4 text-sm">
-          <span className="font-medium">Profile updated successfully</span>
-          <CheckSquare className="h-5 w-5 text-primary" />
         </div>
       )}
 

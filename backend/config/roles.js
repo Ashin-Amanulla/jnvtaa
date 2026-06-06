@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   SITE_CONTENT_MANAGE: "siteContent:manage",
   AUDIT_LOG_READ: "auditLog:read",
   SETTINGS_MANAGE: "settings:manage",
+  FIFA_MANAGE: "fifa:manage",
 };
 
 const ALL_PERMISSIONS = Object.values(PERMISSIONS);
@@ -49,6 +50,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.NEWSLETTER_MANAGE,
     PERMISSIONS.CONTACT_MANAGE,
     PERMISSIONS.SITE_CONTENT_MANAGE,
+    PERMISSIONS.FIFA_MANAGE,
   ],
   [ROLES.SUPER_ADMIN]: ["*"],
 };

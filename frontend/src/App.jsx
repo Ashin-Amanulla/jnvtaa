@@ -8,6 +8,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import { Toaster } from "@/components/ui/sonner";
+import NotificationToastListener from "@/components/NotificationToastListener";
 import { isSuperAdmin } from "@/utils/roles";
 
 import Layout from "@/layout/Layout";
@@ -50,6 +51,11 @@ import MessageThread from "@/pages/MessageThread";
 import AlumniMap from "@/pages/AlumniMap";
 import Notifications from "@/pages/Notifications";
 import Achievements from "@/pages/Achievements";
+import FifaLanding from "@/pages/fifa/FifaLanding";
+import FifaLeaderboard from "@/pages/fifa/FifaLeaderboard";
+import FifaStudentRegister from "@/pages/fifa/FifaStudentRegister";
+import FifaStudentPredict from "@/pages/fifa/FifaStudentPredict";
+import FifaPlay from "@/pages/fifa/FifaPlay";
 import NotFound from "@/pages/NotFound";
 
 import AdminDashboard from "@/admin/pages/Dashboard";
@@ -69,6 +75,7 @@ import DirectoryAdmin from "@/admin/pages/DirectoryAdmin";
 import StaffAccessAdmin from "@/admin/pages/StaffAccessAdmin";
 import AuditLogAdmin from "@/admin/pages/AuditLogAdmin";
 import SettingsAdmin from "@/admin/pages/SettingsAdmin";
+import FifaAdmin from "@/admin/pages/FifaAdmin";
 import { shouldRetryQuery } from "@/utils/queryRetry";
 
 const queryClient = new QueryClient({
@@ -260,6 +267,14 @@ export default function App() {
                 </RequirePermission>
               }
             />
+            <Route
+              path="fifa"
+              element={
+                <RequirePermission permission={PERMISSIONS.FIFA_MANAGE}>
+                  <FifaAdmin />
+                </RequirePermission>
+              }
+            />
           </Route>
 
           {/* Member dashboard — separate layout */}
@@ -333,6 +348,20 @@ export default function App() {
             <Route path="map" element={<AlumniMap />} />
             <Route path="achievements" element={<Achievements />} />
 
+            {/* FIFA prediction campaign */}
+            <Route path="fifa" element={<FifaLanding />} />
+            <Route path="fifa/leaderboard" element={<FifaLeaderboard />} />
+            <Route path="fifa/students" element={<FifaStudentRegister />} />
+            <Route path="fifa/students/predict" element={<FifaStudentPredict />} />
+            <Route
+              path="fifa/play"
+              element={
+                <ProtectedRoute>
+                  <FifaPlay />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
@@ -343,7 +372,8 @@ export default function App() {
           </Route>
         </Routes>
       </Router>
-      <Toaster position="top-right" richColors closeButton />
+      <NotificationToastListener />
+      <Toaster position="top-right" richColors closeButton duration={4000} />
     </QueryClientProvider>
   );
 }

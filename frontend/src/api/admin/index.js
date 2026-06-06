@@ -113,3 +113,17 @@ export const adminUploadsAPI = {
 export const adminRolesAPI = {
   getAll: () => apiClient.get("/roles"),
 };
+
+export const adminFifaAPI = {
+  getCampaign: () => apiClient.get("/fifa/campaign"),
+  createCampaign: (data) => apiClient.post("/fifa/admin/campaign", data),
+  updateCampaign: (id, data) =>
+    apiClient.put(`/fifa/admin/campaign/${id}`, data),
+  createMatch: (data) => apiClient.post("/fifa/admin/matches", data),
+  updateMatch: (id, data) => apiClient.put(`/fifa/admin/matches/${id}`, data),
+  deleteMatch: (id) => apiClient.delete(`/fifa/admin/matches/${id}`),
+  enterResult: (id, data) =>
+    apiClient.put(`/fifa/admin/matches/${id}/result`, data),
+  getStudents: () => apiClient.get("/fifa/admin/students"),
+  deleteStudent: (id) => apiClient.delete(`/fifa/admin/students/${id}`),
+};

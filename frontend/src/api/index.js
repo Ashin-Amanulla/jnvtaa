@@ -88,6 +88,19 @@ export const siteContentAPI = {
   getByKey: (key) => apiClient.get(`/site-content/${key}`),
 };
 
+export const fifaAPI = {
+  getCampaign: () => apiClient.get("/fifa/campaign"),
+  getLeaderboard: (params) => apiClient.get("/fifa/leaderboard", { params }),
+  // student (no account)
+  registerStudent: (data) => apiClient.post("/fifa/students/register", data),
+  getStudentMatches: (data) => apiClient.post("/fifa/students/matches", data),
+  submitStudentPrediction: (data) =>
+    apiClient.post("/fifa/students/predict", data),
+  // alumni (authenticated)
+  getMyPredictions: () => apiClient.get("/fifa/me/predictions"),
+  submitAlumniPrediction: (data) => apiClient.post("/fifa/me/predict", data),
+};
+
 export async function downloadDonationReceipt(donationId) {
   const token = localStorage.getItem("token");
   const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5454/api";

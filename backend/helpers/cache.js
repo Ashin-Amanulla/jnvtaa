@@ -14,6 +14,8 @@ export const CACHE_TTL = {
   GALLERY_FEED: 300,
   DONATION_CAMPAIGNS: 600,
   MENTORS: 600,
+  FIFA_CAMPAIGN: 120,
+  FIFA_LEADERBOARD: 120,
 };
 
 function hashParams(params) {
@@ -39,6 +41,8 @@ export const CACHE_KEYS = {
   galleryFeed: () => "jnvtaa:gallery:s3-feed",
   donationCampaigns: (params) => `jnvtaa:donations:campaigns:${hashParams(params)}`,
   mentors: () => "jnvtaa:mentorship:mentors",
+  fifaCampaign: () => "jnvtaa:fifa:campaign",
+  fifaLeaderboard: (params) => `jnvtaa:fifa:leaderboard:${hashParams(params)}`,
 };
 
 export function getRedisClient() {
@@ -158,6 +162,11 @@ export async function bustDonationCampaignsCache() {
 
 export async function bustMentorsCache() {
   await bust(CACHE_KEYS.mentors());
+}
+
+export async function bustFifaCache() {
+  await bust(CACHE_KEYS.fifaCampaign());
+  await bustPattern("jnvtaa:fifa:leaderboard:*");
 }
 
 export async function bustUserStatsAndBatches(batchId) {
