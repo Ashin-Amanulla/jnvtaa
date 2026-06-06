@@ -38,6 +38,42 @@ function parseFolderConfig() {
   }));
 }
 
+const DEFAULT_GALLERY_EXCLUDE_PREFIXES = ["avatars/", "uploads/"];
+
+function normalizeGalleryPrefix(prefix) {
+  const trimmed = prefix.trim().replace(/^\/+/, "");
+  if (!trimmed) return "";
+  return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+}
+
+function parseGalleryExcludePrefixes() {
+  const fromEnv = (process.env.S3_GALLERY_EXCLUDE_PREFIXES || "")
+    .split(",")
+    .map(normalizeGalleryPrefix)
+    .filter(Boolean);
+
+  return fromEnv.length ? fromEnv : DEFAULT_GALLERY_EXCLUDE_PREFIXES;
+}
+
+function isExcludedGalleryKey(key, excludedPrefixes = parseGalleryExcludePrefixes()) {
+  const normalized = key.toLowerCase();
+  return excludedPrefixes.some((prefix) =>
+    normalized.startsWith(prefix.toLowerCase()),
+  );
+}
+
+function isExcludedGallerySlug(slug, excludedPrefixes = parseGalleryExcludePrefixes()) {
+  return isExcludedGalleryKey(`${slug.replace(/\/$/, "")}/`, excludedPrefixes);
+}
+
+function assertGallerySlugAllowed(slug) {
+  if (isExcludedGallerySlug(slug)) {
+    throw new Error(`"${slug}" is reserved for uploads and is not a gallery album`);
+  }
+}
+
+export { isExcludedGallerySlug, assertGallerySlugAllowed };
+
 function inferFolderFromKey(key, configuredFolders) {
   const matched = configuredFolders.find((folder) => key.startsWith(folder.prefix));
   if (matched) return matched;
@@ -117,6 +153,7 @@ function mapObjectToGalleryImage(object, bucket, region, slug) {
 
 export async function listGalleryFolders() {
   const { bucket, region, client } = getS3ClientConfig();
+  const excludedPrefixes = parseGalleryExcludePrefixes();
   const folderStats = new Map();
   let continuationToken;
 
@@ -132,9 +169,10 @@ export async function listGalleryFolders() {
       const key = object.Key;
       if (!key || key.endsWith("/") || key.includes("/thumbs/")) continue;
       if (!isImageKey(key)) continue;
+      if (isExcludedGalleryKey(key, excludedPrefixes)) continue;
 
       const slug = key.split("/").filter(Boolean)[0];
-      if (!slug) continue;
+      if (!slug || isExcludedGallerySlug(slug, excludedPrefixes)) continue;
 
       const existing = folderStats.get(slug) || {
         imageCount: 0,
@@ -179,6 +217,8 @@ export async function listGalleryFolderImages(slug) {
   if (!slug || typeof slug !== "string") {
     throw new Error("Gallery slug is required");
   }
+
+  assertGallerySlugAllowed(slug);
 
   const { bucket, region, client } = getS3ClientConfig();
   const prefix = `${slug.replace(/\/$/, "")}/`;
@@ -296,6 +336,7 @@ async function batchDeleteKeys(client, bucket, keys) {
 
 export async function deleteGalleryFolder(slug) {
   const validSlug = validateGallerySlug(slug);
+  assertGallerySlugAllowed(validSlug);
   const { bucket, client } = getS3ClientConfig();
   const prefix = `${validSlug}/`;
   const objects = await listAllObjectsUnderPrefix(client, bucket, prefix);
@@ -317,6 +358,8 @@ export async function deleteGalleryFolder(slug) {
 export async function renameGalleryFolder(oldSlug, newSlug) {
   const validOldSlug = validateGallerySlug(oldSlug);
   const validNewSlug = validateGallerySlug(newSlug);
+  assertGallerySlugAllowed(validOldSlug);
+  assertGallerySlugAllowed(validNewSlug);
 
   if (validOldSlug === validNewSlug) {
     throw new Error("New gallery name must be different from the current name");
@@ -378,6 +421,10 @@ export async function deleteGalleryS3Image(key) {
     throw new Error("Invalid image key");
   }
 
+  if (isExcludedGalleryKey(key)) {
+    throw new Error("This image belongs to a reserved upload folder");
+  }
+
   const { bucket, client } = getS3ClientConfig();
   const keysToDelete = [key];
   const thumbKey = thumbKeyFromImageKey(key);
@@ -399,6 +446,7 @@ export async function deleteGalleryS3Image(key) {
 
 export async function fetchUpstreamGalleryImages() {
   const { bucket, region, client } = getS3ClientConfig();
+  const excludedPrefixes = parseGalleryExcludePrefixes();
 
   const configuredFolders = parseFolderConfig();
   const prefixes = configuredFolders.length
@@ -422,6 +470,7 @@ export async function fetchUpstreamGalleryImages() {
         const key = object.Key;
         if (!key || key.endsWith("/")) continue;
         if (key.includes("/thumbs/")) continue;
+        if (isExcludedGalleryKey(key, excludedPrefixes)) continue;
 
         const lower = key.toLowerCase();
         const isImage =

@@ -15,6 +15,7 @@ import {
   deleteGalleryS3Image,
   renameGalleryFolder,
   deleteGalleryFolder,
+  assertGallerySlugAllowed,
 } from "../../services/galleryS3Upstream.js";
 import {
   canModifyResource,
@@ -266,6 +267,12 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
 
   if (!slug) {
     return next(new AppError("Gallery name is required", 400));
+  }
+
+  try {
+    assertGallerySlugAllowed(slug);
+  } catch (err) {
+    return next(new AppError(err.message, 400));
   }
 
   if (!req.files?.length) {
