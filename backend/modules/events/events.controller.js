@@ -11,20 +11,35 @@ import {
 } from "../../helpers/authorization.js";
 import {
   getOrSet,
-  bust,
+  bustEventsCache,
   CACHE_KEYS,
   CACHE_TTL,
 } from "../../helpers/cache.js";
+
+async function fetchEventsList(page, limit, skip, query) {
+  const events = await Event.find(query)
+    .populate("organizer", "firstName lastName avatar")
+    .populate("targetBatches", "year name")
+    .skip(skip)
+    .limit(limit)
+    .sort({ date: -1 })
+    .lean();
+
+  const total = await Event.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  return { events, pagination };
+}
 
 // Get all events
 export const getAllEvents = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPaginationParams(req.query);
   const { status, type, search } = req.query;
+  const isAdminView = canViewUnpublished(req, "events:manage");
 
-  // Build query
   const query = {};
 
-  if (!canViewUnpublished(req, "events:manage")) {
+  if (!isAdminView) {
     query.isPublished = true;
   }
 
@@ -37,23 +52,26 @@ export const getAllEvents = asyncHandler(async (req, res) => {
     ];
   }
 
-  // Execute query
-  const events = await Event.find(query)
-    .populate("organizer", "firstName lastName avatar")
-    .populate("targetBatches", "year name")
-    .skip(skip)
-    .limit(limit)
-    .sort({ date: -1 })
-    .lean();
+  const cacheParams = {
+    page,
+    limit,
+    status: status || "",
+    type: type || "",
+    search: search || "",
+    admin: isAdminView ? "1" : "0",
+  };
 
-  const total = await Event.countDocuments(query);
-  const pagination = getPaginationMeta(total, page, limit);
+  const cached = await getOrSet(
+    CACHE_KEYS.eventsList(cacheParams),
+    CACHE_TTL.EVENTS_LIST,
+    () => fetchEventsList(page, limit, skip, query)
+  );
 
   sendPaginated(
     res,
     200,
-    { events },
-    pagination,
+    { events: cached.events },
+    cached.pagination,
     "Events retrieved successfully"
   );
 });
@@ -82,7 +100,7 @@ export const createEvent = asyncHandler(async (req, res) => {
   const event = await Event.create(eventData);
   await event.populate("organizer", "firstName lastName avatar");
   await event.populate("targetBatches", "year name");
-  await bust(CACHE_KEYS.eventsUpcoming());
+  await bustEventsCache();
 
   sendSuccess(res, 201, { event }, "Event created successfully");
 });
@@ -107,7 +125,7 @@ export const updateEvent = asyncHandler(async (req, res, next) => {
     .populate("organizer", "firstName lastName avatar")
     .populate("targetBatches", "year name");
 
-  await bust(CACHE_KEYS.eventsUpcoming());
+  await bustEventsCache();
 
   sendSuccess(res, 200, { event }, "Event updated successfully");
 });
@@ -126,7 +144,7 @@ export const deleteEvent = asyncHandler(async (req, res, next) => {
   }
 
   await event.deleteOne();
-  await bust(CACHE_KEYS.eventsUpcoming());
+  await bustEventsCache();
 
   sendSuccess(res, 200, null, "Event deleted successfully");
 });
@@ -178,6 +196,7 @@ export const rsvpEvent = asyncHandler(async (req, res, next) => {
 
   await event.save();
   await event.populate("attendees.user", "firstName lastName avatar batch");
+  await bustEventsCache();
 
   sendSuccess(res, 200, { event }, "Successfully registered for event");
 });
@@ -203,6 +222,7 @@ export const cancelRsvp = asyncHandler(async (req, res, next) => {
   attendee.status = "cancelled";
 
   await event.save();
+  await bustEventsCache();
 
   sendSuccess(res, 200, { event }, "RSVP cancelled successfully");
 });

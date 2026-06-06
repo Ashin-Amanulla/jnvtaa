@@ -49,8 +49,13 @@ export const getAllBatches = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPaginationParams(req.query);
   const cacheKey = CACHE_KEYS.batchesList(page, limit);
 
-  const cached = await getOrSet(cacheKey, CACHE_TTL.BATCHES, () =>
-    fetchBatchesWithCounts(page, limit, skip)
+  const cached = await getOrSet(
+    cacheKey,
+    CACHE_TTL.BATCHES,
+    () => fetchBatchesWithCounts(page, limit, skip),
+    {
+      shouldCache: (value) => Array.isArray(value?.batches) && value.batches.length > 0,
+    }
   );
 
   sendPaginated(

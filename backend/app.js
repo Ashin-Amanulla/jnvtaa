@@ -5,11 +5,15 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import cookieParser from "cookie-parser";
-import rateLimit from "express-rate-limit";
 import passport from "passport";
 import connectDB from "./config/database.js";
 import configurePassport from "./config/passport.js";
 import { errorHandler, notFound } from "./middlewares/error.middleware.js";
+import {
+  authLimiter,
+  readLimiter,
+  writeLimiter,
+} from "./middlewares/rateLimit.middleware.js";
 
 // Import route
 import authRoutes from "./modules/auth/auth.route.js";
@@ -37,6 +41,9 @@ dotenv.config();
 
 // Create Express app
 const app = express();
+
+// Behind nginx / load balancer — use real client IP for rate limits
+app.set("trust proxy", 1);
 
 // Connect to database
 connectDB();
@@ -79,14 +86,13 @@ app.use(
 );
 
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-  message: "Too many requests from this IP, please try again later.",
-  skip: (req) => req.originalUrl.startsWith("/api/gallery/upload"),
-});
-app.use("/api/", limiter);
+// Rate limiting — tiered: strict auth, moderate writes, generous reads
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
+app.use("/api/auth/reset-password", authLimiter);
+app.use("/api/", writeLimiter);
+app.use("/api/", readLimiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));

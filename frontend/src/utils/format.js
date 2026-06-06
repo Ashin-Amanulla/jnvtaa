@@ -28,6 +28,12 @@ export const truncateText = (text, maxLength = 100) => {
   return text.slice(0, maxLength) + "...";
 };
 
+export const getBatchId = (batch) => {
+  if (!batch) return "";
+  if (typeof batch === "string") return batch;
+  return batch._id?.toString?.() ?? "";
+};
+
 export const getBatchDisplayYear = (batch) =>
   batch?.passoutYear ?? batch?.year ?? null;
 

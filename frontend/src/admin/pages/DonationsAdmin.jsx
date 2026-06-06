@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { adminDonationsAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import ImageUploader from "@/components/admin/ImageUploader";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export default function DonationsAdmin() {
     onSuccess: () => {
       toast.success(editing ? "Campaign updated" : "Campaign created");
       queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.donationCampaigns });
       closeDialog();
     },
     onError: (err) => toast.error(err.message),
@@ -63,6 +65,7 @@ export default function DonationsAdmin() {
     onSuccess: () => {
       toast.success("Campaign deleted");
       queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.donationCampaigns });
     },
     onError: (err) => toast.error(err.message),
   });

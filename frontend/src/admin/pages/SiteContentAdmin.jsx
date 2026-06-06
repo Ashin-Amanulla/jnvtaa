@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminSiteContentAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -41,9 +42,12 @@ export default function SiteContentAdmin() {
 
   const saveMutation = useMutation({
     mutationFn: ({ key, parsed }) => adminSiteContentAPI.upsert(key, parsed),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       toast.success("Content saved");
       queryClient.invalidateQueries({ queryKey: ["admin", "site-content"] });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.siteContent(variables.key),
+      });
     },
     onError: (err) => toast.error(err.message),
   });

@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { siteContentAPI } from "@/api";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { SectionHeading } from "@/components/SectionHeading";
 import { SketchCard } from "@/components/SketchCard";
 import { cn } from "@/utils/cn";
 
 export default function Achievements() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["site-content", "featuredAlumni"],
-    queryFn: () => siteContentAPI.getByKey("featuredAlumni"),
-  });
+  const { data, isLoading, error } = useSiteContent("featuredAlumni");
 
   const content = data?.data?.content?.data;
   const alumni = content?.alumni || [];

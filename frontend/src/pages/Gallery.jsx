@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { galleryAPI } from "@/api";
-import { STALE_TIME } from "@/api/queryKeys";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Play, X } from "lucide-react";
 
@@ -34,7 +34,7 @@ export default function Gallery() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["gallery", "s3-feed"],
+    queryKey: QUERY_KEYS.galleryFeed,
     queryFn: () => galleryAPI.getS3Feed(),
     staleTime: STALE_TIME.GALLERY,
   });

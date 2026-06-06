@@ -7,8 +7,24 @@ export const CACHE_TTL = {
   USERS_STATS: 600,
   SITE_CONTENT: 1800,
   EVENTS_UPCOMING: 300,
+  EVENTS_LIST: 300,
   NEWS_LATEST: 300,
+  NEWS_LIST: 300,
+  JOBS_LIST: 300,
+  GALLERY_FEED: 300,
+  DONATION_CAMPAIGNS: 600,
+  MENTORS: 600,
 };
+
+function hashParams(params) {
+  return (
+    Object.entries(params)
+      .filter(([, value]) => value != null && value !== "")
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join("|") || "default"
+  );
+}
 
 export const CACHE_KEYS = {
   batchesList: (page, limit) => `jnvtaa:batches:list:${page}:${limit}`,
@@ -16,7 +32,13 @@ export const CACHE_KEYS = {
   usersStats: () => "jnvtaa:users:stats",
   siteContent: (key) => `jnvtaa:site:${key.toLowerCase()}`,
   eventsUpcoming: () => "jnvtaa:events:upcoming",
+  eventsList: (params) => `jnvtaa:events:list:${hashParams(params)}`,
   newsLatest: () => "jnvtaa:news:latest",
+  newsList: (params) => `jnvtaa:news:list:${hashParams(params)}`,
+  jobsList: (params) => `jnvtaa:jobs:list:${hashParams(params)}`,
+  galleryFeed: () => "jnvtaa:gallery:s3-feed",
+  donationCampaigns: (params) => `jnvtaa:donations:campaigns:${hashParams(params)}`,
+  mentors: () => "jnvtaa:mentorship:mentors",
 };
 
 export function getRedisClient() {
@@ -38,14 +60,18 @@ export function getRedisClient() {
   return redis;
 }
 
-export async function getOrSet(key, ttlSeconds, fetchFn) {
+export async function getOrSet(key, ttlSeconds, fetchFn, options = {}) {
+  const { shouldCache = () => true } = options;
   const client = getRedisClient();
 
   if (client) {
     try {
       const cached = await client.get(key);
       if (cached) {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (shouldCache(parsed)) {
+          return parsed;
+        }
       }
     } catch (err) {
       console.warn("[Cache] get failed:", err.message);
@@ -54,7 +80,7 @@ export async function getOrSet(key, ttlSeconds, fetchFn) {
 
   const value = await fetchFn();
 
-  if (client) {
+  if (client && shouldCache(value)) {
     try {
       await client.set(key, JSON.stringify(value), "EX", ttlSeconds);
     } catch (err) {
@@ -106,4 +132,35 @@ export async function bustBatchesCache(batchId) {
   if (batchId) {
     await bust(CACHE_KEYS.batch(batchId));
   }
+}
+
+export async function bustEventsCache() {
+  await bust(CACHE_KEYS.eventsUpcoming());
+  await bustPattern("jnvtaa:events:list:*");
+}
+
+export async function bustNewsCache() {
+  await bust(CACHE_KEYS.newsLatest());
+  await bustPattern("jnvtaa:news:list:*");
+}
+
+export async function bustJobsCache() {
+  await bustPattern("jnvtaa:jobs:list:*");
+}
+
+export async function bustGalleryCache() {
+  await bust(CACHE_KEYS.galleryFeed());
+}
+
+export async function bustDonationCampaignsCache() {
+  await bustPattern("jnvtaa:donations:campaigns:*");
+}
+
+export async function bustMentorsCache() {
+  await bust(CACHE_KEYS.mentors());
+}
+
+export async function bustUserStatsAndBatches(batchId) {
+  await bust(CACHE_KEYS.usersStats());
+  await bustBatchesCache(batchId);
 }

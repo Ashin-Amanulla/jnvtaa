@@ -2,11 +2,20 @@ import { asyncHandler, AppError } from "../../middlewares/error.middleware.js";
 import { MentorProfile, MentorshipRequest } from "./mentorship.model.js";
 import { sendSuccess } from "../../helpers/response.js";
 import { createNotification } from "../../services/notification.service.js";
+import {
+  getOrSet,
+  bustMentorsCache,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
 export const getMentors = asyncHandler(async (req, res) => {
-  const mentors = await MentorProfile.find({ isApproved: true, isActive: true })
-    .populate("user", "firstName lastName avatar profession company batch bio")
-    .sort({ updatedAt: -1 });
+  const mentors = await getOrSet(CACHE_KEYS.mentors(), CACHE_TTL.MENTORS, async () =>
+    MentorProfile.find({ isApproved: true, isActive: true })
+      .populate("user", "firstName lastName avatar profession company batch bio")
+      .sort({ updatedAt: -1 })
+      .lean()
+  );
 
   sendSuccess(res, 200, { mentors }, "Mentors retrieved successfully");
 });
@@ -148,6 +157,7 @@ export const approveMentorProfile = asyncHandler(async (req, res, next) => {
   profile.isApproved = true;
   await profile.save();
   await profile.populate("user", "firstName lastName avatar profession company batch email");
+  await bustMentorsCache();
 
   sendSuccess(res, 200, { profile }, "Mentor profile approved successfully");
 });

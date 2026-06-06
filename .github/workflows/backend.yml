@@ -52,10 +52,26 @@ jobs:
             set -euo pipefail
             docker load -i /tmp/jnvtaa-backend-image.tar
             rm -f /tmp/jnvtaa-backend-image.tar
+
+            NETWORK=jnvtaa-backend
+            docker network create "$NETWORK" 2>/dev/null || true
+
+            if docker ps -a --format '{{.Names}}' | grep -q '^jnvtaa-redis$'; then
+              docker start jnvtaa-redis 2>/dev/null || true
+            else
+              docker run -d \
+                --name jnvtaa-redis \
+                --network "$NETWORK" \
+                --restart unless-stopped \
+                redis:7-alpine \
+                redis-server --appendonly yes
+            fi
+
             if docker ps -a --format '{{.Names}}' | grep -q '^jnvtaa-backend$'; then
               docker stop jnvtaa-backend
               docker rm jnvtaa-backend
             fi
+
             resolve_env_file() {
               if [ -n "${BACKEND_ENV_FILE:-}" ] && [ -f "$BACKEND_ENV_FILE" ]; then
                 echo "$BACKEND_ENV_FILE"
@@ -81,11 +97,13 @@ jobs:
             echo "Publishing host port ${{ env.BACKEND_PUBLISH_PORT }} -> container 5454"
             docker run -d \
               --name jnvtaa-backend \
+              --network "$NETWORK" \
               --env-file "$ENV_FILE" \
+              -e REDIS_URL=redis://jnvtaa-redis:6379 \
               -p ${{ env.BACKEND_PUBLISH_PORT }}:5454 \
               --restart unless-stopped \
               jnvtaa-backend:latest
-            docker ps | grep jnvtaa-backend
+            docker ps | grep -E 'jnvtaa-backend|jnvtaa-redis'
 
 # GitHub repository Secrets (Settings → Secrets and variables → Actions):
 #   DEPLOY_HOST             — server IP or hostname
@@ -101,3 +119,4 @@ jobs:
 #   Variable BACKEND_HOST_PORT        — e.g. 5460
 #
 # App env stays on the server (--env-file), not in GitHub. Keep PORT=5454 in that file.
+# Redis runs as jnvtaa-redis on the jnvtaa-backend Docker network; REDIS_URL is injected at deploy time.

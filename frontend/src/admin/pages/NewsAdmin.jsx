@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { adminNewsAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import ImageUploader from "@/components/admin/ImageUploader";
@@ -47,6 +48,12 @@ export default function NewsAdmin() {
     queryFn: () => adminNewsAPI.getAll({ limit: 100 }),
   });
 
+  const invalidatePublicNews = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.latestNews });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.newsRoot });
+  };
+
   const saveMutation = useMutation({
     mutationFn: (payload) =>
       editing
@@ -54,7 +61,7 @@ export default function NewsAdmin() {
         : adminNewsAPI.create(payload),
     onSuccess: () => {
       toast.success(editing ? "News updated" : "News created");
-      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      invalidatePublicNews();
       closeDialog();
     },
     onError: (err) => toast.error(err.message),
@@ -64,7 +71,7 @@ export default function NewsAdmin() {
     mutationFn: (id) => adminNewsAPI.delete(id),
     onSuccess: () => {
       toast.success("News deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "news"] });
+      invalidatePublicNews();
     },
     onError: (err) => toast.error(err.message),
   });

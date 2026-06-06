@@ -26,11 +26,13 @@ export default function Home() {
   const { data: upcomingEvents } = useQuery({
     queryKey: QUERY_KEYS.upcomingEvents,
     queryFn: () => eventsAPI.getUpcoming(),
+    staleTime: STALE_TIME.DEFAULT,
   });
 
   const { data: latestNews } = useQuery({
     queryKey: QUERY_KEYS.latestNews,
     queryFn: () => newsAPI.getLatest(),
+    staleTime: STALE_TIME.DEFAULT,
   });
 
   return (

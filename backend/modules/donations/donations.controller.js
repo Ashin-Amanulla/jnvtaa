@@ -12,8 +12,28 @@ import {
 } from "../../services/razorpay.service.js";
 import { isStaff } from "../../config/roles.js";
 import PDFDocument from "pdfkit";
+import {
+  getOrSet,
+  bustDonationCampaignsCache,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
 
 // Campaign Controllers
+
+async function fetchCampaignsList(page, limit, skip, query) {
+  const campaigns = await DonationCampaign.find(query)
+    .populate("createdBy", "firstName lastName avatar")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const total = await DonationCampaign.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  return { campaigns, pagination };
+}
 
 // Get all campaigns
 export const getAllCampaigns = asyncHandler(async (req, res) => {
@@ -24,20 +44,24 @@ export const getAllCampaigns = asyncHandler(async (req, res) => {
   if (status) query.status = status;
   if (category) query.category = category;
 
-  const campaigns = await DonationCampaign.find(query)
-    .populate("createdBy", "firstName lastName avatar")
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  const cacheParams = {
+    page,
+    limit,
+    status: status || "",
+    category: category || "",
+  };
 
-  const total = await DonationCampaign.countDocuments(query);
-  const pagination = getPaginationMeta(total, page, limit);
+  const cached = await getOrSet(
+    CACHE_KEYS.donationCampaigns(cacheParams),
+    CACHE_TTL.DONATION_CAMPAIGNS,
+    () => fetchCampaignsList(page, limit, skip, query)
+  );
 
   sendPaginated(
     res,
     200,
-    { campaigns },
-    pagination,
+    { campaigns: cached.campaigns },
+    cached.pagination,
     "Campaigns retrieved successfully"
   );
 });
@@ -80,6 +104,7 @@ export const createCampaign = asyncHandler(async (req, res) => {
 
   const campaign = await DonationCampaign.create(campaignData);
   await campaign.populate("createdBy", "firstName lastName avatar");
+  await bustDonationCampaignsCache();
 
   sendSuccess(res, 201, { campaign }, "Campaign created successfully");
 });
@@ -99,6 +124,8 @@ export const updateCampaign = asyncHandler(async (req, res, next) => {
     return next(new AppError("Campaign not found", 404));
   }
 
+  await bustDonationCampaignsCache();
+
   sendSuccess(res, 200, { campaign }, "Campaign updated successfully");
 });
 
@@ -111,6 +138,7 @@ export const deleteCampaign = asyncHandler(async (req, res, next) => {
   }
 
   await campaign.deleteOne();
+  await bustDonationCampaignsCache();
 
   sendSuccess(res, 200, null, "Campaign deleted successfully");
 });

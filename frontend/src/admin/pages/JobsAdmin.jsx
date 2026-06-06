@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { adminJobsAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -16,11 +17,16 @@ export default function JobsAdmin() {
     queryFn: () => adminJobsAPI.getAll({ limit: 100 }),
   });
 
+  const invalidatePublicJobs = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "jobs"] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.jobsRoot });
+  };
+
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }) => adminJobsAPI.update(id, payload),
     onSuccess: () => {
       toast.success("Job updated");
-      queryClient.invalidateQueries({ queryKey: ["admin", "jobs"] });
+      invalidatePublicJobs();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -29,7 +35,7 @@ export default function JobsAdmin() {
     mutationFn: (id) => adminJobsAPI.delete(id),
     onSuccess: () => {
       toast.success("Job deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "jobs"] });
+      invalidatePublicJobs();
     },
     onError: (err) => toast.error(err.message),
   });

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { adminMentorshipAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ export default function MentorshipAdmin() {
     onSuccess: () => {
       toast.success("Mentor approved");
       queryClient.invalidateQueries({ queryKey: ["admin", "mentorship"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.mentors });
     },
     onError: (err) => toast.error(err.message),
   });

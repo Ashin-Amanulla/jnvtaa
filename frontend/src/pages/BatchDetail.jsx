@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { batchesAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import AlumniCard from "@/components/AlumniCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
@@ -15,8 +16,10 @@ export default function BatchDetail() {
   const navigate = useNavigate();
 
   const { data: batchData, isLoading } = useQuery({
-    queryKey: ["batch", id],
+    queryKey: QUERY_KEYS.batch(id),
     queryFn: () => batchesAPI.getById(id),
+    staleTime: STALE_TIME.BATCHES,
+    enabled: !!id,
   });
 
   if (isLoading) {

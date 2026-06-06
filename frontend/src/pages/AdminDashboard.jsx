@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { usersAPI, donationsAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import {
   Users,
   UserCheck,
@@ -16,8 +17,9 @@ import { SketchCard } from "@/components/SketchCard";
 
 export default function AdminDashboard() {
   const { data: userStats } = useQuery({
-    queryKey: ["admin-user-stats"],
+    queryKey: QUERY_KEYS.userStats,
     queryFn: () => usersAPI.getUserStats(),
+    staleTime: STALE_TIME.USER_STATS,
   });
 
   const { data: donationStats } = useQuery({

@@ -12,20 +12,35 @@ import {
 } from "../../helpers/authorization.js";
 import {
   getOrSet,
-  bust,
+  bustNewsCache,
   CACHE_KEYS,
   CACHE_TTL,
 } from "../../helpers/cache.js";
+
+async function fetchNewsList(page, limit, skip, query) {
+  const news = await News.find(query)
+    .populate("author", "firstName lastName avatar")
+    .select("-content")
+    .skip(skip)
+    .limit(limit)
+    .sort({ publishedAt: -1 })
+    .lean();
+
+  const total = await News.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  return { news, pagination };
+}
 
 // Get all news
 export const getAllNews = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPaginationParams(req.query);
   const { category, search, tags } = req.query;
+  const isAdminView = canViewUnpublished(req, "news:manage");
 
-  // Build query
   const query = {};
 
-  if (!canViewUnpublished(req, "news:manage")) {
+  if (!isAdminView) {
     query.isPublished = true;
   }
 
@@ -38,19 +53,28 @@ export const getAllNews = asyncHandler(async (req, res) => {
     ];
   }
 
-  // Execute query
-  const news = await News.find(query)
-    .populate("author", "firstName lastName avatar")
-    .select("-content")
-    .skip(skip)
-    .limit(limit)
-    .sort({ publishedAt: -1 })
-    .lean();
+  const cacheParams = {
+    page,
+    limit,
+    category: category || "",
+    tags: tags || "",
+    search: search || "",
+    admin: isAdminView ? "1" : "0",
+  };
 
-  const total = await News.countDocuments(query);
-  const pagination = getPaginationMeta(total, page, limit);
+  const cached = await getOrSet(
+    CACHE_KEYS.newsList(cacheParams),
+    CACHE_TTL.NEWS_LIST,
+    () => fetchNewsList(page, limit, skip, query)
+  );
 
-  sendPaginated(res, 200, { news }, pagination, "News retrieved successfully");
+  sendPaginated(
+    res,
+    200,
+    { news: cached.news },
+    cached.pagination,
+    "News retrieved successfully"
+  );
 });
 
 // Get single news by ID or slug
@@ -84,7 +108,7 @@ export const createNews = asyncHandler(async (req, res) => {
 
   const news = await News.create(newsData);
   await news.populate("author", "firstName lastName avatar");
-  await bust(CACHE_KEYS.newsLatest());
+  await bustNewsCache();
 
   sendSuccess(res, 201, { news }, "News created successfully");
 });
@@ -107,7 +131,7 @@ export const updateNews = asyncHandler(async (req, res, next) => {
     runValidators: true,
   }).populate("author", "firstName lastName avatar");
 
-  await bust(CACHE_KEYS.newsLatest());
+  await bustNewsCache();
 
   sendSuccess(res, 200, { news }, "News updated successfully");
 });
@@ -126,7 +150,7 @@ export const deleteNews = asyncHandler(async (req, res, next) => {
   }
 
   await news.deleteOne();
-  await bust(CACHE_KEYS.newsLatest());
+  await bustNewsCache();
 
   sendSuccess(res, 200, null, "News deleted successfully");
 });

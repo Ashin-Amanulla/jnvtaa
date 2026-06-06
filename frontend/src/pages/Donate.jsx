@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { donationsAPI } from "@/api";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import { useAuthStore } from "@/store/auth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { CheckCircle2 } from "lucide-react";
@@ -31,13 +32,15 @@ export default function Donate() {
   const queryClient = useQueryClient();
 
   const { data: campaignsData, isLoading } = useQuery({
-    queryKey: ["donation-campaigns"],
+    queryKey: QUERY_KEYS.donationCampaigns,
     queryFn: () => donationsAPI.getAllCampaigns({ status: "active" }),
+    staleTime: STALE_TIME.DEFAULT,
   });
 
   const { data: stats } = useQuery({
     queryKey: ["donation-stats"],
     queryFn: () => donationsAPI.getStats(),
+    staleTime: STALE_TIME.DEFAULT,
   });
 
   const CampaignCard = ({ campaign }) => {

@@ -37,7 +37,9 @@ apiClient.interceptors.response.use(
 
     const errorMessage =
       error.response?.data?.message || error.message || "Something went wrong";
-    return Promise.reject(new Error(errorMessage));
+    const err = new Error(errorMessage);
+    err.status = error.response?.status;
+    return Promise.reject(err);
   }
 );
 

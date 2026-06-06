@@ -9,17 +9,37 @@ import {
   canModifyResource,
   canViewUnpublished,
 } from "../../helpers/authorization.js";
+import {
+  getOrSet,
+  bustJobsCache,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
+
+async function fetchJobsList(page, limit, skip, query) {
+  const jobs = await Job.find(query)
+    .populate("postedBy", "firstName lastName avatar company")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const total = await Job.countDocuments(query);
+  const pagination = getPaginationMeta(total, page, limit);
+
+  return { jobs, pagination };
+}
 
 // Get all jobs
 export const getAllJobs = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPaginationParams(req.query);
   const { employmentType, experienceLevel, industry, location, search } =
     req.query;
+  const isAdminView = canViewUnpublished(req, "jobs:manage");
 
-  // Build query
   const query = {};
 
-  if (!canViewUnpublished(req, "jobs:manage")) {
+  if (!isAdminView) {
     query.isPublished = true;
     query.status = "active";
   }
@@ -36,18 +56,30 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     ];
   }
 
-  // Execute query
-  const jobs = await Job.find(query)
-    .populate("postedBy", "firstName lastName avatar company")
-    .skip(skip)
-    .limit(limit)
-    .sort({ createdAt: -1 })
-    .lean();
+  const cacheParams = {
+    page,
+    limit,
+    employmentType: employmentType || "",
+    experienceLevel: experienceLevel || "",
+    industry: industry || "",
+    location: location || "",
+    search: search || "",
+    admin: isAdminView ? "1" : "0",
+  };
 
-  const total = await Job.countDocuments(query);
-  const pagination = getPaginationMeta(total, page, limit);
+  const cached = await getOrSet(
+    CACHE_KEYS.jobsList(cacheParams),
+    CACHE_TTL.JOBS_LIST,
+    () => fetchJobsList(page, limit, skip, query)
+  );
 
-  sendPaginated(res, 200, { jobs }, pagination, "Jobs retrieved successfully");
+  sendPaginated(
+    res,
+    200,
+    { jobs: cached.jobs },
+    cached.pagination,
+    "Jobs retrieved successfully"
+  );
 });
 
 // Get single job
@@ -77,6 +109,7 @@ export const createJob = asyncHandler(async (req, res) => {
 
   const job = await Job.create(jobData);
   await job.populate("postedBy", "firstName lastName avatar company");
+  await bustJobsCache();
 
   sendSuccess(res, 201, { job }, "Job posted successfully");
 });
@@ -99,6 +132,8 @@ export const updateJob = asyncHandler(async (req, res, next) => {
     runValidators: true,
   }).populate("postedBy", "firstName lastName avatar company");
 
+  await bustJobsCache();
+
   sendSuccess(res, 200, { job }, "Job updated successfully");
 });
 
@@ -116,6 +151,7 @@ export const deleteJob = asyncHandler(async (req, res, next) => {
   }
 
   await job.deleteOne();
+  await bustJobsCache();
 
   sendSuccess(res, 200, null, "Job deleted successfully");
 });

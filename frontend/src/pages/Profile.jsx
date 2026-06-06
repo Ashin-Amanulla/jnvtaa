@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { usersAPI, batchesAPI } from "@/api";
-import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
+import { usersAPI } from "@/api";
+import { useBatches } from "@/hooks/useBatches";
 import { useAuthStore } from "@/store/auth";
 import AvatarUpload from "@/components/AvatarUpload";
 import { Save, UserCircle, Camera, CheckSquare, AlertCircle } from "lucide-react";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getBatchDisplayYear } from "@/utils/format";
+import { getBatchDisplayYear, getBatchId } from "@/utils/format";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -56,14 +56,20 @@ export default function Profile() {
   const [success, setSuccess] = useState(false);
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
 
-  const { data: batchesData, isLoading: batchesLoading } = useQuery({
-    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
-    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
-    staleTime: STALE_TIME.BATCHES,
-  });
-
-  const batches = batchesData?.data?.batches ?? [];
-  const needsBatch = !user?.batch;
+  const {
+    batches,
+    isLoading: batchesLoading,
+    isError: batchesError,
+    error: batchesQueryError,
+    refetch: refetchBatches,
+  } = useBatches();
+  const needsBatch = !getBatchId(user?.batch);
+  const selectedBatchId = getBatchId(formData.batch);
+  const batchSelectValue = batches.some(
+    (batch) => getBatchId(batch) === selectedBatchId
+  )
+    ? selectedBatchId
+    : undefined;
 
   useEffect(() => {
     if (user) {
@@ -71,7 +77,7 @@ export default function Profile() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         phone: user.phone || "",
-        batch: user.batch?._id || user.batch || "",
+        batch: getBatchId(user.batch),
         rollNumber: user.rollNumber || "",
         dateOfBirth: user.dateOfBirth
           ? new Date(user.dateOfBirth).toISOString().split("T")[0]
@@ -284,11 +290,11 @@ export default function Profile() {
                   Batch {needsBatch ? "*" : ""}
                 </Label>
                 <Select
-                  value={formData.batch || undefined}
+                  value={batchSelectValue}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, batch: value }))
                   }
-                  disabled={batchesLoading}
+                  disabled={batchesLoading || batchesError}
                 >
                   <SelectTrigger>
                     <SelectValue
@@ -298,14 +304,33 @@ export default function Profile() {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {batches.map((batch) => (
-                      <SelectItem key={batch._id} value={batch._id}>
-                        Batch of {getBatchDisplayYear(batch)}
-                      </SelectItem>
-                    ))}
+                    {batches.map((batch) => {
+                      const batchId = getBatchId(batch);
+                      return (
+                        <SelectItem key={batchId} value={batchId}>
+                          Batch of {getBatchDisplayYear(batch)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
-                {!batchesLoading && batches.length === 0 && (
+                {batchesError && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-destructive">
+                      {batchesQueryError?.message ||
+                        "Could not load batches. Please try again."}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetchBatches()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
+                {!batchesLoading && !batchesError && batches.length === 0 && (
                   <p className="text-xs text-destructive">
                     No batches available. Please contact an admin.
                   </p>

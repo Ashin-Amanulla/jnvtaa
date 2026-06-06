@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { adminEventsAPI } from "@/api/admin";
+import { QUERY_KEYS } from "@/api/queryKeys";
 import DataTable from "@/components/admin/DataTable";
 import ImageUploader from "@/components/admin/ImageUploader";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,12 @@ export default function EventsAdmin() {
     queryFn: () => adminEventsAPI.getAll({ limit: 100 }),
   });
 
+  const invalidatePublicEvents = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "events"] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.upcomingEvents });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.eventsRoot });
+  };
+
   const saveMutation = useMutation({
     mutationFn: (payload) =>
       editing
@@ -55,7 +62,7 @@ export default function EventsAdmin() {
         : adminEventsAPI.create(payload),
     onSuccess: () => {
       toast.success(editing ? "Event updated" : "Event created");
-      queryClient.invalidateQueries({ queryKey: ["admin", "events"] });
+      invalidatePublicEvents();
       closeDialog();
     },
     onError: (err) => toast.error(err.message),
@@ -65,7 +72,7 @@ export default function EventsAdmin() {
     mutationFn: (id) => adminEventsAPI.delete(id),
     onSuccess: () => {
       toast.success("Event deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "events"] });
+      invalidatePublicEvents();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -75,7 +82,7 @@ export default function EventsAdmin() {
       adminEventsAPI.update(id, { isPublished }),
     onSuccess: () => {
       toast.success("Publish status updated");
-      queryClient.invalidateQueries({ queryKey: ["admin", "events"] });
+      invalidatePublicEvents();
     },
     onError: (err) => toast.error(err.message),
   });

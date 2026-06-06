@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
-import { authAPI, batchesAPI, getGoogleAuthUrl } from "@/api";
-import { QUERY_KEYS, STALE_TIME, BATCH_LIST_PARAMS } from "@/api/queryKeys";
+import { authAPI, getGoogleAuthUrl } from "@/api";
+import { useBatches } from "@/hooks/useBatches";
 import { SketchCard } from "@/components/SketchCard";
-import { getBatchDisplayYear } from "@/utils/format";
+import { getBatchDisplayYear, getBatchId } from "@/utils/format";
 import { getPostAuthPath } from "@/utils/roles";
 import {
   Select,
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -30,13 +30,20 @@ export default function Register() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
 
-  const { data: batchesData, isLoading: batchesLoading } = useQuery({
-    queryKey: QUERY_KEYS.batches(BATCH_LIST_PARAMS),
-    queryFn: () => batchesAPI.getAll(BATCH_LIST_PARAMS),
-    staleTime: STALE_TIME.BATCHES,
-  });
+  const {
+    batches,
+    isLoading: batchesLoading,
+    isError: batchesError,
+    error: batchesQueryError,
+    refetch: refetchBatches,
+  } = useBatches();
 
-  const batches = batchesData?.data?.batches ?? [];
+  const selectedBatchId = getBatchId(formData.batch);
+  const batchSelectValue = batches.some(
+    (batch) => getBatchId(batch) === selectedBatchId
+  )
+    ? selectedBatchId
+    : undefined;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -183,12 +190,12 @@ export default function Register() {
                   Batch *
                 </label>
                 <Select
-                  value={formData.batch || undefined}
+                  value={batchSelectValue}
                   onValueChange={(value) => {
                     setFormData({ ...formData, batch: value });
                     setError("");
                   }}
-                  disabled={batchesLoading}
+                  disabled={batchesLoading || batchesError}
                 >
                   <SelectTrigger id="batch" className="input h-auto min-h-[44px]">
                     <SelectValue
@@ -198,14 +205,33 @@ export default function Register() {
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {batches.map((batch) => (
-                      <SelectItem key={batch._id} value={batch._id}>
-                        Batch of {getBatchDisplayYear(batch)}
-                      </SelectItem>
-                    ))}
+                    {batches.map((batch) => {
+                      const batchId = getBatchId(batch);
+                      return (
+                        <SelectItem key={batchId} value={batchId}>
+                          Batch of {getBatchDisplayYear(batch)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
-                {!batchesLoading && batches.length === 0 && (
+                {batchesError && (
+                  <div className="mt-2 space-y-2">
+                    <p className="font-sans text-sm text-destructive">
+                      {batchesQueryError?.message ||
+                        "Could not load batches. Please try again."}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetchBatches()}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
+                {!batchesLoading && !batchesError && batches.length === 0 && (
                   <p className="mt-2 font-sans text-sm text-destructive">
                     No batches available yet. Please try again later.
                   </p>

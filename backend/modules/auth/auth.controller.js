@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   sendRegistrationEmail,
 } from "../../services/email.service.js";
+import { bustUserStatsAndBatches } from "../../helpers/cache.js";
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -77,6 +78,8 @@ export const register = asyncHandler(async (req, res, next) => {
   } catch (err) {
     console.error("Registration email failed:", err.message);
   }
+
+  await bustUserStatsAndBatches(user.batch?._id?.toString());
 
   sendTokenResponse(user, 201, res);
 });

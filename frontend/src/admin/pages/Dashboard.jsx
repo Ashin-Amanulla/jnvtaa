@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { adminUsersAPI, adminDonationsAPI, adminContactAPI } from "@/api/admin";
+import { QUERY_KEYS, STALE_TIME } from "@/api/queryKeys";
 import { useAuthStore } from "@/store/auth";
 import { formatCurrency, formatBatchOf } from "@/utils/format";
 import {
@@ -114,18 +115,21 @@ export default function Dashboard() {
     refetch: refetchUserStats,
     isFetching: userStatsFetching,
   } = useQuery({
-    queryKey: ["admin", "user-stats"],
+    queryKey: QUERY_KEYS.userStats,
     queryFn: () => adminUsersAPI.getStats(),
+    staleTime: STALE_TIME.USER_STATS,
   });
 
   const { data: donationStats, refetch: refetchDonations } = useQuery({
     queryKey: ["admin", "donation-stats"],
     queryFn: () => adminDonationsAPI.getStats(),
+    staleTime: STALE_TIME.USER_STATS,
   });
 
   const { data: contactData, refetch: refetchContact } = useQuery({
     queryKey: ["admin", "contact-count"],
     queryFn: () => adminContactAPI.getAll({ status: "new", limit: 1 }),
+    staleTime: STALE_TIME.DEFAULT,
   });
 
   const stats = userStats?.data?.stats;

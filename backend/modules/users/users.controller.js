@@ -11,6 +11,8 @@ import { sendVerificationEmail } from "../../services/email.service.js";
 import {
   getOrSet,
   bust,
+  bustUserStatsAndBatches,
+  bustBatchesCache,
   CACHE_KEYS,
   CACHE_TTL,
 } from "../../helpers/cache.js";
@@ -112,6 +114,8 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
     return next(new AppError("User not found", 404));
   }
 
+  const previousBatchId = user.batch?.toString();
+
   // Update allowed fields
   if (firstName) user.firstName = firstName;
   if (lastName) user.lastName = lastName;
@@ -143,6 +147,12 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   await user.save();
   await user.populate("batch");
 
+  const batchChanged =
+    batch !== undefined && user.batch?.toString() !== previousBatchId;
+  if (batchChanged) {
+    await bustUserStatsAndBatches(user.batch?._id?.toString());
+  }
+
   sendSuccess(res, 200, { user }, "Profile updated successfully");
 });
 
@@ -156,6 +166,7 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
 
   user.isActive = false;
   await user.save();
+  await bust(CACHE_KEYS.usersStats());
 
   sendSuccess(res, 200, null, "Account deactivated successfully");
 });
@@ -458,6 +469,11 @@ export const adminUpdateUser = asyncHandler(async (req, res, next) => {
 
   await user.save();
   await user.populate("batch");
+
+  await bust(CACHE_KEYS.usersStats());
+  if (req.body.batch !== undefined) {
+    await bustBatchesCache(user.batch?._id?.toString());
+  }
 
   if (!wasVerified && user.isVerified) {
     try {

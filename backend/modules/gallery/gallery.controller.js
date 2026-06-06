@@ -23,6 +23,12 @@ import {
 import { isStaff } from "../../config/roles.js";
 import { slugifyGalleryName } from "../../helpers/gallerySlug.js";
 import {
+  getOrSet,
+  bustGalleryCache,
+  CACHE_KEYS,
+  CACHE_TTL,
+} from "../../helpers/cache.js";
+import {
   processGalleryImage,
   isAllowedImageFile,
 } from "../../services/imageProcessor.js";
@@ -77,70 +83,82 @@ function parseUploadMetadata(raw) {
  * Normalized to match the shape the Gallery page expects (items + folder filters).
  */
 export const getS3MediaFeed = asyncHandler(async (req, res, next) => {
-  let upstreamRes;
   try {
-    upstreamRes = await fetchUpstreamGalleryImages();
-  } catch (err) {
-    return next(new AppError(`Gallery S3 fetch failed: ${err.message}`, 502));
-  }
+    const payload = await getOrSet(
+      CACHE_KEYS.galleryFeed(),
+      CACHE_TTL.GALLERY_FEED,
+      async () => {
+        let upstreamRes;
+        try {
+          upstreamRes = await fetchUpstreamGalleryImages();
+        } catch (err) {
+          throw new AppError(`Gallery S3 fetch failed: ${err.message}`, 502);
+        }
 
-  if (!upstreamRes.ok) {
-    const text = await upstreamRes.text().catch(() => "");
-    return next(
-      new AppError(
-        `Gallery S3 error (${upstreamRes.status}): ${text.slice(0, 200)}`,
-        502,
-      ),
+        if (!upstreamRes.ok) {
+          const text = await upstreamRes.text().catch(() => "");
+          throw new AppError(
+            `Gallery S3 error (${upstreamRes.status}): ${text.slice(0, 200)}`,
+            502
+          );
+        }
+
+        const body = await upstreamRes.json().catch(() => null);
+        if (!body?.success || !body?.data) {
+          throw new AppError("Invalid gallery S3 response", 502);
+        }
+
+        const allImages = Array.isArray(body.data.allImages)
+          ? body.data.allImages
+          : [];
+
+        const items = allImages.map((img, index) => {
+          const key = img.key || img.id || `s3-${index}`;
+          const id =
+            typeof img.id === "string" && img.id.length
+              ? img.id
+              : String(key).replace(/[^a-zA-Z0-9-]/g, "-");
+
+          return {
+            _id: id,
+            url: img.url,
+            thumbnail: img.thumbnailLink || img.thumbnailUrl || img.url,
+            title: img.name || "Photo",
+            description: "",
+            type: "image",
+            folderId: img.folder?.id || "root",
+            folderName: img.folder?.name || "Album",
+            s3Key: img.key,
+            source: "s3",
+          };
+        });
+
+        const folderMap = new Map();
+        for (const item of items) {
+          if (!folderMap.has(item.folderId)) {
+            folderMap.set(item.folderId, {
+              id: item.folderId,
+              name: item.folderName,
+            });
+          }
+        }
+        const folders = [...folderMap.values()].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+
+        return { items, folders, upstream: { totalImages: items.length } };
+      }
     );
+
+    sendSuccess(
+      res,
+      200,
+      payload,
+      "S3 gallery feed retrieved successfully"
+    );
+  } catch (err) {
+    return next(err);
   }
-
-  const body = await upstreamRes.json().catch(() => null);
-  if (!body?.success || !body?.data) {
-    return next(new AppError("Invalid gallery S3 response", 502));
-  }
-
-  const allImages = Array.isArray(body.data.allImages) ? body.data.allImages : [];
-
-  const items = allImages.map((img, index) => {
-    const key = img.key || img.id || `s3-${index}`;
-    const id =
-      typeof img.id === "string" && img.id.length
-        ? img.id
-        : String(key).replace(/[^a-zA-Z0-9-]/g, "-");
-
-    return {
-      _id: id,
-      url: img.url,
-      thumbnail: img.thumbnailLink || img.thumbnailUrl || img.url,
-      title: img.name || "Photo",
-      description: "",
-      type: "image",
-      folderId: img.folder?.id || "root",
-      folderName: img.folder?.name || "Album",
-      s3Key: img.key,
-      source: "s3",
-    };
-  });
-
-  const folderMap = new Map();
-  for (const item of items) {
-    if (!folderMap.has(item.folderId)) {
-      folderMap.set(item.folderId, {
-        id: item.folderId,
-        name: item.folderName,
-      });
-    }
-  }
-  const folders = [...folderMap.values()].sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-
-  sendSuccess(
-    res,
-    200,
-    { items, folders, upstream: { totalImages: items.length } },
-    "S3 gallery feed retrieved successfully",
-  );
 });
 
 export const getGalleryFolders = asyncHandler(async (req, res, next) => {
@@ -182,6 +200,7 @@ export const removeGalleryS3Image = asyncHandler(async (req, res, next) => {
 
   try {
     const result = await deleteGalleryS3Image(key);
+    await bustGalleryCache();
     sendSuccess(res, 200, result, "Gallery image deleted successfully");
   } catch (err) {
     return next(new AppError(`Gallery image delete failed: ${err.message}`, 502));
@@ -209,6 +228,7 @@ export const renameGalleryFolderHandler = asyncHandler(async (req, res, next) =>
 
   try {
     const result = await renameGalleryFolder(slug, newSlug);
+    await bustGalleryCache();
     sendSuccess(
       res,
       200,
@@ -232,6 +252,7 @@ export const removeGalleryFolder = asyncHandler(async (req, res, next) => {
 
   try {
     const result = await deleteGalleryFolder(slug);
+    await bustGalleryCache();
     sendSuccess(res, 200, result, "Gallery deleted successfully");
   } catch (err) {
     return next(new AppError(`Gallery delete failed: ${err.message}`, 502));
@@ -341,6 +362,8 @@ export const uploadGalleryImages = asyncHandler(async (req, res, next) => {
   const parts = [`${uploads.length} image(s) uploaded`];
   if (skipped.length) parts.push(`${skipped.length} duplicate(s) skipped`);
   if (errors.length) parts.push(`${errors.length} failed`);
+
+  await bustGalleryCache();
 
   sendSuccess(
     res,

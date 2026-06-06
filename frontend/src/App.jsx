@@ -69,12 +69,13 @@ import DirectoryAdmin from "@/admin/pages/DirectoryAdmin";
 import StaffAccessAdmin from "@/admin/pages/StaffAccessAdmin";
 import AuditLogAdmin from "@/admin/pages/AuditLogAdmin";
 import SettingsAdmin from "@/admin/pages/SettingsAdmin";
+import { shouldRetryQuery } from "@/utils/queryRetry";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: shouldRetryQuery,
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
     },
