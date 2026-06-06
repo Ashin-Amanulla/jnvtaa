@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -31,6 +32,21 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { formatDate } from "@/utils/format";
+
+function toDatetimeLocalValue(value) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+}
+
+function toIsoDate(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
 
 const STAGES = [
   { value: "group", label: "Group" },
@@ -106,9 +122,7 @@ function CampaignForm({ campaign, onSaved }) {
     name: campaign?.name || "",
     description: campaign?.description || "",
     status: campaign?.status || "upcoming",
-    registrationCloseAt: campaign?.registrationCloseAt
-      ? campaign.registrationCloseAt.slice(0, 16)
-      : "",
+    registrationCloseAt: toDatetimeLocalValue(campaign?.registrationCloseAt),
   });
 
   const mutation = useMutation({
@@ -127,7 +141,7 @@ function CampaignForm({ campaign, onSaved }) {
     e.preventDefault();
     mutation.mutate({
       ...form,
-      registrationCloseAt: form.registrationCloseAt || null,
+      registrationCloseAt: toIsoDate(form.registrationCloseAt),
     });
   };
 
@@ -249,7 +263,7 @@ function MatchesTab({ campaign, matches, onChanged }) {
     setForm({
       teamA: m.teamA,
       teamB: m.teamB,
-      kickoffAt: m.kickoffAt ? m.kickoffAt.slice(0, 16) : "",
+      kickoffAt: toDatetimeLocalValue(m.kickoffAt),
       stage: m.stage || "group",
     });
     setDialogOpen(true);
@@ -337,11 +351,18 @@ function MatchesTab({ campaign, matches, onChanged }) {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit match" : "Add match"}</DialogTitle>
+            <DialogDescription>
+              Set teams, kickoff time, and tournament stage. Predictions lock one
+              hour before kickoff.
+            </DialogDescription>
           </DialogHeader>
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              saveMutation.mutate(form);
+              saveMutation.mutate({
+                ...form,
+                kickoffAt: toIsoDate(form.kickoffAt),
+              });
             }}
             className="space-y-4"
           >
@@ -428,6 +449,9 @@ function MatchesTab({ campaign, matches, onChanged }) {
                 </span>
               )}
             </DialogTitle>
+            <DialogDescription>
+              Save the final score to score all predictions for this match.
+            </DialogDescription>
           </DialogHeader>
           <form
             onSubmit={(e) => {

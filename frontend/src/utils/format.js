@@ -1,15 +1,24 @@
-import { format, formatDistance, formatRelative } from "date-fns";
+import { format, formatDistance, formatRelative, isValid } from "date-fns";
 
-export const formatDate = (date, formatStr = "PPP") => {
-  return format(new Date(date), formatStr);
+export const formatDate = (date, formatStr = "PPP", fallback = "—") => {
+  if (date == null || date === "") return fallback;
+  const parsed = new Date(date);
+  if (!isValid(parsed)) return fallback;
+  return format(parsed, formatStr);
 };
 
-export const formatRelativeDate = (date) => {
-  return formatRelative(new Date(date), new Date());
+export const formatRelativeDate = (date, fallback = "—") => {
+  if (date == null || date === "") return fallback;
+  const parsed = new Date(date);
+  if (!isValid(parsed)) return fallback;
+  return formatRelative(parsed, new Date());
 };
 
-export const formatTimeAgo = (date) => {
-  return formatDistance(new Date(date), new Date(), { addSuffix: true });
+export const formatTimeAgo = (date, fallback = "—") => {
+  if (date == null || date === "") return fallback;
+  const parsed = new Date(date);
+  if (!isValid(parsed)) return fallback;
+  return formatDistance(parsed, new Date(), { addSuffix: true });
 };
 
 export const formatCurrency = (amount, currency = "INR") => {
